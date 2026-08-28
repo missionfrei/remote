@@ -150,7 +150,7 @@
 <div class="hero">
   <div class="welcome">Dein privater Members-Bereich</div>
   <h1 class="h">Deine Remote-Positionen. <span class="hl">Nach Bereichen für dich sortiert.</span></h1>
-  <p class="sub">Wähle oben deinen farbigen <b style="color:var(--silver)">Bereich</b> – oder stöbere durch „Alle". Mit dem <b style="color:var(--silver)">Level</b>-Schalter zeigst du gezielt 🌱 Einsteiger- oder 🚀 anspruchsvollere Stellen. 🌍 Weltweit = von überall arbeitbar.</p>
+  <p class="sub">Wähle oben deinen farbigen <b style="color:var(--silver)">Bereich</b> – oder stöbere durch „Alle". Auf jeder Karte siehst du, ob sie 🌱 einsteigergeeignet oder 🚀 anspruchsvoller ist. 🌍 Weltweit = von überall arbeitbar.</p>
 </div>
 
 <div class="stats">
@@ -173,11 +173,6 @@
     <span class="chip" data-f="ber:it">⚫ IT &amp; Tech</span>
     <span class="chip" data-f="freelance">🧑‍💻 Freelance</span>
     <span class="chip" data-f="toolbox">🧰 Toolbox</span>
-  </div>
-  <div class="chips lvlrow">
-    <span class="lvllabel">Level:</span>
-    <span class="chip lv" data-lv="einsteiger">🌱 Einsteiger</span>
-    <span class="chip lv" data-lv="erfahren">🚀 Anspruchsvoll</span>
   </div>
 </div>
 
@@ -3345,7 +3340,7 @@
   try{var saved=localStorage.getItem('mf_pw'); if(saved && PWS.indexOf(saved)>-1){unlock();}}catch(e){}
 
   var q=document.getElementById('q');
-  var active='all', lvl='';
+  var active='all';
   function apply(){
     var tb=document.getElementById('toolbox');
     var fl=document.getElementById('freelance');
@@ -3361,9 +3356,8 @@
     var s=(q.value||'').toLowerCase();
     document.querySelectorAll('.card').forEach(function(c){
       var okB=(active==='all')||(active.indexOf('ber:')===0 && c.dataset.bereich===active.slice(4));
-      var okL=!lvl||c.dataset.level===lvl;
       var okS=!s||c.textContent.toLowerCase().indexOf(s)>-1;
-      c.classList.toggle('hidden',!(okB&&okL&&okS));
+      c.classList.toggle('hidden',!(okB&&okS));
     });
     document.querySelectorAll('section').forEach(function(sec){
       if(sec.id==='toolbox')return;
@@ -3375,12 +3369,6 @@
   document.querySelectorAll('.chip:not(.lv)').forEach(function(ch){ch.addEventListener('click',function(){
     document.querySelectorAll('.chip:not(.lv)').forEach(function(x){x.classList.remove('active');});
     ch.classList.add('active');active=ch.dataset.f;apply();
-  });});
-  document.querySelectorAll('.chip.lv').forEach(function(ch){ch.addEventListener('click',function(){
-    var v=ch.dataset.lv;
-    if(lvl===v){lvl='';ch.classList.remove('active');}
-    else{lvl=v;document.querySelectorAll('.chip.lv').forEach(function(x){x.classList.remove('active');});ch.classList.add('active');}
-    apply();
   });});
 })();
 </script>
