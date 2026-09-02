@@ -136,6 +136,13 @@
   .linkcols a:hover{border-color:var(--gold);color:var(--gold)}
   footer{margin-top:50px;border-top:1px solid var(--border-soft);padding-top:22px;color:#8b8577;font-size:12px;line-height:1.7;max-width:900px}
   footer b{color:var(--muted)}
+  /* Favoriten / Stern */
+  .card{position:relative}
+  .card h3{padding-right:36px}
+  .star{position:absolute;top:9px;right:9px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:none;background:transparent;cursor:pointer;font-size:20px;line-height:1;color:#cdc6b6;padding:0;margin:0;border-radius:8px;transition:transform .12s ease,color .12s ease,background .12s ease;z-index:3}
+  .star:hover{transform:scale(1.15);color:var(--gold);background:var(--gold-soft)}
+  .star.on{color:var(--gold)}
+  .favempty{color:var(--muted);font-size:14px;padding:10px 2px 4px;line-height:1.55}
 </style>
 </head>
 <body>
@@ -167,10 +174,10 @@
 </div>
 
 <div class="stats">
-  <div class="stat"><b>611</b><span>Positionen aktuell</span></div>
+  <div class="stat"><b>620</b><span>Positionen aktuell</span></div>
   <div class="stat"><b>246</b><span>weltweit machbar</span></div>
-  <div class="stat"><b>381</b><span>Einsteiger-geeignet</span></div>
-  <div class="stat"><b>397</b><span>auf Deutsch</span></div>
+  <div class="stat"><b>383</b><span>Einsteiger-geeignet</span></div>
+  <div class="stat"><b>406</b><span>auf Deutsch</span></div>
 </div>
 
 <div class="toolbar">
@@ -186,11 +193,75 @@
     <span class="chip" data-f="ber:it">⚫ IT &amp; Tech</span>
     <span class="chip" data-f="freelance">🧑‍💻 Freelance</span>
     <span class="chip" data-f="toolbox">🧰 Toolbox</span>
+    <span class="chip" data-f="fav">⭐ Deine Favoriten</span>
   </div>
 </div>
 
-<section data-ber="service"><h2 style="border-left:4px solid #0e7a52;padding-left:12px">🟢 Service <span class="cnt">136 Stellen</span></h2>
+<section data-ber="service"><h2 style="border-left:4px solid #0e7a52;padding-left:12px">🟢 Service <span class="cnt">145 Stellen</span></h2>
 <div class="grid">
+<div class="card" data-bereich="service" data-level="erfahren" data-lang="de">
+  <h3>Reservations Agent</h3>
+  <div class="company">Odyssey Hotel Group</div>
+  <p class="info">Eingehende Reservierungsanfragen per Telefon und E-Mail bearbeiten und Buchungen praezise abwickeln - hybrid im Homeoffice aus Deutschland, deutschsprachig mit Englischkenntnissen, Hotel- oder Reservierungserfahrung von Vorteil.</p>
+  <div class="meta"><span class="tag de">🇩🇪 DE</span><span class="tag">📈 Mit Erfahrung</span><span class="tag delang">Deutsch</span><span class="tag date">📅 02.09.2026</span></div>
+  <div class="go"><a href="https://www.remotely.de/job/odyssey-hotel-group-reservations-agent" target="_blank" rel="noopener">Zur Stelle →</a></div>
+</div>
+<div class="card" data-bereich="service" data-level="erfahren" data-lang="de">
+  <h3>Reiseberater (m/w/d) B2B Touristik</h3>
+  <div class="company">Talentlify</div>
+  <p class="info">Massgeschneiderte Premium-Individualreisen fuer Reisebuero-Partner gestalten und verkaufen sowie Flugbuchungen ueber Amadeus und IATA abwickeln - Homeoffice-Anteil aus Deutschland, deutschsprachig mit Englisch, mehrjaehrige Touristik-Erfahrung erforderlich.</p>
+  <div class="meta"><span class="tag de">🇩🇪 DE</span><span class="tag">📈 Mit Erfahrung</span><span class="tag delang">Deutsch</span><span class="tag date">📅 02.09.2026</span></div>
+  <div class="go"><a href="https://www.remotely.de/job/talentlify-reiseberater-mwd-b2b-touristik-homeoffice-frankfurt" target="_blank" rel="noopener">Zur Stelle →</a></div>
+</div>
+<div class="card" data-bereich="service" data-level="erfahren" data-lang="de">
+  <h3>Travel Agent (m/w/d) B2B Touristik</h3>
+  <div class="company">Talentlify</div>
+  <p class="info">Premium-Individual- und Gruppenreisen fuer Reisebuero-Partner entwickeln und verkaufen, Buchungen mit Amadeus und IATA-Flugexpertise - hybrid aus Deutschland, deutschsprachig mit Englisch, mehrjaehrige Reisebuero-Erfahrung noetig.</p>
+  <div class="meta"><span class="tag de">🇩🇪 DE</span><span class="tag">📈 Mit Erfahrung</span><span class="tag delang">Deutsch</span><span class="tag date">📅 02.09.2026</span></div>
+  <div class="go"><a href="https://www.remotely.de/job/talentlify-travel-agent-mwd-b2b-touristik-homeoffice-frankfurt" target="_blank" rel="noopener">Zur Stelle →</a></div>
+</div>
+<div class="card" data-bereich="service" data-level="erfahren" data-lang="de">
+  <h3>Reservations Agent Remote (m/w/d)</h3>
+  <div class="company">STAYERY</div>
+  <p class="info">Gaesteanfragen und Reservierungen fuer elf STAYERY-Standorte ueber mehrere Kanaele bearbeiten und im Apaleo-System pflegen - komplett remote aus Deutschland, deutschsprachig mit Englisch, Hotellerie-Erfahrung erwuenscht.</p>
+  <div class="meta"><span class="tag de">🇩🇪 DE</span><span class="tag">📈 Mit Erfahrung</span><span class="tag delang">Deutsch</span><span class="tag date">📅 02.09.2026</span></div>
+  <div class="go"><a href="https://www.remotely.de/job/stayery-reservations-agent-remote-mwd-homeoffice-day-shift" target="_blank" rel="noopener">Zur Stelle →</a></div>
+</div>
+<div class="card" data-bereich="service" data-level="erfahren" data-lang="de">
+  <h3>Tourismuskauffrau / Travel Consultant Luxusreisen &amp; Kreuzfahrten</h3>
+  <div class="company">FiTra</div>
+  <p class="info">Individuelle Luxusreisen und Kreuzfahrten planen und die komplette Reiselogistik mit Fluegen, Hotels, Transfers und Visa organisieren - 100 Prozent remote, deutschsprachig auf Muttersprachniveau, Touristik-Erfahrung vorausgesetzt.</p>
+  <div class="meta"><span class="tag de">🇩🇪 DE</span><span class="tag">📈 Mit Erfahrung</span><span class="tag delang">Deutsch</span><span class="tag date">📅 02.09.2026</span></div>
+  <div class="go"><a href="https://jobsimtourismus.de/tourismuskauffrau-travel-consultant-m-w-d-fuer-luxusreisen-kreuzfahrten-100-remote-fitra/" target="_blank" rel="noopener">Zur Stelle →</a></div>
+</div>
+<div class="card" data-bereich="service" data-level="einsteiger" data-lang="de">
+  <h3>Travel Counselor - German &amp; English</h3>
+  <div class="company">Amex GBT</div>
+  <p class="info">Geschaeftsreisen fuer Firmenkunden ueber GDS-Systeme buchen und betreuen - remote aus Spanien beziehungsweise EU, deutschsprachig mit Englisch, Einstieg mit umfassender Einarbeitung und Aufstiegschancen moeglich.</p>
+  <div class="meta"><span class="tag eu">🇪🇺 EU</span><span class="tag lvl">🌱 Einsteiger</span><span class="tag delang">Deutsch</span><span class="tag date">📅 02.09.2026</span></div>
+  <div class="go"><a href="https://travelhrportal.wd1.myworkdayjobs.com/en-US/Jobs/job/Travel-Counselor---German---English_J-82073" target="_blank" rel="noopener">Zur Stelle →</a></div>
+</div>
+<div class="card" data-bereich="service" data-level="erfahren" data-lang="de">
+  <h3>Travel Consultant - After Hours (Amadeus)</h3>
+  <div class="company">Amex GBT</div>
+  <p class="info">Geschaeftsreisen internationaler Kunden im After-Hours-Dienst ueber Amadeus buchen und Reiserichtlinien einhalten - remote aus Spanien beziehungsweise EU, deutschsprachig mit Englisch, mindestens zwei Jahre Amadeus-Erfahrung noetig.</p>
+  <div class="meta"><span class="tag eu">🇪🇺 EU</span><span class="tag">📈 Mit Erfahrung</span><span class="tag delang">Deutsch</span><span class="tag date">📅 02.09.2026</span></div>
+  <div class="go"><a href="https://travelhrportal.wd1.myworkdayjobs.com/en-US/Jobs/job/Travel-Consultant---After-Hours---German-and-English-Speaking-with-Amadeus_J-82087" target="_blank" rel="noopener">Zur Stelle →</a></div>
+</div>
+<div class="card" data-bereich="service" data-level="erfahren" data-lang="de">
+  <h3>Travel Agent</h3>
+  <div class="company">Scan Travel Services</div>
+  <p class="info">Geschaeftsreisen fuer Kunden organisieren und buchen, Reservierungen, Unterkuenfte und Transport ueber Amadeus abwickeln - komplett remote aus Deutschland, deutschsprachig mit Englisch, mehrjaehrige Amadeus-Erfahrung erforderlich.</p>
+  <div class="meta"><span class="tag de">🇩🇪 DE</span><span class="tag">📈 Mit Erfahrung</span><span class="tag delang">Deutsch</span><span class="tag date">📅 02.09.2026</span></div>
+  <div class="go"><a href="https://www.remotely.de/job/scan-travel-services-travel-agent" target="_blank" rel="noopener">Zur Stelle →</a></div>
+</div>
+<div class="card" data-bereich="service" data-level="einsteiger" data-lang="de">
+  <h3>Customer Service Expert (m/w/d)</h3>
+  <div class="company">Sunny Cars</div>
+  <p class="info">Reisebueros und Mietwagenkunden per Telefon und E-Mail zu Buchungen beraten und Probleme vor Ort loesen - hybrid im Homeoffice aus Deutschland, deutschsprachig mit Englisch, Quereinsteiger willkommen.</p>
+  <div class="meta"><span class="tag de">🇩🇪 DE</span><span class="tag lvl">🌱 Einsteiger</span><span class="tag delang">Deutsch</span><span class="tag date">📅 02.09.2026</span></div>
+  <div class="go"><a href="https://join.com/companies/sunnycars/16614640-customer-service-expert-m-w-d" target="_blank" rel="noopener">Zur Stelle →</a></div>
+</div>
 <div class="card" data-bereich="service" data-level="einsteiger" data-lang="de">
   <h3>Kundenservice-Talent (Freelance)</h3>
   <div class="company">Yoummday</div>
@@ -4628,6 +4699,12 @@
   </div>
 </section>
 
+<section id="favoriten" class="hidden">
+  <h2 style="border-left:4px solid #a8842e;padding-left:12px">⭐ Deine Favoriten <span class="cnt">Deine mit Stern markierten Stellen</span></h2>
+  <div class="grid"></div>
+  <p class="favempty">Noch keine Favoriten gespeichert. Tippe bei einer Stelle oben rechts auf den ☆ Stern – dann sammelst du sie hier, nur für dich sichtbar.</p>
+</section>
+
 <footer><b>Zugang &amp; Nutzung.</b> Dieser Mitglieder-Bereich und deine Zugangsdaten sind ausschließlich für dich persönlich bestimmt. Die Weitergabe von Link, Passwort oder Inhalten an Dritte ist nicht gestattet und kann zur sofortigen Sperrung des Zugangs führen. Die Zusammenstellung dieser Seite (Auswahl, Aufbereitung, Struktur) ist urheberrechtlich geschützt; eine Vervielfältigung oder Veröffentlichung – auch auszugsweise – bedarf unserer vorherigen Zustimmung.
 <br><br><b>Stellenangebote.</b> Alle gelisteten Positionen stammen von öffentlich zugänglichen Quellen bzw. den jeweiligen Anbietern und werden regelmäßig aktualisiert. Wir sind nicht der Anbieter dieser Stellen: Bewerbung, Vertragsschluss und alle Konditionen laufen ausschließlich zwischen dir und dem jeweiligen Unternehmen. Für Inhalte, Verfügbarkeit und Richtigkeit verlinkter Drittseiten übernehmen wir keine Gewähr; Angebote können jederzeit durch den Anbieter offline genommen werden. Diese Übersicht stellt keine Arbeitsvermittlung und keine Rechts- oder Steuerberatung dar; Erfolgs- oder Einstellungszusagen sind damit nicht verbunden.
 <br><br><b>Meldungen.</b> Ein Link funktioniert nicht oder eine Stelle ist vergeben? Sag uns kurz in deiner WhatsApp-Gruppe Bescheid – wir halten das Board für dich aktuell.
@@ -4637,13 +4714,15 @@
 <script>
 (function(){
   var PWS=["annette26", "lisamaria26", "mission-freiheit", "missionfrei2026", "stefanie26"];
+  var CUR='';
   function unlock(){
     document.getElementById('gate').style.display='none';
     document.getElementById('app').style.display='block';
+    paintStars();
   }
   function tryPw(v){
     v=(v||'').trim().toLowerCase();
-    if(PWS.indexOf(v)>-1){try{localStorage.setItem('mf_pw',v);}catch(e){}unlock();return true;}
+    if(PWS.indexOf(v)>-1){CUR=v;try{localStorage.setItem('mf_pw',v);}catch(e){}unlock();return true;}
     return false;
   }
   document.getElementById('pwbtn').addEventListener('click',function(){
@@ -4652,14 +4731,73 @@
   document.getElementById('pw').addEventListener('keydown',function(e){
     if(e.key==='Enter' && !tryPw(document.getElementById('pw').value)){document.getElementById('gate-err').style.display='block';}
   });
-  try{var saved=localStorage.getItem('mf_pw'); if(saved && PWS.indexOf(saved)>-1){unlock();}}catch(e){}
+
+  /* ---- Favoriten: pro Person, an das Login-Passwort gekoppelt ---- */
+  function favKey(){return 'mf_fav_'+CUR;}
+  function getFav(){try{return new Set(JSON.parse(localStorage.getItem(favKey())||'[]'));}catch(e){return new Set();}}
+  function saveFav(set){try{localStorage.setItem(favKey(),JSON.stringify(Array.from(set)));}catch(e){}}
+  function cardUrl(c){var a=c.querySelector('.go a[href]');return a?a.getAttribute('href'):'';}
+  function initStars(){
+    document.querySelectorAll('.card').forEach(function(c){
+      if(c.closest('#toolbox')||c.closest('#favoriten'))return;
+      if(c.querySelector('.star'))return;
+      var u=cardUrl(c); if(!u)return;
+      var b=document.createElement('button');
+      b.type='button'; b.className='star'; b.textContent='\u2606';
+      b.setAttribute('data-url',u);
+      b.setAttribute('aria-label','Zu Favoriten hinzuf\u00fcgen');
+      c.insertBefore(b,c.firstChild);
+    });
+  }
+  function paintStars(){
+    var f=getFav();
+    document.querySelectorAll('.star').forEach(function(st){
+      var on=f.has(st.getAttribute('data-url'));
+      st.classList.toggle('on',on);
+      st.textContent=on?'\u2605':'\u2606';
+      st.setAttribute('aria-label',on?'Aus Favoriten entfernen':'Zu Favoriten hinzuf\u00fcgen');
+    });
+  }
+  function buildFav(){
+    var sec=document.getElementById('favoriten');
+    var grid=sec.querySelector('.grid');
+    var empty=sec.querySelector('.favempty');
+    var cnt=sec.querySelector('h2 .cnt');
+    var f=getFav(); grid.innerHTML=''; var n=0;
+    document.querySelectorAll('.card').forEach(function(c){
+      if(c.closest('#favoriten')||c.closest('#toolbox'))return;
+      var u=cardUrl(c); if(!u||!f.has(u))return;
+      var cl=c.cloneNode(true); cl.classList.remove('hidden'); grid.appendChild(cl); n++;
+    });
+    empty.style.display=n?'none':'block';
+    if(cnt)cnt.textContent=n?(n+' '+(n===1?'Stelle':'Stellen')):'Deine mit Stern markierten Stellen';
+    paintStars();
+  }
+  document.getElementById('app').addEventListener('click',function(e){
+    var st=e.target.closest?e.target.closest('.star'):null;
+    if(!st)return;
+    e.preventDefault(); e.stopPropagation();
+    if(!CUR)return;
+    var f=getFav(); var u=st.getAttribute('data-url');
+    if(f.has(u))f.delete(u); else f.add(u);
+    saveFav(f);
+    if(active==='fav')buildFav(); else paintStars();
+  });
 
   var q=document.getElementById('q');
   var active='all';
   function apply(){
     var tb=document.getElementById('toolbox');
     var fl=document.getElementById('freelance');
+    var fav=document.getElementById('favoriten');
     var sects=document.querySelectorAll('section');
+    fav.classList.add('hidden');
+    if(active==='fav'){
+      buildFav();
+      sects.forEach(function(s2){s2.classList.add('hidden');});
+      fav.classList.remove('hidden');
+      return;
+    }
     if(active==='toolbox'||active==='freelance'){
       var show=(active==='toolbox')?tb:fl;
       sects.forEach(function(s2){s2.classList.add('hidden');});
@@ -4667,15 +4805,16 @@
       return;
     }
     tb.classList.add('hidden');
-    sects.forEach(function(s2){if(s2!==tb)s2.classList.remove('hidden');});
+    sects.forEach(function(s2){if(s2!==tb && s2!==fav)s2.classList.remove('hidden');});
     var s=(q.value||'').toLowerCase();
     document.querySelectorAll('.card').forEach(function(c){
+      if(c.closest('#favoriten'))return;
       var okB=(active==='all')||(active.indexOf('ber:')===0 && c.dataset.bereich===active.slice(4));
       var okS=!s||c.textContent.toLowerCase().indexOf(s)>-1;
       c.classList.toggle('hidden',!(okB&&okS));
     });
     document.querySelectorAll('section').forEach(function(sec){
-      if(sec.id==='toolbox')return;
+      if(sec.id==='toolbox'||sec.id==='favoriten')return;
       var vis=sec.querySelectorAll('.card:not(.hidden)').length;
       sec.classList.toggle('hidden',vis===0);
     });
@@ -4685,6 +4824,9 @@
     document.querySelectorAll('.chip:not(.lv)').forEach(function(x){x.classList.remove('active');});
     ch.classList.add('active');active=ch.dataset.f;apply();
   });});
+
+  initStars();
+  try{var saved=localStorage.getItem('mf_pw'); if(saved && PWS.indexOf(saved)>-1){CUR=saved;unlock();}}catch(e){}
 })();
 </script>
 </body>
