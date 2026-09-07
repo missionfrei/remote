@@ -264,6 +264,22 @@ SOURCES = [
     ("nodesk",        "https://nodesk.co/remote-jobs/feed/",             from_rss_generic, "text"),
     ("jobspresso",    "https://jobspresso.co/remote-work/feed/",         from_rss_generic, "text"),
     ("remote3",       "https://remote3.co/feed",                         from_rss_generic, "text"),
+    # --- Runde: mehr Boersen + gezielte deutschsprachige/kundennahe Suchen ---
+    ("remotive-kundenservice","https://remotive.com/api/remote-jobs?search=kundenservice",   from_remotive, "json"),
+    ("remotive-support-de",   "https://remotive.com/api/remote-jobs?search=german%20support", from_remotive, "json"),
+    ("remotive-reservation",  "https://remotive.com/api/remote-jobs?search=reservation",       from_remotive, "json"),
+    ("remotive-travel",       "https://remotive.com/api/remote-jobs?search=travel",            from_remotive, "json"),
+    ("remotive-assistant",    "https://remotive.com/api/remote-jobs?search=assistant%20german", from_remotive, "json"),
+    ("jobicy-support",        "https://jobicy.com/api/v2/remote-jobs?count=100&industry=supporting", from_jobicy, "json"),
+    ("jobicy-admin",          "https://jobicy.com/api/v2/remote-jobs?count=100&industry=admin",      from_jobicy, "json"),
+    ("arbeitnow-6",           "https://www.arbeitnow.com/api/job-board-api?page=6", from_arbeitnow, "json"),
+    ("arbeitnow-7",           "https://www.arbeitnow.com/api/job-board-api?page=7", from_arbeitnow, "json"),
+    ("arbeitnow-8",           "https://www.arbeitnow.com/api/job-board-api?page=8", from_arbeitnow, "json"),
+    ("remoteok-cs",           "https://remoteok.com/remote-customer-support-jobs.rss", from_rss_generic, "text"),
+    ("remoteok-nontech",      "https://remoteok.com/remote-non-tech-jobs.rss",         from_rss_generic, "text"),
+    ("remotewoman",           "https://remotewoman.com/feed/",                         from_rss_generic, "text"),
+    ("jobicy-rss",            "https://jobicy.com/?feed=job_feed",                     from_rss_generic, "text"),
+    ("dailyremote",           "https://dailyremote.com/feed",                          from_rss_generic, "text"),
 ]
 
 def gather():
