@@ -5483,5 +5483,70 @@
   "date": "laufend offen",
   "fd": false,
   "src": "import"
+ },
+ {
+  "title": "Technical Support Engineer (German & English)",
+  "company": "Kinsta",
+  "url": "https://kinsta.com/careers/",
+  "info": "Kinsta (WordPress-Hosting), 100% weltweit remote von ueberall: deutschsprachiger technischer Support, Voll-/Teilzeit.",
+  "lang": "de",
+  "region": "world",
+  "level": "einsteiger",
+  "bereich": "it",
+  "date": "laufend offen",
+  "fd": false,
+  "src": "import"
+ },
+ {
+  "title": "WordPress Technical Supporter (deutschsprachig)",
+  "company": "OnTheGoSystems",
+  "url": "https://onthegosystems.com/jobs/",
+  "info": "OnTheGoSystems (WPML), voll remote weltweit von ueberall: deutschsprachiger WordPress-Support, einsteigerfreundlich.",
+  "lang": "de",
+  "region": "world",
+  "level": "einsteiger",
+  "bereich": "it",
+  "date": "laufend offen",
+  "fd": false,
+  "src": "import"
+ },
+ {
+  "title": "Technical Customer Success (deutschsprachig)",
+  "company": "Hostinger",
+  "url": "https://www.hostinger.com/career",
+  "info": "Hostinger (Hosting), weltweit remote: sprachspezifischer technischer Customer Success inkl. Deutsch, einsteigerfreundlich.",
+  "lang": "de",
+  "region": "world",
+  "level": "einsteiger",
+  "bereich": "it",
+  "date": "laufend offen",
+  "fd": false,
+  "src": "import"
+ },
+ {
+  "title": "WordPress Support Specialist (mehrsprachig)",
+  "company": "WPMU DEV",
+  "url": "https://incsub.com/careers/",
+  "info": "WPMU DEV/Incsub, voll remote weltweit von ueberall: WordPress-Support-Team, mehrsprachig inkl. Deutsch, einsteigerfreundlich.",
+  "lang": "de",
+  "region": "world",
+  "level": "einsteiger",
+  "bereich": "it",
+  "date": "laufend offen",
+  "fd": false,
+  "src": "import"
+ },
+ {
+  "title": "Operations / Kundensupport (mehrsprachig)",
+  "company": "Xapo Bank",
+  "url": "https://www.xapobank.com/en/careers",
+  "info": "Xapo Bank (voll-remote Bank), 100% weltweit remote von ueberall: Operations-/Support-Rollen, mehrsprachig inkl. Deutsch.",
+  "lang": "de",
+  "region": "world",
+  "level": "einsteiger",
+  "bereich": "buero",
+  "date": "laufend offen",
+  "fd": false,
+  "src": "import"
  }
 ]
