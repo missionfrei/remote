@@ -317,7 +317,7 @@ def process(raw_jobs):
         if lang=="de":
             keep = region in ("world","eu")               # deutschsprachig: weltweit ODER EU-ortsunabhaengig
         else:
-            keep = (region=="world" and ber in ("service","start","buero","sprache","marketing"))
+            keep = (region=="world" and ber in ("service","start","buero","sprache","marketing","vertrieb"))
         if not keep: continue
         u=j["url"].rstrip("/")
         if u in seen: continue
