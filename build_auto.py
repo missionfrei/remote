@@ -46,8 +46,14 @@ BEREICH_KW = {
 BEREICH_ORDER = [b[0] for b in BEREICHE]
 
 DE_MARKERS = ["deutsch","german","(m/w/d)","m/w/d","mwd","stelle","mitarbeiter","kundenbetreu","buchhalt","vertrieb","home office","homeoffice"]
-WORLD_MARKERS = ["worldwide","anywhere","weltweit","global","work from anywhere","location independent","location-independent","anywhere in the world","remote worldwide","international remote","fully remote worldwide",
+# NUR starke "der Mensch darf ueberall sitzen"-Signale. RAUS: "global"/"weltweit" bar (=Firmen-Boilerplate
+# "global agierendes Unternehmen"/"weltweit taetig" -> das ist KEIN weltweit-remote-Job). Paul-Fix: keine
+# Deutschland-nur-Stellen mehr als "weltweit" faelschlich labeln.
+WORLD_MARKERS = ["worldwide","anywhere","work from anywhere","work from any","location independent","location-independent","anywhere in the world","remote worldwide","fully remote worldwide","remote, global","fully distributed","from any country",
     "ortsunabhängig","ortsunabhaengig","von überall","von ueberall","standortunabhängig","standortunabhaengig","überall arbeiten","ueberall arbeiten","remote weltweit","weltweit remote","von zuhause aus überall"]
+# Land-/Deutschland-gebunden: hat VORRANG vor World/EU (killt faelschliches "weltweit" aus Boilerplate).
+# "deutschlandweit"/"bundesweit" = remote INNERHALB Deutschlands = Deutschland-nur.
+DE_ONLY_MARKERS = ["deutschlandweit","bundesweit","nur in deutschland","innerhalb deutschlands","wohnsitz in deutschland","in deutschland ansässig","in deutschland ansaessig","must be based in germany","based in germany","germany-based","located in germany","residence in germany","germany only","remote (germany)","remote - germany","germany (remote)","remote in deutschland","deutschland (remote)"]
 EU_MARKERS = ["europe","eu ","emea","cet","european","europaweit","eu-weit","euweit","innerhalb europas","remote in europa","eu remote","europe remote","remote europe","remote (europe)","eu-remote"]
 EINSTEIGER_MARKERS = ["junior","entry","einsteiger","quereinstieg","quereinsteiger","no experience","keine erfahrung","berufseinsteiger","trainee","aushilfe","praktik"]
 BLOCK = ["werkstud","working student",   # Paul: keine Werkstudenten
@@ -79,7 +85,8 @@ def detect(job):
     """Ergaenzt lang/region/level anhand des Textes."""
     t = (job["title"] + " " + job.get("raw_loc","") + " " + job.get("raw_tags","") + " " + job.get("info","") + " " + job.get("raw_desc","")).lower()
     lang = "de" if any(m in t for m in DE_MARKERS) else "en"
-    if any(m in t for m in WORLD_MARKERS): region = "world"
+    if any(m in t for m in DE_ONLY_MARKERS): region = "de"   # Land-gebunden hat Vorrang -> wird von der Weltweit-First-Regel gedroppt
+    elif any(m in t for m in WORLD_MARKERS): region = "world"
     elif any(m in t for m in EU_MARKERS):  region = "eu"
     else: region = "de"   # ohne expliziten Weltweit-/EU-Marker: als Deutschland-nur behandeln (-> wird gefiltert)
     level = "einsteiger" if any(m in t for m in EINSTEIGER_MARKERS) else "erfahren"
@@ -249,6 +256,8 @@ ATS_REMOTE   = re.compile(r"\bremote\b|anywhere|worldwide|work from home|home[\-
 ATS_WORLD    = re.compile(r"worldwide|anywhere|global|work from anywhere", re.I)
 ATS_EU       = re.compile(r"\bemea\b|europe|european|\beu\b|\bcet\b|\bdach\b", re.I)
 ATS_SENIOR   = re.compile(r"senior|lead|principal|staff|head of|director|\bvp\b|vice president|manager|chief|expert", re.I)
+# Kundennahe Rollen (fuer WELTWEIT-Englisch: Lisa hat DE C2+EN, Annette kann Englisch) - passt zu Lisa/Annette
+ATS_CUSTFACING = re.compile(r"support|customer|success|happiness|\bcare\b|\bservice\b|guest|reservation|concierge|assistant|operations|moderation|community|help ?desk|\bclient\b|onboarding|trust ?&? ?safety", re.I)
 
 def _ats_region(loc, region_default):
     """world/eu aus der Location; None = konkreter Ort/Land -> laendergebunden -> raus (Paul: weltweit ist Pflicht)."""
@@ -262,16 +271,29 @@ def _ats_region(loc, region_default):
 def _ats_emit(company, title, url, loc, desc, remote_flag, ber_default, region_default):
     title=(title or "").strip()
     if not title or not url: return None
-    if not (ATS_GER_TITLE.search(title) or ATS_GER_DESC.search(desc or "")): return None   # muss deutschsprachig sein
     remote_ok = remote_flag or bool(ATS_REMOTE.search((title+" "+(loc or "")+" "+(desc or "")).lower()))
     if not remote_ok: return None
     region=_ats_region(loc, region_default)
-    if region is None: return None
+    if region is None: return None                       # laendergebunden ("Germany - Remote", "Budapest") -> raus
+    german = bool(ATS_GER_TITLE.search(title) or ATS_GER_DESC.search(desc or ""))
+    custfacing = bool(ATS_CUSTFACING.search(title))
+    # deutschsprachig: world ODER eu ok. Sonst: WELTWEIT + kundennah in Englisch (Lisa/Annette koennen Englisch).
+    if german:
+        pass
+    elif region=="world" and custfacing:
+        pass
+    else:
+        return None
     ber=detect_bereich(title) or ber_default
+    if ber=="it" and custfacing: ber=ber_default        # "Happiness/Support Engineer" = Kundenservice, nicht IT
     level="erfahren" if ATS_SENIOR.search(title) else "einsteiger"
-    info=clean_text(desc,170) or f"{company}: deutschsprachige Remote-Stelle - aktuell offen, Details ueber den Link."
+    lang="de" if german else "en"
+    if german:
+        info=clean_text(desc,170) or f"{company}: deutschsprachige Remote-Stelle - aktuell offen, Details ueber den Link."
+    else:
+        info=clean_text(desc,170) or f"{company}: weltweit-remote Stelle (Englisch) - aktuell offen, Details ueber den Link."
     return dict(title=title, company=company, url=url, info=info,
-                lang="de", region=region, level=level, bereich=ber,
+                lang=lang, region=region, level=level, bereich=ber,
                 date=TODAY, fd=False, src="ats")
 
 def from_greenhouse(slug):
@@ -308,11 +330,15 @@ def gather_ats():
     out=[]
     for company,ats,slug,ber,region in ATS_COMPANIES:
         try:
-            rows=fx[ats](slug); n0=len(out)
+            rows=fx[ats](slug)
+            emitted=[]
             for title,url,loc,desc,rf in rows:
                 e=_ats_emit(company,title,url,loc,desc,rf,ber,region)
-                if e: out.append(e)
-            print(f"[ats] {company} ({ats}/{slug}): {len(rows)} -> {len(out)-n0} passend (deutsch+remote)")
+                if e: emitted.append(e)
+            emitted.sort(key=lambda x:(x["lang"]!="de", x["level"]!="einsteiger"))  # deutsch + einsteiger zuerst behalten
+            emitted=emitted[:8]                                                       # Deckel pro Firma gegen Flut
+            out+=emitted
+            print(f"[ats] {company} ({ats}/{slug}): {len(rows)} -> {len(emitted)} passend (deutsch|weltweit-englisch kundennah)")
         except Exception as ex:
             print(f"[ats] {company} ({ats}/{slug}) FEHLER: {ex}")
     return out
@@ -475,10 +501,12 @@ def card(j):
 # Deckel pro Bereich - kippt den Mix Richtung Service/Buero statt IT-Flut
 CAP={"service":300,"buero":150,"start":120,"sprache":100,"marketing":40,"vertrieb":40,"it":20}
 def _rank(j):
-    # Paul-Vorgabe: deutsch + direkt ganz oben. Tier zuerst, dann ⭐-Picks.
+    # Paul-Vorgabe: WELTWEIT zuerst (Deutschland-nur sinkt nach unten), dann deutsch+direkt, dann ⭐-Picks.
+    reg = j.get("region")
+    region_rank = 0 if reg=="world" else (1 if reg=="eu" else 2)   # world oben, eu mitte, de (Deutschland-nur) unten
     de = j.get("lang")=="de"; direct = is_direct(j.get("url",""))
     tier = 0 if (de and direct) else (1 if de else (2 if direct else 3))
-    return (tier, 0 if j.get("fd") else 1)
+    return (region_rank, tier, 0 if j.get("fd") else 1)
 def build_sections(jobs):
     by={b:[] for b in BEREICH_ORDER}
     for j in jobs: by[j["bereich"]].append(j)
