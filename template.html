@@ -105,6 +105,13 @@
   h2{font-size:18px;margin-bottom:14px;letter-spacing:.02em;color:var(--silver);font-weight:700}
   .cnt{font-size:12px;color:var(--muted);font-weight:500;margin-left:8px;letter-spacing:.05em}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px}
+  /* Sektionen auf gleiche Breite wie der Kopf begrenzen (sonst laufen die Karten an den Rand / rechts abgeschnitten) */
+  section[data-ber],#freelance,#toolbox,#favoriten{max-width:1120px;margin-left:auto;margin-right:auto;padding-left:22px;padding-right:22px;box-sizing:border-box}
+  @media (max-width:640px){section[data-ber],#freelance,#toolbox,#favoriten{padding-left:13px;padding-right:13px}}
+  .tag.direct{background:#e7f4ec;color:#0e7a52;font-weight:650}
+  .tag.firma{background:#fbf1df;color:#b07d10;font-weight:650}
+  .chip.directf{border-color:#1f4a6b;color:#1f4a6b}
+  .chip.directf.active{background:#1f4a6b;border-color:#1f4a6b;color:#fff}
   .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:8px;transition:border-color .15s, transform .15s;box-shadow:0 1px 3px rgba(60,50,20,.05)}
   .card:hover{border-color:#c9bd9f;transform:translateY(-2px)}
   .card h3{font-size:15px;line-height:1.4;font-weight:650;color:var(--text)}
@@ -194,6 +201,7 @@
   <div class="chips">
     <span class="chip active" data-f="all">Alle</span>
     <span class="chip langf" id="langToggle" title="Nur deutschsprachige Stellen anzeigen">🇩🇪 Nur Deutsch</span>
+    <span class="chip directf" id="directToggle" title="Nur Stellen, deren Link direkt zur Anzeige fuehrt">🎯 Nur Direkt-Stellen</span>
     <span class="chip" data-f="ber:service">🟢 Service</span>
     <span class="chip" data-f="ber:buero">🟡 Büro &amp; Orga</span>
     <span class="chip" data-f="ber:start">🟠 Schnell-Start</span>
@@ -4502,6 +4510,7 @@
   var q=document.getElementById('q');
   var active='all';
   var langOnly=false;
+  var directOnly=false;
   function apply(){
     var tb=document.getElementById('toolbox');
     var fl=document.getElementById('freelance');
@@ -4528,7 +4537,8 @@
       var okB=(active==='all')||(active.indexOf('ber:')===0 && c.dataset.bereich===active.slice(4));
       var okS=!s||c.textContent.toLowerCase().indexOf(s)>-1;
       var okL=!langOnly||c.dataset.lang==='de';
-      c.classList.toggle('hidden',!(okB&&okS&&okL));
+      var okD=!directOnly||c.dataset.direct==='1';
+      c.classList.toggle('hidden',!(okB&&okS&&okL&&okD));
     });
     document.querySelectorAll('section').forEach(function(sec){
       if(sec.id==='toolbox'||sec.id==='favoriten')return;
@@ -4544,6 +4554,10 @@
   var langBtn=document.getElementById('langToggle');
   if(langBtn){langBtn.addEventListener('click',function(){
     langOnly=!langOnly; langBtn.classList.toggle('active',langOnly); apply();
+  });}
+  var dirBtn=document.getElementById('directToggle');
+  if(dirBtn){dirBtn.addEventListener('click',function(){
+    directOnly=!directOnly; dirBtn.classList.toggle('active',directOnly); apply();
   });}
 
   initStars();

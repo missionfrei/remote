@@ -347,13 +347,35 @@ def level_tag(l): return '<span class="tag lvl">🌱 Einsteiger</span>' if l=="e
 def lang_tag(l):  return '<span class="tag delang">Deutsch</span>' if l=="de" else '<span class="tag">Englisch</span>'
 def fd_tag(fd):   return '<span class="tag" style="background:#f3ead4;color:#a8842e;font-weight:650">⭐ Für dich</span>' if fd else ''
 
+def is_direct(url):
+    """True = Link fuehrt direkt zur Einzelstelle. False = Firmen-/Boersen-Karriereseite (Liste)."""
+    s=(url or "").lower().rstrip("/")
+    path=re.sub(r"^https?://[^/]+","",s)
+    if path=="": return False
+    # generische Landing-/Karriereseiten -> keine Einzelstelle
+    if re.search(r"/(careers?|jobs|hire|karriere|career|job-vacancies|vacancies|stellenangebote|stellen|join|openings|positions|offene-stellen|all-jobs)$", path): return False
+    # Kategorie-/Boersen-Seiten (z.B. yeahbase /jobs/setter/remote, top-closer /jobs/appointment-setter)
+    if re.search(r"/jobs?/(setter|closer|remote|homeoffice|appointment-setter|closer-deutschland|high-ticket)(/|$)", path): return False
+    if "?title=" in s or s.endswith("/jobs") or s.endswith("/career"): return False
+    # Einzelstellen-Signale
+    if re.search(r"\d{5,}", path): return True                                  # numerische Job-ID
+    if re.search(r"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}", path): return True      # UUID (lever/greenhouse)
+    if re.search(r"/(jobs?|job|o|position|stelle|vacancies|remote-jobs|remote/jobs|listing)/[a-z0-9][a-z0-9-]{6,}", path): return True
+    if re.search(r"/companies/[^/]+/[a-z0-9]", path): return True
+    if re.search(r"/[a-z0-9]+-[a-z0-9]+-[a-z0-9]+-[a-z0-9]+", path): return True # langer Slug (>=4 Woerter)
+    return False
+
 def card(j):
-    return (f'<div class="card" data-bereich="{j["bereich"]}" data-level="{j["level"]}" data-lang="{j["lang"]}">\n'
+    d = is_direct(j["url"])
+    badge = ('<span class="tag direct">→ Direkt zur Stelle</span>' if d
+             else '<span class="tag firma">🏢 Firma · offene Stellen</span>')
+    golabel = "Zur Stelle →" if d else "Zu den offenen Stellen →"
+    return (f'<div class="card" data-bereich="{j["bereich"]}" data-level="{j["level"]}" data-lang="{j["lang"]}" data-direct="{1 if d else 0}">\n'
             f'  <h3>{esc(j["title"])}</h3>\n  <div class="company">{esc(j["company"])}</div>\n'
             f'  <p class="info">{esc(j["info"])}</p>\n'
             f'  <div class="meta">{region_tag(j["region"])}{level_tag(j["level"])}{lang_tag(j["lang"])}{fd_tag(j["fd"])}'
-            f'<span class="tag date">📅 {j["date"]}</span></div>\n'
-            f'  <div class="go"><a href="{j["url"]}" target="_blank" rel="noopener">Zur Stelle →</a></div>\n</div>')
+            f'{badge}<span class="tag date">📅 {j["date"]}</span></div>\n'
+            f'  <div class="go"><a href="{j["url"]}" target="_blank" rel="noopener">{golabel}</a></div>\n</div>')
 
 # Deckel pro Bereich - kippt den Mix Richtung Service/Buero statt IT-Flut
 CAP={"service":300,"buero":150,"start":120,"sprache":100,"marketing":40,"vertrieb":40,"it":20}
