@@ -35,8 +35,8 @@ BEREICHE = [
 
 # ---------- Bereich-Zuordnung nach Stichwoertern (Titel/Tags) ----------
 BEREICH_KW = {
-    "service":  ["kundenservice","kundenbetreu","customer support","customer service","customer care","customer success","support agent","service agent","reservation","booking","reise","travel","hospitality","concierge","call center","callcenter","kundenberat","beschwerde"],
-    "buero":    ["buchhalt","accounting","accountant","finance","finanzbuch","lohn","payroll","steuerfach","controlling","sachbearbeit","backoffice","back office","back-office","assistenz","assistant","verwaltung","admin","office manager","datenerfassung","data entry","dateneingabe"],
+    "service":  ["kundenservice","kundenbetreu","customer support","customer service","customer care","customer success","customer experience","customer advocate","support agent","support specialist","support consultant","support representative","support engineer","technical support","chat support","live chat","email support","help desk","helpdesk","service agent","client support","member support","player support","guest","reservation","booking","reise","travel","hospitality","concierge","call center","callcenter","kundenberat","beschwerde","content moderat","trust and safety","trust & safety","happiness engineer","community support","onboarding specialist","tier 1","tier 2"],
+    "buero":    ["buchhalt","accounting","accountant","finance","finanzbuch","lohn","payroll","steuerfach","controlling","sachbearbeit","backoffice","back office","back-office","assistenz","assistant","virtual assistant","executive assistant","personal assistant","verwaltung","admin","office manager","operations specialist","operations coordinator","operations associate","customer operations","people operations","coordinator","scheduling","order management","datenerfassung","data entry","dateneingabe"],
     "start":    [],   # frueher Mikrojobs - jetzt raus (Paul). Sektion zeigt nur noch manuelle Freelance-/Portal-Eintraege.
     "sprache":  ["übersetz","ubersetz","translat","lektor","proofread","texter","content writer","copywriter","redaktion","tutor","nachhilfe","language teacher","sprachlehrer"],
     "marketing":["marketing","social media","seo","content creator","content manager","grafik","design","designer","creative","video","brand","paid ads","performance market","kampagne","community manager"],
@@ -466,14 +466,10 @@ def process(raw_jobs):
         ber=detect_bereich(j["title"]+" "+j.get("raw_tags",""))
         if not ber: continue
         lang,region,level=detect(j)
-        # WELTWEIT-FIRST (Paul-Vorgabe): KEINE reinen Deutschland-Stellen aufs Board.
-        # Deutschsprachig weltweit/EU-ortsunabhaengig ODER englisch weltweit im Service/Einsteiger-Bereich.
-        if region=="de": continue                        # "nur in Deutschland" -> raus
-        if lang=="de":
-            keep = region in ("world","eu")               # deutschsprachig: weltweit ODER EU-ortsunabhaengig
-        else:
-            keep = (region=="world" and ber in ("service","start","buero","sprache","marketing","vertrieb"))
-        if not keep: continue
+        # WELTWEIT-FIRST (Paul): KEINE reinen Deutschland-Stellen. Aber ab Lauf #20 VOLLES Volumen:
+        # ALLES weltweit ODER EU-remote behalten (deutsch UND englisch, alle Bereiche). Die Sortierung
+        # (_rank: weltweit + deutsch + direkt ganz oben) und der CAP pro Bereich regeln Reihenfolge/Menge.
+        if region not in ("world","eu"): continue        # nur Deutschland-nur/laendergebunden raus
         u=j["url"].rstrip("/")
         if u in seen: continue
         seen.add(u)
@@ -532,8 +528,9 @@ def card(j):
             f'{badge}<span class="tag date">📅 {j["date"]}</span></div>\n'
             f'  <div class="go"><a href="{j["url"]}" target="_blank" rel="noopener">{golabel}</a></div>\n</div>')
 
-# Deckel pro Bereich - kippt den Mix Richtung Service/Buero statt IT-Flut
-CAP={"service":300,"buero":150,"start":120,"sprache":100,"marketing":40,"vertrieb":40,"it":20}
+# Deckel pro Bereich - kippt den Mix Richtung Service/Buero statt IT-Flut.
+# Lauf #20 (Paul: mehr Volumen) deutlich angehoben.
+CAP={"service":500,"buero":250,"start":200,"sprache":180,"marketing":120,"vertrieb":120,"it":120}
 def _rank(j):
     # Paul-Vorgabe: WELTWEIT zuerst (Deutschland-nur sinkt nach unten), dann deutsch+direkt, dann ⭐-Picks.
     reg = j.get("region")
@@ -581,14 +578,11 @@ def main():
     # --- Paul-Vorgabe: mindestens die Haelfte deutschsprachig (ueber das GANZE Board) ---
     # Kunden-Picks immer behalten; Englisch nur so weit, dass insgesamt Deutsch >= Englisch.
     # Pool-Reihenfolge: Importe (kuratiert) vor Auto (Feed) -> Feed-Englisch wird zuerst gekuerzt.
+    # Lauf #20 (Paul: mehr Volumen): KEINE Deutsch-Quote mehr, die Englisch kuerzt.
+    # Der CAP pro Bereich + die Sortierung (weltweit+deutsch+direkt oben) regeln den Mix.
     cust=[m for m in manual if m["src"]=="customer"]
     pool=[m for m in manual if m["src"]!="customer"] + auto
-    cust_de=sum(1 for m in cust if m["lang"]=="de"); cust_en=len(cust)-cust_de
-    pool_de=[j for j in pool if j["lang"]=="de"]
-    pool_en=[j for j in pool if j["lang"]!="de"]
-    max_pool_en=max(0, (cust_de+len(pool_de)) - cust_en)
-    pool_en=pool_en[:max_pool_en]
-    alljobs=cust+pool_de+pool_en
+    alljobs=cust+pool
 
     sections, by = build_sections(alljobs)
     total=len(alljobs); de=sum(1 for j in alljobs if j["lang"]=="de")
