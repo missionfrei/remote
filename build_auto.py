@@ -246,6 +246,26 @@ ATS_COMPANIES = [
     ("Binance",    "lever",      "binance",           "service", "world"),
     ("Gate.io",    "lever",      "gate",              "service", "world"),
     ("Kraken",     "ashby",      "kraken.com",        "service", "world"),
+    # --- Lauf #19: mehr Weltweit-Remote-Firmen (Slugs im Browser gegen die Board-API verifiziert) ---
+    # Reise/Hospitality (fuer Lisa):
+    ("Cloudbeds",  "greenhouse", "cloudbeds",         "service", "world"),
+    ("Lodgify",    "lever",      "lodgify",           "service", "world"),
+    ("Hopper",     "ashby",      "hopper",            "service", "world"),
+    ("Going",      "ashby",      "going",             "service", "world"),
+    # Kundenservice / Support / Remote-First (fuer Annette + Lisa-CS):
+    ("Cloudflare", "greenhouse", "cloudflare",        "service", "world"),
+    ("GitLab",     "greenhouse", "gitlab",            "service", "world"),
+    ("Coinbase",   "greenhouse", "coinbase",          "service", "world"),
+    ("Gemini",     "greenhouse", "gemini",            "service", "world"),
+    ("Customer.io","greenhouse", "customerio",        "service", "world"),
+    ("Aha!",       "greenhouse", "aha",               "service", "world"),
+    ("Elastic",    "greenhouse", "elastic",           "service", "world"),
+    ("Grafana Labs","greenhouse","grafanalabs",       "service", "world"),
+    ("Vercel",     "greenhouse", "vercel",            "service", "world"),
+    ("Webflow",    "greenhouse", "webflow",           "service", "world"),
+    ("Linear",     "ashby",      "linear",            "service", "world"),
+    ("Ramp",       "ashby",      "ramp",              "service", "world"),
+    ("withClutch", "ashby",      "withclutch",        "service", "world"),
 ]
 # Sprach-Signal. Trick: \bgerman\b trifft "German" (Sprache) aber NICHT "Germany" (Land) -
 # so faellt "Country Manager, Germany" raus, "German Support/Speaker" bleibt drin.
@@ -253,7 +273,7 @@ ATS_COMPANIES = [
 ATS_GER_TITLE = re.compile(r"\bgerman\b|\bdeutsch\b|deutschsprachig|deutschkenntnisse", re.I)
 ATS_GER_DESC  = re.compile(r"german[\s\-]?speak|deutschsprachig|fluent in german|native german|deutschkenntnisse|verhandlungssicher|proficiency in german|german language|business[\s\-]?level german", re.I)
 ATS_REMOTE   = re.compile(r"\bremote\b|anywhere|worldwide|work from home|home[\- ]?office|distributed|\bwfh\b", re.I)
-ATS_WORLD    = re.compile(r"worldwide|anywhere|global|work from anywhere", re.I)
+ATS_WORLD    = re.compile(r"worldwide|anywhere|\bglobal\b|work from anywhere|fully distributed|\bdistributed\b|any location|remote - global|from any country", re.I)
 ATS_EU       = re.compile(r"\bemea\b|europe|european|\beu\b|\bcet\b|\bdach\b", re.I)
 ATS_SENIOR   = re.compile(r"senior|lead|principal|staff|head of|director|\bvp\b|vice president|manager|chief|expert", re.I)
 # Kundennahe Rollen (fuer WELTWEIT-Englisch: Lisa hat DE C2+EN, Annette kann Englisch) - passt zu Lisa/Annette
@@ -277,10 +297,12 @@ def _ats_emit(company, title, url, loc, desc, remote_flag, ber_default, region_d
     if region is None: return None                       # laendergebunden ("Germany - Remote", "Budapest") -> raus
     german = bool(ATS_GER_TITLE.search(title) or ATS_GER_DESC.search(desc or ""))
     custfacing = bool(ATS_CUSTFACING.search(title))
-    # deutschsprachig: world ODER eu ok. Sonst: WELTWEIT + kundennah in Englisch (Lisa/Annette koennen Englisch).
+    # deutschsprachig: world ODER eu ok. Englisch: world ODER eu + kundennah (Lisa/Annette koennen Englisch;
+    # eu-remote = Spanien/Portugal/Zypern, echte Auswander-Basen -> "nicht Deutschland-nur" erfuellt).
+    # Laendergebunden (Nordamerika, LATAM, einzelne Laender) bleibt via _ats_region=None draussen.
     if german:
         pass
-    elif region=="world" and custfacing:
+    elif region in ("world","eu") and custfacing:
         pass
     else:
         return None
@@ -401,6 +423,18 @@ SOURCES = [
     ("remotewoman",           "https://remotewoman.com/feed/",                         from_rss_generic, "text"),
     ("jobicy-rss",            "https://jobicy.com/?feed=job_feed",                     from_rss_generic, "text"),
     ("dailyremote",           "https://dailyremote.com/feed",                          from_rss_generic, "text"),
+    # --- Lauf #19: neue Boards + gezielt Reise/Hospitality (Paul-Wunsch) ---
+    ("remotive-hospitality",  "https://remotive.com/api/remote-jobs?search=hospitality", from_remotive, "json"),
+    ("remotive-guest",        "https://remotive.com/api/remote-jobs?search=guest%20experience", from_remotive, "json"),
+    ("remotive-booking",      "https://remotive.com/api/remote-jobs?search=booking",     from_remotive, "json"),
+    ("remotive-concierge",    "https://remotive.com/api/remote-jobs?search=concierge",   from_remotive, "json"),
+    ("jobicy-anywhere2",      "https://jobicy.com/api/v2/remote-jobs?count=100&geo=anywhere&industry=supporting", from_jobicy, "json"),
+    ("remoteok-worldwide",    "https://remoteok.com/remote-worldwide-jobs.rss",          from_rss_generic, "text"),
+    ("remoteok-travel",       "https://remoteok.com/remote-travel-jobs.rss",             from_rss_generic, "text"),
+    ("dynamitejobs",          "https://dynamitejobs.com/feed",                          from_rss_generic, "text"),
+    ("cryptojobslist",        "https://cryptojobslist.com/feed",                        from_rss_generic, "text"),
+    ("remote-co",             "https://remote.co/remote-jobs/feed/",                     from_rss_generic, "text"),
+    ("pangian",               "https://pangian.com/job-board/feed/",                     from_rss_generic, "text"),
 ]
 
 def gather():
