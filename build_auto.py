@@ -435,6 +435,14 @@ SOURCES = [
     ("cryptojobslist",        "https://cryptojobslist.com/feed",                        from_rss_generic, "text"),
     ("remote-co",             "https://remote.co/remote-jobs/feed/",                     from_rss_generic, "text"),
     ("pangian",               "https://pangian.com/job-board/feed/",                     from_rss_generic, "text"),
+    # --- Lauf #21: mehr kundennahe/deutsche Suchen (mehr Direkt-Einzelstellen) ---
+    ("remotive-success",      "https://remotive.com/api/remote-jobs?search=customer%20success", from_remotive, "json"),
+    ("remotive-va",           "https://remotive.com/api/remote-jobs?search=virtual%20assistant", from_remotive, "json"),
+    ("remotive-moderator",    "https://remotive.com/api/remote-jobs?search=moderator",   from_remotive, "json"),
+    ("remotive-onboarding",   "https://remotive.com/api/remote-jobs?search=onboarding",  from_remotive, "json"),
+    ("remotive-german3",      "https://remotive.com/api/remote-jobs?search=deutschsprachig", from_remotive, "json"),
+    ("jobicy-de2",            "https://jobicy.com/api/v2/remote-jobs?count=100&tag=deutsch", from_jobicy, "json"),
+    ("remoteok-support",      "https://remoteok.com/remote-customer-support-jobs.rss",   from_rss_generic, "text"),
 ]
 
 def gather():
@@ -470,6 +478,9 @@ def process(raw_jobs):
         # ALLES weltweit ODER EU-remote behalten (deutsch UND englisch, alle Bereiche). Die Sortierung
         # (_rank: weltweit + deutsch + direkt ganz oben) und der CAP pro Bereich regeln Reihenfolge/Menge.
         if region not in ("world","eu"): continue        # nur Deutschland-nur/laendergebunden raus
+        # Paul #21: aus den Job-Boards NUR Direkt-Links zur Einzelstelle aufnehmen (keine Karriere-/Firmenseiten).
+        # Die Boards verlinken fast immer direkt auf die Anzeige -> genau die wollen wir.
+        if not is_direct(j["url"]): continue
         u=j["url"].rstrip("/")
         if u in seen: continue
         seen.add(u)
@@ -532,12 +543,17 @@ def card(j):
 # Lauf #20 (Paul: mehr Volumen) deutlich angehoben.
 CAP={"service":500,"buero":250,"start":200,"sprache":180,"marketing":120,"vertrieb":120,"it":120}
 def _rank(j):
-    # Paul-Vorgabe: WELTWEIT zuerst (Deutschland-nur sinkt nach unten), dann deutsch+direkt, dann ⭐-Picks.
-    reg = j.get("region")
-    region_rank = 0 if reg=="world" else (1 if reg=="eu" else 2)   # world oben, eu mitte, de (Deutschland-nur) unten
-    de = j.get("lang")=="de"; direct = is_direct(j.get("url",""))
-    tier = 0 if (de and direct) else (1 if de else (2 if direct else 3))
-    return (region_rank, tier, 0 if j.get("fd") else 1)
+    # Paul #21: (1) Deutschland-nur ganz unten, (2) DIREKT vor Firma (Firma fast raus -> unten),
+    # (3) deutsch vor englisch (so weit oben wie moeglich), (4) weltweit vor EU, (5) ⭐ zuerst.
+    # -> ganz oben in jeder Sektion: deutsch + direkt + weltweit.
+    reg = j.get("region"); de = j.get("lang")=="de"; direct = is_direct(j.get("url",""))
+    return (
+        1 if reg=="de" else 0,        # Deutschland-nur (nicht weltweit) ganz unten
+        0 if direct else 1,           # DIREKT zur Stelle zuerst, Firmen-/Karriereseiten nach unten
+        0 if de else 1,               # deutsch vor englisch
+        0 if reg=="world" else 1,     # weltweit vor EU
+        0 if j.get("fd") else 1,      # ⭐ Fuer-dich zuerst
+    )
 def build_sections(jobs):
     by={b:[] for b in BEREICH_ORDER}
     for j in jobs: by[j["bereich"]].append(j)
