@@ -4528,6 +4528,8 @@
       var show=(active==='toolbox')?tb:fl;
       sects.forEach(function(s2){s2.classList.add('hidden');});
       show.classList.remove('hidden');
+      // kuratierte Listen (Freelance-Portale / Toolbox) IMMER voll zeigen - Direkt-Filter gilt hier nicht
+      show.querySelectorAll('.card').forEach(function(c){c.classList.remove('hidden');});
       return;
     }
     tb.classList.add('hidden');
