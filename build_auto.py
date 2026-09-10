@@ -474,14 +474,21 @@ def card(j):
 
 # Deckel pro Bereich - kippt den Mix Richtung Service/Buero statt IT-Flut
 CAP={"service":300,"buero":150,"start":120,"sprache":100,"marketing":40,"vertrieb":40,"it":20}
+def _rank(j):
+    # Paul-Vorgabe: deutsch + direkt ganz oben. Tier zuerst, dann ⭐-Picks.
+    de = j.get("lang")=="de"; direct = is_direct(j.get("url",""))
+    tier = 0 if (de and direct) else (1 if de else (2 if direct else 3))
+    return (tier, 0 if j.get("fd") else 1)
 def build_sections(jobs):
     by={b:[] for b in BEREICH_ORDER}
     for j in jobs: by[j["bereich"]].append(j)
     for b in by:  # Kunden + Importe immer behalten, nur Auto (Feed) deckeln
         keep=[j for j in by[b] if j.get("src")!="auto"]
-        keep.sort(key=lambda x:(not x["fd"],))     # Kunden-Picks (Stern) zuerst
         au=[j for j in by[b] if j.get("src")=="auto"]
-        by[b]=keep + au[:max(0, CAP.get(b,60)-len(keep))]
+        au.sort(key=_rank)                                   # beim Deckeln deutsch+direkte Auto-Jobs bevorzugt behalten
+        sel = keep + au[:max(0, CAP.get(b,60)-len(keep))]
+        sel.sort(key=_rank)                                  # ANZEIGE: deutsch+direkte Stellen ganz oben, ⭐ zuerst
+        by[b]=sel
     html=[]
     for ber,color,label in BEREICHE:
         cards=by[ber]
