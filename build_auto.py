@@ -222,6 +222,101 @@ def from_wwr(xmltext):
             raw_tags=(item.findtext("category") or ""), raw_loc=region))
     return out
 
+# ---------- ATS-Feeds: echte Einzelstellen direkt von Firmen-Bewerbungsboards ----------
+# Greenhouse/Lever/Ashby haben offene JSON-APIs. Wir ziehen taeglich die AKTUELL
+# offenen deutschsprachigen, breit-remote Rollen als ECHTE Einzelstellen-Links.
+# Vorteil: laufen automatisch ab, wenn besetzt (naechster Build zieht sie nicht mehr),
+# Link ist immer die konkrete Stelle (Badge "Direkt zur Stelle"), keine Handarbeit.
+# Firma erweitern = eine Zeile. Slug muss stimmen (sonst 0/Fehler -> wird geloggt).
+ATS_COMPANIES = [
+    # (Anzeige-Firma, ats, slug, bereich-default, region-default)
+    ("Bybit",      "greenhouse", "bybit",             "service", "world"),
+    ("Bitpanda",   "greenhouse", "bitpanda",          "service", "eu"),
+    ("OKX",        "greenhouse", "okx",               "service", "world"),
+    ("Xapo Bank",  "greenhouse", "xapo61",            "buero",   "world"),
+    ("Automattic", "greenhouse", "automatticcareers", "service", "world"),
+    ("Remote.com", "greenhouse", "remotecom",         "service", "world"),
+    ("Binance",    "lever",      "binance",           "service", "world"),
+    ("Gate.io",    "lever",      "gate",              "service", "world"),
+    ("Kraken",     "ashby",      "kraken.com",        "service", "world"),
+]
+# Sprach-Signal. Trick: \bgerman\b trifft "German" (Sprache) aber NICHT "Germany" (Land) -
+# so faellt "Country Manager, Germany" raus, "German Support/Speaker" bleibt drin.
+# Titel darf breit sein; Description strenger (sonst triggert "expand into the German market").
+ATS_GER_TITLE = re.compile(r"\bgerman\b|\bdeutsch\b|deutschsprachig|deutschkenntnisse", re.I)
+ATS_GER_DESC  = re.compile(r"german[\s\-]?speak|deutschsprachig|fluent in german|native german|deutschkenntnisse|verhandlungssicher|proficiency in german|german language|business[\s\-]?level german", re.I)
+ATS_REMOTE   = re.compile(r"\bremote\b|anywhere|worldwide|work from home|home[\- ]?office|distributed|\bwfh\b", re.I)
+ATS_WORLD    = re.compile(r"worldwide|anywhere|global|work from anywhere", re.I)
+ATS_EU       = re.compile(r"\bemea\b|europe|european|\beu\b|\bcet\b|\bdach\b", re.I)
+ATS_SENIOR   = re.compile(r"senior|lead|principal|staff|head of|director|\bvp\b|vice president|manager|chief|expert", re.I)
+
+def _ats_region(loc, region_default):
+    """world/eu aus der Location; None = konkreter Ort/Land -> laendergebunden -> raus (Paul: weltweit ist Pflicht)."""
+    l=(loc or "").lower()
+    if ATS_WORLD.search(l): return "world"
+    if ATS_EU.search(l):    return "eu"
+    stripped=re.sub(r"remote|anywhere|global|work from home|home[\- ]?office|distributed|wfh|[,\-/()\s]", "", l)
+    if stripped=="": return region_default     # war nur 'remote'/leer -> Firmen-Default
+    return None                                # konkreter Ort (Berlin, Budapest, 'Germany - Remote') -> raus
+
+def _ats_emit(company, title, url, loc, desc, remote_flag, ber_default, region_default):
+    title=(title or "").strip()
+    if not title or not url: return None
+    if not (ATS_GER_TITLE.search(title) or ATS_GER_DESC.search(desc or "")): return None   # muss deutschsprachig sein
+    remote_ok = remote_flag or bool(ATS_REMOTE.search((title+" "+(loc or "")+" "+(desc or "")).lower()))
+    if not remote_ok: return None
+    region=_ats_region(loc, region_default)
+    if region is None: return None
+    ber=detect_bereich(title) or ber_default
+    level="erfahren" if ATS_SENIOR.search(title) else "einsteiger"
+    info=clean_text(desc,170) or f"{company}: deutschsprachige Remote-Stelle - aktuell offen, Details ueber den Link."
+    return dict(title=title, company=company, url=url, info=info,
+                lang="de", region=region, level=level, bereich=ber,
+                date=TODAY, fd=False, src="ats")
+
+def from_greenhouse(slug):
+    d=http_json(f"https://boards-api.greenhouse.io/v1/boards/{slug}/jobs")
+    out=[]
+    for j in d.get("jobs",[]):
+        loc=(j.get("location") or {}).get("name","")
+        out.append((j.get("title",""), j.get("absolute_url",""), loc, "", False))
+    return out
+
+def from_lever(slug):
+    d=http_json(f"https://api.lever.co/v0/postings/{slug}?mode=json")
+    out=[]
+    for j in (d if isinstance(d,list) else []):
+        cat=j.get("categories") or {}
+        loc=(cat.get("location","") or _j(cat.get("allLocations")))
+        wt=(j.get("workplaceType","") or "")
+        out.append((j.get("text",""), (j.get("hostedUrl") or j.get("applyUrl","")),
+                    loc+" "+wt, j.get("descriptionPlain",""), wt.lower()=="remote"))
+    return out
+
+def from_ashby(slug):
+    d=http_json(f"https://api.ashbyhq.com/posting-api/job-board/{slug}?includeCompensation=false")
+    out=[]
+    for j in d.get("jobs",[]):
+        loc=(j.get("location","") or _j(j.get("secondaryLocations")))
+        out.append((j.get("title",""), (j.get("jobUrl") or j.get("applyUrl","")),
+                    loc, j.get("descriptionPlain",""), bool(j.get("isRemote"))))
+    return out
+
+def gather_ats():
+    if MOCK: return []
+    fx={"greenhouse":from_greenhouse,"lever":from_lever,"ashby":from_ashby}
+    out=[]
+    for company,ats,slug,ber,region in ATS_COMPANIES:
+        try:
+            rows=fx[ats](slug); n0=len(out)
+            for title,url,loc,desc,rf in rows:
+                e=_ats_emit(company,title,url,loc,desc,rf,ber,region)
+                if e: out.append(e)
+            print(f"[ats] {company} ({ats}/{slug}): {len(rows)} -> {len(out)-n0} passend (deutsch+remote)")
+        except Exception as ex:
+            print(f"[ats] {company} ({ats}/{slug}) FEHLER: {ex}")
+    return out
+
 # (name, url, normalizer, kind) - kind "json"|"text"
 SOURCES = [
     # --- Deutschsprachig-orientiert (fuer die >=50%-Deutsch-Quote) ---
@@ -404,6 +499,9 @@ def main():
 
     auto=process(gather())
     manual=load_manual()
+    ats=gather_ats()   # echte deutschsprachige Remote-Einzelstellen direkt von Firmen-Boards
+    if ats: print(f"[ats] GESAMT: {len(ats)} deutschsprachige Remote-Einzelstellen von Firmen-Boards")
+    manual = manual + ats   # ATS wie manuelle Schicht: nie gedeckelt, im Deutsch-Pool, wird link-gecheckt
     # Tote Links in der manuellen/Import-Schicht raus (laeuft auf GitHub mit offenem Netz)
     manual, dead = prune_dead(manual)
     print(f"[linkcheck] manuelle Schicht: {dead} tote Links entfernt -> {len(manual)} bleiben")
@@ -439,8 +537,9 @@ def main():
     n_c=sum(1 for j in alljobs if j.get("src")=="customer")
     n_i=sum(1 for j in alljobs if j.get("src")=="import")
     n_a=sum(1 for j in alljobs if j.get("src")=="auto")
+    n_ats=sum(1 for j in alljobs if j.get("src")=="ats")
     print(f"\nGEBAUT: {total} Stellen | de={de} ({pct}%) en={total-de} weltweit={world} einsteiger={einst}")
-    print(f"   Kunden {n_c} + Import {n_i} + Auto {n_a} | tote Links entfernt: {dead}")
+    print(f"   Kunden {n_c} + Import {n_i} + Auto {n_a} + ATS-Direktstellen {n_ats} | tote Links entfernt: {dead}")
     for b,_,lbl in BEREICHE: print(f"   {lbl}: {len(by[b])}")
     print("->", OUT)
 
