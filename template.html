@@ -4548,8 +4548,8 @@
     });
   }
   q.addEventListener('input',apply);
-  document.querySelectorAll('.chip:not(.lv):not(.langf)').forEach(function(ch){ch.addEventListener('click',function(){
-    document.querySelectorAll('.chip:not(.lv):not(.langf)').forEach(function(x){x.classList.remove('active');});
+  document.querySelectorAll('.chip:not(.lv):not(.langf):not(.directf)').forEach(function(ch){ch.addEventListener('click',function(){
+    document.querySelectorAll('.chip:not(.lv):not(.langf):not(.directf)').forEach(function(x){x.classList.remove('active');});
     ch.classList.add('active');active=ch.dataset.f;apply();
   });});
   var langBtn=document.getElementById('langToggle');
