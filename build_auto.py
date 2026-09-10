@@ -599,6 +599,12 @@ def main():
     cust=[m for m in manual if m["src"]=="customer"]
     pool=[m for m in manual if m["src"]!="customer"] + auto
     alljobs=cust+pool
+    # Paul #21: Firmen-/Karriereseiten fast ausstreichen. In den 7 Bereichen nur noch DIREKT-Stellen
+    # (Link fuehrt direkt zur Anzeige) + die kuratierten ⭐-Kundenpicks. Nicht-direkte Nicht-Picks raus.
+    # (Die statischen Freelance-/Toolbox-Sektionen im Template bleiben unberuehrt.)
+    _before=len(alljobs)
+    alljobs=[j for j in alljobs if is_direct(j["url"]) or j.get("fd")]
+    print(f"[direkt] Firmen-/Karriereseiten entfernt: {_before-len(alljobs)} -> {len(alljobs)} bleiben (nur Direkt + ⭐-Picks)")
 
     sections, by = build_sections(alljobs)
     total=len(alljobs); de=sum(1 for j in alljobs if j["lang"]=="de")
