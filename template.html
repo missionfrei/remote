@@ -200,8 +200,6 @@
   <input class="search" id="q" placeholder="Suche nach Titel, Firma oder Stichwort …">
   <div class="chips">
     <span class="chip active" data-f="all">Alle</span>
-    <span class="chip langf" id="langToggle" title="Nur deutschsprachige Stellen anzeigen">🇩🇪 Nur Deutsch</span>
-    <span class="chip directf" id="directToggle" title="Standard AN: nur Stellen mit Direktlink zur Anzeige. Abwaehlen (klicken), um auch Firmen-/Karriereseiten zu zeigen.">🎯 Nur Direkt-Stellen</span>
     <span class="chip" data-f="ber:service">🟢 Service</span>
     <span class="chip" data-f="ber:buero">🟡 Büro &amp; Orga</span>
     <span class="chip" data-f="ber:start">🟠 Schnell-Start</span>
@@ -4442,7 +4440,6 @@
     document.getElementById('gate').style.display='none';
     document.getElementById('app').style.display='block';
     paintStars();
-    apply();   // Standard-Filter (nur Direkt-Stellen) sofort anwenden, sobald das Board sichtbar ist
   }
   function tryPw(v){
     v=(v||'').trim().toLowerCase();
@@ -4511,7 +4508,7 @@
   var q=document.getElementById('q');
   var active='all';
   var langOnly=false;
-  var directOnly=true;   // Standard: nur Direkt-Stellen (Team-Wunsch Adrian/Paul) - Chip abwaehlbar
+  var directOnly=false;  // Filter-Chips entfernt (Team-Wunsch): stattdessen sortiert der Build deutsch+direkt nach oben
   function apply(){
     var tb=document.getElementById('toolbox');
     var fl=document.getElementById('freelance');
@@ -4554,17 +4551,8 @@
     document.querySelectorAll('.chip:not(.lv):not(.langf):not(.directf)').forEach(function(x){x.classList.remove('active');});
     ch.classList.add('active');active=ch.dataset.f;apply();
   });});
-  var langBtn=document.getElementById('langToggle');
-  if(langBtn){langBtn.addEventListener('click',function(){
-    langOnly=!langOnly; langBtn.classList.toggle('active',langOnly); apply();
-  });}
-  var dirBtn=document.getElementById('directToggle');
-  if(dirBtn){
-    if(directOnly)dirBtn.classList.add('active');   // Chip zeigt aktiven Standard
-    dirBtn.addEventListener('click',function(){
-      directOnly=!directOnly; dirBtn.classList.toggle('active',directOnly); apply();
-    });
-  }
+  // Filter-Chips "Nur Deutsch" / "Nur Direkt-Stellen" entfernt (zu viele Buttons, Team-Wunsch).
+  // Priorisierung passiert jetzt beim Bauen: deutsch+direkte Stellen stehen in jeder Sektion ganz oben.
 
   initStars();
   try{var saved=localStorage.getItem('mf_pw'); if(saved && PWS.indexOf(saved)>-1){CUR=saved;unlock();}}catch(e){}
