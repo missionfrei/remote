@@ -259,7 +259,12 @@ def from_jsearch(raw):
     return out
 
 def http_text(url):
-    req = urllib.request.Request(url, headers={"User-Agent":"Mozilla/5.0 (MissionfreiBot)"})
+    # Browser-UA + Accept: manche kuratierten Boards (z.B. RealWorkFromAnywhere) liefern Bot-UAs
+    # eine HTML-/Challenge-Seite statt der RSS -> Parser bekam 0. Chrome-UA holt echte XML.
+    h={"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125 Safari/537.36",
+       "Accept":"application/rss+xml, application/xml, text/xml, text/html;q=0.9, */*;q=0.8",
+       "Accept-Language":"de,en;q=0.8"}
+    req = urllib.request.Request(url, headers=h)
     with urllib.request.urlopen(req, timeout=30) as r:
         return r.read().decode("utf-8","replace")
 
@@ -335,22 +340,6 @@ def from_workingnomads(raw):
 
 # RemoteJobs.org (Lauf 31): freie JSON-API, worldwide-fokussiert. location-String z.B. "Remote (Worldwide)"
 # -> detect() macht daraus world; "Remote (US)" o.ae. ohne Weltweit-Marker faellt als de raus. Gutes Non-Tech.
-def from_remotejobs(raw):
-    out=[]
-    lst = raw.get("jobs") if isinstance(raw,dict) else raw
-    for j in (lst or []):
-        if not isinstance(j,dict): continue
-        title=(j.get("title") or "").strip()
-        c=j.get("company"); company=c.get("name") if isinstance(c,dict) else (c or "")
-        url=(j.get("apply_url") or j.get("url") or "").strip()
-        if not title or not url: continue
-        cat=j.get("category"); cslug=cat.get("slug") if isinstance(cat,dict) else (cat or "")
-        out.append(dict(title=title, company=str(company or ""), url=url,
-            info=clean_text(str(j.get("description") or "")),
-            raw_tags=str(cslug), raw_loc=str(j.get("location") or ""),
-            raw_desc=clean_text(str(j.get("description") or ""),1000)))
-    return out
-
 # RealWorkFromAnywhere (Lauf 31): ganzes Board ist per Definition 100% work-from-anywhere -> region world ehrlich.
 def from_realwfa(xmltext):
     out=from_rss_generic(xmltext)
@@ -557,11 +546,7 @@ SOURCES = [
     ("realworkfromanywhere","https://www.realworkfromanywhere.com/rss.xml", from_realwfa, "text"),
     ("realwfa-cs",    "https://www.realworkfromanywhere.com/remote-customer-support-jobs/rss.xml", from_realwfa, "text"),
     ("realwfa-salesmkt","https://www.realworkfromanywhere.com/remote-sales-and-marketing-jobs/rss.xml", from_realwfa, "text"),
-    ("remotejobs-cs",   "https://remotejobs.org/api/v1/jobs?category=customer-support&limit=50", from_remotejobs, "json"),
-    ("remotejobs-sales","https://remotejobs.org/api/v1/jobs?category=sales&limit=50",            from_remotejobs, "json"),
-    ("remotejobs-mkt",  "https://remotejobs.org/api/v1/jobs?category=marketing&limit=50",        from_remotejobs, "json"),
-    ("remotejobs-hr",   "https://remotejobs.org/api/v1/jobs?category=human-resources&limit=50",  from_remotejobs, "json"),
-    ("remotejobs-all",  "https://remotejobs.org/api/v1/jobs?limit=50",                           from_remotejobs, "json"),
+    ("realwfa-mgmtfin","https://www.realworkfromanywhere.com/remote-management-and-finance-jobs/rss.xml", from_realwfa, "text"),
     ("euremotejobs",  "https://euremotejobs.com/feed/",                  from_rss_generic, "text"),
     ("nodesk",        "https://nodesk.co/remote-jobs/feed/",             from_rss_generic, "text"),
     ("jobspresso",    "https://jobspresso.co/remote-work/feed/",         from_rss_generic, "text"),
