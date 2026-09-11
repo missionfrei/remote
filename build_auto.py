@@ -299,6 +299,46 @@ def prune_dead(jobs, workers=24):
     kept=[j for j,a in zip(jobs,alive) if a]
     return kept, len(jobs)-len(kept)
 
+def resolve_link(url):
+    """Folgt Redirects -> (finale_url, lebt). lebt=False NUR bei 404/410 (Paul: nur sicher-tote raus).
+    So werden Portal-/Redirect-Landing-URLs (Adzuna & Co) auf die ECHTE Einzelstelle beim Arbeitgeber
+    aufgeloest -> Kandidat landet direkt auf der Anzeige, nicht auf einer Zwischenseite."""
+    for method in ("HEAD","GET"):
+        try:
+            req=urllib.request.Request(url, method=method, headers=UA_LC)
+            with urllib.request.urlopen(req, timeout=12) as r:
+                return (r.geturl() or url), True
+        except urllib.error.HTTPError as e:
+            if e.code in (404,410): return url, False           # sicher tot -> raus
+            if method=="HEAD" and e.code in (403,405,501): continue   # HEAD verboten -> GET testen
+            try: return (e.geturl() or url), True               # anderer Fehler -> behalten
+            except Exception: return url, True
+        except Exception:
+            return url, True   # Timeout/DNS/Verbindung -> im Zweifel behalten (Original-URL)
+    return url, True
+
+def resolve_and_prune(jobs, workers=32):
+    """Board-weit: Redirect-/Portal-URLs auf die echte Einzelstelle aufloesen (nur wenn die aufgeloeste
+    URL selbst direkt aussieht), sicher-tote Links (404/410) raus, danach nach URL re-deduplizieren."""
+    if MOCK or not jobs: return jobs, 0, 0
+    import concurrent.futures as cf
+    res=[None]*len(jobs)
+    with cf.ThreadPoolExecutor(max_workers=workers) as ex:
+        futs={ex.submit(resolve_link, j["url"]): i for i,j in enumerate(jobs)}
+        for f in cf.as_completed(futs):
+            i=futs[f]
+            try: res[i]=f.result()
+            except Exception: res[i]=(jobs[i]["url"], True)
+    kept=[]; dead=0; resolved=0; seen=set()
+    for j,(final,alive) in zip(jobs,res):
+        if not alive: dead+=1; continue
+        if final and final!=j["url"] and is_direct(final):
+            j["url"]=final; resolved+=1
+        u=j["url"].rstrip("/")
+        if u in seen: continue          # nach Aufloesung koennen Dubletten entstehen -> raus
+        seen.add(u); kept.append(j)
+    return kept, dead, resolved
+
 def from_rss_generic(xmltext):
     """RSS ohne 'Firma: Titel'-Konvention (euremotejobs, nodesk, realworkfromanywhere)."""
     import xml.etree.ElementTree as ET
@@ -635,8 +675,9 @@ print("[ba] Arbeitsagentur geparkt (Auth offen) - inaktiv")
 ADZUNA_ID  = os.environ.get("ADZUNA_APP_ID","").strip()
 ADZUNA_KEY = os.environ.get("ADZUNA_APP_KEY","").strip()
 def _adz(country, what, page=1):
+    # max_days_old=40 -> nur frische Stellen (weniger abgelaufene "nicht verfuegbar"-Links).
     return (f"https://api.adzuna.com/v1/api/jobs/{country}/search/{page}"
-            f"?app_id={ADZUNA_ID}&app_key={ADZUNA_KEY}&results_per_page=50"
+            f"?app_id={ADZUNA_ID}&app_key={ADZUNA_KEY}&results_per_page=50&max_days_old=40"
             f"&what={urllib.parse.quote(what)}&content-type=application/json")
 if ADZUNA_ID and ADZUNA_KEY:
     SOURCES += [
@@ -995,10 +1036,8 @@ def main():
     manual=load_manual()
     ats=gather_ats()   # echte deutschsprachige Remote-Einzelstellen direkt von Firmen-Boards
     if ats: print(f"[ats] GESAMT: {len(ats)} deutschsprachige Remote-Einzelstellen von Firmen-Boards")
-    manual = manual + ats   # ATS wie manuelle Schicht: nie gedeckelt, im Deutsch-Pool, wird link-gecheckt
-    # Tote Links in der manuellen/Import-Schicht raus (laeuft auf GitHub mit offenem Netz)
-    manual, dead = prune_dead(manual)
-    print(f"[linkcheck] manuelle Schicht: {dead} tote Links entfernt -> {len(manual)} bleiben")
+    manual = manual + ats   # ATS wie manuelle Schicht: nie gedeckelt, im Deutsch-Pool
+    # (Tote-Link-Check + Redirect-Aufloesung laufen jetzt board-weit weiter unten, ueber ALLE Stellen.)
 
     man_urls={m["url"].rstrip("/") for m in manual}
     auto=[a for a in auto if a["url"].rstrip("/") not in man_urls]  # manuell gewinnt
@@ -1022,6 +1061,11 @@ def main():
     print(f"[direkt] Karriere-/Boersenseiten entfernt: {_before-len(alljobs)} -> {len(alljobs)} bleiben (NUR Direkt-Einzelstellen)")
     _dfd=sum(1 for j in _dropped if j.get("fd"))
     print(f"[direkt] davon {_dfd} entfernte ⭐-Kundenpicks (Karriereseiten) - Deckung via ATS-Engine + Direkt-Picks")
+
+    # Board-weit (Paul-Wunsch): Portal-/Redirect-URLs (Adzuna & Co) auf die ECHTE Einzelstelle aufloesen,
+    # damit der Kandidat direkt auf der Anzeige landet; sicher-tote Links (404/410) komplett raus.
+    alljobs, dead, resolved = resolve_and_prune(alljobs)
+    print(f"[links] {resolved} Portal-Links direkt aufgeloest, {dead} tote (404/410) raus -> {len(alljobs)} echte, lebende Direkt-Stellen")
 
     sections, by = build_sections(alljobs)
     total=len(alljobs); de=sum(1 for j in alljobs if j["lang"]=="de")
