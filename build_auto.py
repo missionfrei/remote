@@ -60,7 +60,7 @@ BLOCK = ["werkstud","working student",   # Paul: keine Werkstudenten
     # Paul: KEINE kleinen Nebenverdienst-/Mikrojobs (Umfragen, Klick-Tasks, Tests, KI-Datenlabeling, Transkription-Gigs)
     "umfrage","survey","paid survey","mikrojob","mikro-job","microtask","micro-task","clickwork","crowdwork","crowdsurf",
     "usability test","usability-test","website test","websites testen","produkttest","playtester","beta-test",
-    "data annotation","datenannotation","annotator","data labeling","data labelling","daten labeln","rater","search evaluator","ads rating",
+    "data annotation","datenannotation","annotator","data labeling","data labelling","daten labeln"," rater","quality rater","search evaluator","search engine evaluator","ads rating",
     "transcription","transkription","transkribent","untertitel erstellen",
     "ki-training","ki-daten","ki-sprachdaten","ki-trainer","ki-reviewer","ki-community","ai trainer","ai reviewer","audio evaluation","data evaluation",
     "get-paid","get paid to","paid to click","faucet","cashback","nebenverdienst","praemien sammeln","belohnungen verdienen"]
@@ -98,6 +98,9 @@ def detect(job):
 def http_json(url):
     h={"User-Agent":"Mozilla/5.0 (MissionfreiBot)"}
     if "rest.arbeitsagentur.de" in url: h["X-API-Key"]="jobboerse-jobsuche"   # oeffentlicher BA-App-Key (kein Signup)
+    if "jsearch.p.rapidapi.com" in url:   # JSearch (RapidAPI): Key IM HEADER (nicht in der URL -> nicht geloggt)
+        h["X-RapidAPI-Key"]=os.environ.get("JSEARCH_KEY","").strip()
+        h["X-RapidAPI-Host"]="jsearch.p.rapidapi.com"
     req = urllib.request.Request(url, headers=h)
     with urllib.request.urlopen(req, timeout=30) as r:
         return json.loads(r.read().decode("utf-8","replace"))
@@ -191,6 +194,36 @@ def from_remoteok(raw):
         out.append(dict(title=j.get("position",""), company=j.get("company",""),
             url=j.get("url",""), info=clean_text(j.get("description","")),
             raw_tags=_j(j.get("tags")), raw_loc=(j.get("location") or "remote")))
+    return out
+
+# JSearch (RapidAPI / OpenWeb Ninja): aggregiert Google-for-Jobs (Indeed/LinkedIn/Glassdoor/ZipRecruiter)
+# -> Quellen, die wir sonst nicht scrapen koennen. Braucht JSEARCH_KEY (GitHub-Secret, Header-Auth);
+# ohne Key wird die Quelle uebersprungen. GLEICHES Quality-Gate wie Adzuna (Paul: jede Stelle muss passen):
+# - remote_jobs_only=true in der Suche + job_is_remote/ADZ_REMOTE als Zusatz-Check
+# - ADZ_ONSITE wirft Vor-Ort/Relocation/Hybrid raus (Google-for-Jobs ist rauschig, taggt Hybrid gern als remote)
+# - job_apply_link = Direktlink zur Anzeige (is_direct() filtert Sammel-/Suchseiten in process() weiter)
+# - region_hint="eu" + no_world=True: KEIN Fake-weltweit. deutsch-remote ist realistisch EU-gebunden ->
+#   ehrlich als EU labeln (untertreiben ist ok, uebertreiben nicht). Echte Weltweit-Freigabe erst nach
+#   Sichtung der realen Daten, nicht auf Verdacht.
+def from_jsearch(raw):
+    out=[]
+    for j in (raw.get("data") or []):
+        title=(j.get("job_title") or "").strip()
+        if not title: continue
+        desc=clean_text(j.get("job_description",""))
+        city=(j.get("job_city") or ""); country=(j.get("job_country") or "")
+        loc=" ".join(x for x in (city,country) if x)
+        empl=(j.get("job_employment_type") or "")
+        blob=title+" "+desc+" "+loc+" "+empl
+        if not (j.get("job_is_remote") or ADZ_REMOTE.search(blob)): continue   # muss echt remote sein
+        if ADZ_ONSITE.search(blob): continue                                   # Vor-Ort/Relocation/Hybrid raus
+        link=(j.get("job_apply_link") or "").strip()
+        if not link: continue
+        out.append(dict(title=title, company=(j.get("employer_name") or ""),
+            url=link, info=desc,
+            raw_tags=(j.get("job_publisher") or "")+" "+empl,
+            raw_desc=clean_text(j.get("job_description",""),1000),
+            raw_loc=loc+" remote", region_hint="eu", no_world=True))   # nie als weltweit labeln (Qualitaet)
     return out
 
 def http_text(url):
@@ -562,6 +595,26 @@ if ADZUNA_ID and ADZUNA_KEY:
     print("[adzuna] Key gefunden -> 9 Adzuna-Quellen aktiv")
 else:
     print("[adzuna] kein ADZUNA_APP_ID/KEY -> Adzuna uebersprungen (Key als GitHub-Secret setzen, dann aktiv)")
+
+# --- JSearch (RapidAPI, Lauf #29): Google-for-Jobs (Indeed/LinkedIn/Glassdoor). Nur aktiv, wenn JSEARCH_KEY
+#     als GitHub-Secret gesetzt ist. Header-Auth (Key NICHT in der URL). Gratis-Tier hat ein Monatslimit ->
+#     bewusst schlank: 5 Anfragen/Build (num_pages=1), profilnah. Bei gutem Yield spaeter mehr Queries. ---
+JSEARCH_KEY = os.environ.get("JSEARCH_KEY","").strip()
+def _js(query, page=1):
+    return (f"https://jsearch.p.rapidapi.com/search"
+            f"?query={urllib.parse.quote(query)}&page={page}&num_pages=1"
+            f"&remote_jobs_only=true&date_posted=week")
+if JSEARCH_KEY:
+    SOURCES += [
+        ("jsearch-kundenservice", _js("deutschsprachiger kundenservice remote"),    from_jsearch, "json"),
+        ("jsearch-german-cs",     _js("german speaking customer support remote"),    from_jsearch, "json"),
+        ("jsearch-assistenz",     _js("remote assistenz deutsch virtual assistant"), from_jsearch, "json"),
+        ("jsearch-german-remote", _js("german speaking remote"),                     from_jsearch, "json"),
+        ("jsearch-kundenberater", _js("remote kundenberater deutsch"),               from_jsearch, "json"),
+    ]
+    print("[jsearch] Key gefunden -> 5 JSearch-Quellen aktiv (Gratis-Tier schonen: 5 Anfragen/Build)")
+else:
+    print("[jsearch] kein JSEARCH_KEY -> JSearch uebersprungen (Key als GitHub-Secret setzen, dann aktiv)")
 
 def gather():
     jobs=[]
