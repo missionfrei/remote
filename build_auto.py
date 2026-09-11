@@ -577,6 +577,125 @@ def _rank(j):
         0 if reg=="world" else 1,     # weltweit vor EU
         0 if j.get("fd") else 1,      # ⭐ Fuer-dich zuerst
     )
+
+# ==================== Personalisierte "Fuer dich"-Ansicht (Lauf #23) ====================
+# Pro Login-Passwort eine gerankte Top-Auswahl aus DEMSELBEN Board. Nur Job-Kriterien
+# pro Passwort (KEINE Namen/PII). Scoring laeuft im Browser (liest Titel/Info/Bereich/
+# Sprache + Region-Badge der Karten). Alles in die Shell injiziert -> nur build_auto.py
+# muss deployt werden, template.html bleibt unangetastet.
+
+FD_CHIP = '<span class="chip" data-f="fd">⭐ Für dich</span>\n    '
+
+FD_SECTION = ('<section id="fuerdich" class="hidden">\n'
+  '  <h2 style="border-left:4px solid #a8842e;padding-left:12px">⭐ Für dich <span class="cnt"></span></h2>\n'
+  '  <div class="grid"></div>\n'
+  '  <p class="fdempty">Für dich ist noch keine persönliche Auswahl hinterlegt. Sag kurz in deiner WhatsApp-Gruppe Bescheid – dann richten wir sie ein.</p>\n'
+  '</section>\n\n')
+
+FD_JS = r'''
+  /* ---- Personalisierte "Fuer dich"-Auswahl: pro Login-Passwort, nur Job-Kriterien ---- */
+  var PROFILES={
+   "lisamaria26":{ber:{service:3,buero:1,sprache:1,start:0.5},
+     plus:["guest","reservation","hotel","hospitality","travel","reise","concierge","front desk","reception","empfang","gäste","booking","tourism","customer","support","kundenservice","kundensupport","kundenbetreuung","betreuung","service","chat support"],
+     minus:["developer","engineer","software","vertrieb","sales","closer","setter","designer","marketing","crypto","blockchain","devops","qa engineer","data scientist","rater","annotation","ai training"],
+     hard:["developer","software engineer","devops","data engineer","qa engineer"],langs:["de","en"],reg:{world:3,eu:2,de:0}},
+   "annette26":{ber:{service:3,buero:3,start:0.5},
+     plus:["customer","support","kundenservice","kundensupport","kundenbetreuung","betreuung","service","assistant","assistenz","virtual assistant","office","back office","administration","verwaltung","operations","koordination","coordinator","data entry","sachbearbeit","empfang"],
+     minus:["developer","engineer","software","buchhaltung","accounting","steuer","datev","closer","setter","direct sales","außendienst","designer","devops"],
+     hard:["developer","software engineer","devops","buchhalter","steuerfach"],langs:["de","en"],reg:{world:3,eu:2,de:0}},
+   "stefanie26":{ber:{buero:3,start:2,service:1},
+     plus:["buchhaltung","accounting","steuer","datev","lohn","bilanz","finanz","controlling","rechnungswesen","sachbearbeit","office","verwaltung","back office"],
+     minus:["developer","engineer","software","vertrieb","sales","closer","designer","marketing","devops"],
+     hard:["developer","software engineer","devops"],langs:["de","en"],reg:{world:2,eu:2,de:2}}
+  };
+  function fdRegion(c){var t=(c.querySelector('.meta')||c).textContent;if(/Weltweit|🌍/.test(t))return'world';if(/EU|🇪🇺|Europa/.test(t))return'eu';return'de';}
+  function fdText(c){return (((c.querySelector('h3')||{}).textContent||'')+' '+((c.querySelector('.info')||{}).textContent||'')+' '+((c.querySelector('.company')||{}).textContent||'')).toLowerCase();}
+  function fdScore(c,p){
+    var title=((c.querySelector('h3')||{}).textContent||'').toLowerCase();
+    for(var i=0;i<p.hard.length;i++){if(title.indexOf(p.hard[i])>-1)return -999;}
+    var s=0,t=fdText(c),ber=c.dataset.bereich||'';
+    s+=(p.ber[ber]||0);
+    var ph=0;for(var j=0;j<p.plus.length;j++){if(t.indexOf(p.plus[j])>-1)ph++;}s+=Math.min(ph*1.4,5.5);
+    var mh=0;for(var k=0;k<p.minus.length;k++){if(t.indexOf(p.minus[k])>-1)mh++;}s-=mh*2.2;
+    s+=(p.reg[fdRegion(c)]||0);
+    if(p.langs.indexOf(c.dataset.lang)>-1)s+=1;
+    if(c.dataset.lang==='de')s+=0.6;
+    if(c.dataset.level==='einsteiger')s+=0.4;
+    return s;
+  }
+  function fdStars(s,top){var r=top>0?s/top:0;var n=Math.max(1,Math.min(5,Math.round(1+4*r)));var o='';for(var i=0;i<5;i++)o+=(i<n?'★':'☆');return o;}
+  function buildFD(){
+    var sec=document.getElementById('fuerdich');if(!sec)return;
+    var grid=sec.querySelector('.grid');var empty=sec.querySelector('.fdempty');var cnt=sec.querySelector('h2 .cnt');
+    grid.innerHTML='';var p=PROFILES[CUR];
+    if(!p){if(empty)empty.style.display='block';if(cnt)cnt.textContent='';return;}
+    var arr=[];
+    document.querySelectorAll('.card').forEach(function(c){
+      if(c.closest('#favoriten')||c.closest('#toolbox')||c.closest('#freelance')||c.closest('#fuerdich'))return;
+      var s=fdScore(c,p);if(s>5)arr.push({c:c,s:s});
+    });
+    arr.sort(function(a,b){return b.s-a.s;});arr=arr.slice(0,30);
+    var top=arr.length?arr[0].s:0;
+    arr.forEach(function(o){
+      var cl=o.c.cloneNode(true);cl.classList.remove('hidden');
+      var badge=document.createElement('div');badge.className='fdfit';
+      badge.style.cssText='font-size:11px;font-weight:800;color:#a8842e;letter-spacing:.06em;margin:2px 0 8px';
+      badge.textContent='PASST ZU DIR  '+fdStars(o.s,top);
+      cl.insertBefore(badge,cl.firstChild);
+      grid.appendChild(cl);
+    });
+    if(empty)empty.style.display=arr.length?'none':'block';
+    if(cnt)cnt.textContent=arr.length?(arr.length+' handverlesene Treffer für dich'):'';
+    paintStars();
+  }
+  function activateFDForUser(){
+    var chip=document.querySelector('.chip[data-f="fd"]');if(!chip)return;
+    if(PROFILES[CUR]){
+      chip.style.display='';
+      try{
+        document.querySelectorAll('.chip:not(.lv):not(.langf):not(.directf)').forEach(function(x){x.classList.remove('active');});
+        chip.classList.add('active');active='fd';apply();
+      }catch(e){ active='all'; try{apply();}catch(_){ } }   /* Fallback: nie das Board zerschiessen */
+    }else{chip.style.display='none';}
+  }
+'''
+
+def _inject_fd(head, tail):
+    """Injiziert Chip + Sektion + Scoring-JS in die Shell. Fehlt ein Anker (Template
+    geaendert), wird gewarnt und ohne die Personalisierung gebaut (Board bleibt heil)."""
+    def rep(s, old, new, tag):
+        if old in s: return s.replace(old, new, 1)
+        print(f"[fd] WARN Anker fehlt ({tag}) - Teil nicht injiziert"); return s
+    # Chip vor "Alle"
+    head = rep(head, '<span class="chip active" data-f="all">Alle</span>',
+               FD_CHIP + '<span class="chip active" data-f="all">Alle</span>', "chip")
+    # Sektion vor #freelance (tail beginnt damit)
+    idx = tail.find('<section id="freelance"')
+    if idx >= 0: tail = tail[:idx] + FD_SECTION + tail[idx:]
+    else: print("[fd] WARN Anker fehlt (freelance) - Sektion nicht injiziert")
+    # JS-Definitionen nach 'var CUR'
+    tail = rep(tail, "var CUR='';", "var CUR='';" + FD_JS, "cur")
+    # unlock() ruft activateFDForUser()
+    tail = rep(tail,
+        "function unlock(){\n    document.getElementById('gate').style.display='none';\n    document.getElementById('app').style.display='block';\n    paintStars();\n  }",
+        "function unlock(){\n    document.getElementById('gate').style.display='none';\n    document.getElementById('app').style.display='block';\n    paintStars();\n    try{activateFDForUser();}catch(e){}\n  }",
+        "unlock")
+    # apply(): fd-Zweig
+    tail = rep(tail, "    if(active==='fav'){",
+        "    var fdS=document.getElementById('fuerdich'); if(fdS)fdS.classList.add('hidden');\n"
+        "    if(active==='fd'){ buildFD(); sects.forEach(function(s2){s2.classList.add('hidden');}); if(fdS)fdS.classList.remove('hidden'); return; }\n"
+        "    if(active==='fav'){", "apply-fd")
+    # Normalansicht: #fuerdich nicht mit einblenden
+    tail = rep(tail, "sects.forEach(function(s2){if(s2!==tb && s2!==fav)s2.classList.remove('hidden');});",
+        "sects.forEach(function(s2){if(s2!==tb && s2!==fav && s2.id!=='fuerdich')s2.classList.remove('hidden');});", "show")
+    # leere-Sektion-Schleife: fuerdich ueberspringen
+    tail = rep(tail, "if(sec.id==='toolbox'||sec.id==='favoriten')return;",
+        "if(sec.id==='toolbox'||sec.id==='favoriten'||sec.id==='fuerdich')return;", "emptyskip")
+    # buildFav: fuerdich-Klone nicht mitzaehlen
+    tail = rep(tail, "if(c.closest('#favoriten')||c.closest('#toolbox'))return;",
+        "if(c.closest('#favoriten')||c.closest('#toolbox')||c.closest('#fuerdich'))return;", "favskip")
+    return head, tail
+
 def build_sections(jobs):
     by={b:[] for b in BEREICH_ORDER}
     for j in jobs: by[j["bereich"]].append(j)
@@ -601,6 +720,7 @@ def main():
     i1=tpl.find('<section id="freelance"')
     assert i0>0 and i1>0, "Template-Grenzen nicht gefunden"
     head, tail = tpl[:i0], tpl[i1:]
+    head, tail = _inject_fd(head, tail)   # personalisierte "Fuer dich"-Ansicht einbauen
 
     auto=process(gather())
     manual=load_manual()
