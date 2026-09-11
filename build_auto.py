@@ -598,20 +598,15 @@ SOURCES += [
 # --- Lauf #32: Volumen-Ausbau (Paul-Ziel 1000). Jobicy ist die ergiebigste freie API (100/Call)
 #     -> alle relevanten Branchen x Regionen abgrasen. RemoteOK-Tags dazu. Dedup faengt Ueberschneidungen. ---
 SOURCES += [
+    # Jobicy nach Yield-Test: nur die Slugs die liefern (sales/finance = 400, geo=anywhere-Kombis = 429/0 -> raus, sonst kappt das Rate-Limit die guten Calls).
     ("jobicy-marketing",   "https://jobicy.com/api/v2/remote-jobs?count=100&industry=marketing",  from_jobicy, "json"),
-    ("jobicy-sales",       "https://jobicy.com/api/v2/remote-jobs?count=100&industry=sales",       from_jobicy, "json"),
     ("jobicy-business",    "https://jobicy.com/api/v2/remote-jobs?count=100&industry=business",    from_jobicy, "json"),
     ("jobicy-hr",          "https://jobicy.com/api/v2/remote-jobs?count=100&industry=hr",          from_jobicy, "json"),
-    ("jobicy-finance",     "https://jobicy.com/api/v2/remote-jobs?count=100&industry=finance",     from_jobicy, "json"),
     ("jobicy-management",  "https://jobicy.com/api/v2/remote-jobs?count=100&industry=management",  from_jobicy, "json"),
     ("jobicy-seller",      "https://jobicy.com/api/v2/remote-jobs?count=100&industry=seller",      from_jobicy, "json"),
     ("jobicy-copywriting", "https://jobicy.com/api/v2/remote-jobs?count=100&industry=copywriting", from_jobicy, "json"),
     ("jobicy-europe",      "https://jobicy.com/api/v2/remote-jobs?count=100&geo=europe",           from_jobicy, "json"),
     ("jobicy-emea",        "https://jobicy.com/api/v2/remote-jobs?count=100&geo=emea",             from_jobicy, "json"),
-    ("jobicy-any-mkt",     "https://jobicy.com/api/v2/remote-jobs?count=100&geo=anywhere&industry=marketing", from_jobicy, "json"),
-    ("jobicy-any-sales",   "https://jobicy.com/api/v2/remote-jobs?count=100&geo=anywhere&industry=sales",     from_jobicy, "json"),
-    ("jobicy-any-business","https://jobicy.com/api/v2/remote-jobs?count=100&geo=anywhere&industry=business",  from_jobicy, "json"),
-    ("jobicy-any-hr",      "https://jobicy.com/api/v2/remote-jobs?count=100&geo=anywhere&industry=hr",        from_jobicy, "json"),
     ("remoteok-support2",  "https://remoteok.com/api?tags=customer+support", from_remoteok, "json"),
     ("remoteok-admin",     "https://remoteok.com/api?tags=admin",            from_remoteok, "json"),
     ("remoteok-nontech2",  "https://remoteok.com/api?tags=non+tech",         from_remoteok, "json"),
@@ -645,17 +640,38 @@ def _adz(country, what, page=1):
             f"&what={urllib.parse.quote(what)}&content-type=application/json")
 if ADZUNA_ID and ADZUNA_KEY:
     SOURCES += [
-        ("adzuna-de-remote-eu",    _adz("de","remote europa"),         from_adzuna, "json"),
-        ("adzuna-de-eu-remote",    _adz("de","eu remote"),             from_adzuna, "json"),
-        ("adzuna-de-deutschspr",   _adz("de","deutschsprachig remote"),from_adzuna, "json"),
-        ("adzuna-de-kundenservice",_adz("de","remote kundenservice"),  from_adzuna, "json"),
-        ("adzuna-de-assistenz",    _adz("de","remote assistenz"),      from_adzuna, "json"),
-        ("adzuna-de-reise",        _adz("de","remote reise"),          from_adzuna, "json"),
-        ("adzuna-at-remote",       _adz("at","remote europa"),         from_adzuna, "json"),
-        ("adzuna-gb-german",       _adz("gb","german speaking remote"),from_adzuna, "json"),
-        ("adzuna-us-german",       _adz("us","german speaking remote"),from_adzuna, "json"),
+        # DE-Markt breit (deutschsprachig -> hebt Volumen UND die Deutsch-Quote). from_adzuna filtert hart auf ECHT voll-remote.
+        ("adzuna-de-remote1",      _adz("de","remote"),                 from_adzuna, "json"),
+        ("adzuna-de-remote2",      _adz("de","remote",2),               from_adzuna, "json"),
+        ("adzuna-de-homeoffice",   _adz("de","homeoffice"),             from_adzuna, "json"),
+        ("adzuna-de-homeoffice2",  _adz("de","homeoffice",2),           from_adzuna, "json"),
+        ("adzuna-de-100remote",    _adz("de","100% remote"),            from_adzuna, "json"),
+        ("adzuna-de-kundenservice",_adz("de","remote kundenservice"),   from_adzuna, "json"),
+        ("adzuna-de-kundenbetr",   _adz("de","remote kundenbetreuung"), from_adzuna, "json"),
+        ("adzuna-de-assistenz",    _adz("de","remote assistenz"),       from_adzuna, "json"),
+        ("adzuna-de-sachbearb",    _adz("de","remote sachbearbeitung"), from_adzuna, "json"),
+        ("adzuna-de-buchhaltung",  _adz("de","remote buchhaltung"),     from_adzuna, "json"),
+        ("adzuna-de-marketing",    _adz("de","remote marketing"),       from_adzuna, "json"),
+        ("adzuna-de-vertrieb",     _adz("de","remote vertrieb"),        from_adzuna, "json"),
+        ("adzuna-de-reise",        _adz("de","remote reise"),           from_adzuna, "json"),
+        # AT / CH - ebenfalls deutschsprachig
+        ("adzuna-at-remote",       _adz("at","remote"),                 from_adzuna, "json"),
+        ("adzuna-at-homeoffice",   _adz("at","homeoffice"),             from_adzuna, "json"),
+        ("adzuna-ch-homeoffice",   _adz("ch","homeoffice"),             from_adzuna, "json"),
+        ("adzuna-ch-remote",       _adz("ch","100% remote"),            from_adzuna, "json"),
+        # Weitere EU-Maerkte (englisch, EU-remote)
+        ("adzuna-nl-remote",       _adz("nl","fully remote"),           from_adzuna, "json"),
+        ("adzuna-es-remote",       _adz("es","remote"),                 from_adzuna, "json"),
+        ("adzuna-pl-remote",       _adz("pl","fully remote"),           from_adzuna, "json"),
+        ("adzuna-it-remote",       _adz("it","remote"),                 from_adzuna, "json"),
+        ("adzuna-fr-remote",       _adz("fr","full remote"),            from_adzuna, "json"),
+        # GB / US (englisch, kundennah/Assistenz)
+        ("adzuna-gb-remote",       _adz("gb","fully remote"),           from_adzuna, "json"),
+        ("adzuna-gb-customer",     _adz("gb","remote customer support"),from_adzuna, "json"),
+        ("adzuna-gb-assistant",    _adz("gb","remote virtual assistant"),from_adzuna, "json"),
+        ("adzuna-us-customer",     _adz("us","fully remote customer support"),from_adzuna, "json"),
     ]
-    print("[adzuna] Key gefunden -> 9 Adzuna-Quellen aktiv")
+    print("[adzuna] Key gefunden -> 26 Adzuna-Quellen aktiv (Volumen-Ausbau)")
 else:
     print("[adzuna] kein ADZUNA_APP_ID/KEY -> Adzuna uebersprungen (Key als GitHub-Secret setzen, dann aktiv)")
 
