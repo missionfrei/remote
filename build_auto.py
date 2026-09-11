@@ -586,6 +586,15 @@ def _rank(j):
 
 FD_CHIP = '<span class="chip" data-f="fd">⭐ Für dich</span>\n    '
 
+# #fuerdich/#favoriten liegen ausserhalb .wrap (direkt an body) -> sonst volle Breite (5+ pro Reihe).
+# Auf die Board-Breite (1120px, wie die normalen Sektionen) zentrieren -> 3 pro Reihe Desktop,
+# 1 pro Reihe Handy (erbt die mobile .grid-Regel). Desktop+Handy konsistent mit dem restlichen Board.
+FD_CSS = ('<style>#fuerdich,#favoriten{max-width:1120px;margin-left:auto;margin-right:auto;'
+          'padding-left:22px;padding-right:22px;box-sizing:border-box}'
+          '#fuerdich .grid,#favoriten .grid{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}'
+          '@media(max-width:640px){#fuerdich,#favoriten{padding-left:14px;padding-right:14px}'
+          '#fuerdich .grid,#favoriten .grid{grid-template-columns:1fr}}</style>\n')
+
 FD_SECTION = ('<section id="fuerdich" class="hidden">\n'
   '  <h2 style="border-left:4px solid #a8842e;padding-left:12px">⭐ Für dich <span class="cnt"></span></h2>\n'
   '  <div class="grid"></div>\n'
@@ -671,6 +680,9 @@ def _inject_fd(head, tail):
     # Chip vor "Alle"
     head = rep(head, '<span class="chip active" data-f="all">Alle</span>',
                FD_CHIP + '<span class="chip active" data-f="all">Alle</span>', "chip")
+    # Breiten-Fix fuer #fuerdich/#favoriten (CSS ins <head>)
+    if '</head>' in head: head = head.replace('</head>', FD_CSS + '</head>', 1)
+    else: head = FD_CSS + head
     # Sektion vor #freelance (tail beginnt damit)
     idx = tail.find('<section id="freelance"')
     if idx >= 0: tail = tail[:idx] + FD_SECTION + tail[idx:]
