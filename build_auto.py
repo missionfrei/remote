@@ -90,6 +90,7 @@ def detect(job):
     elif any(m in t for m in EU_MARKERS):  region = "eu"
     elif job.get("region_hint") in ("world","eu"): region = job["region_hint"]   # Feed-Hinweis (z.B. Adzuna: deutsch-remote = EU-Bruecke). DE_ONLY oben schlaegt ihn -> echt DE-gebundene fallen trotzdem raus.
     else: region = "de"   # ohne expliziten Weltweit-/EU-Marker: als Deutschland-nur behandeln (-> wird gefiltert)
+    if job.get("no_world") and region == "world": region = "eu"   # Adzuna & Co (DE/EU-Markt): kein Fake-weltweit, hoechstens EU-Bruecke
     level = "einsteiger" if any(m in t for m in EINSTEIGER_MARKERS) else "erfahren"
     return lang, region, level
 
@@ -125,19 +126,23 @@ def from_remotive(raw):
 # Nur Remote-Treffer aufnehmen (Adzuna ist gemischt). region_hint="eu" -> deutsch-remote als EU-Bruecke
 # (echt DE-gebundene mit DE_ONLY-Marker fallen in detect() trotzdem raus). redirect_url hat numerische
 # Ad-ID -> is_direct()=True. Braucht ADZUNA_APP_ID/KEY (GitHub-Secret); ohne Key wird die Quelle uebersprungen.
-ADZ_REMOTE = re.compile(r"remote|home[\- ]?office|homeoffice|ortsunabh|mobiles arbeiten|telearbeit|work from home|von zuhause|von zu hause|standortunabh", re.I)
+# Qualitaet (Paul: jede Stelle muss passen): nur ECHT voll-remote; Vor-Ort/Relocation/Hybrid raus.
+ADZ_REMOTE = re.compile(r"100\s*%?\s*remote|fully remote|full[- ]?remote|voll(?:staendig|ständig)?\s*remote|komplett remote|remote[- ]?first|ortsunabh|standortunabh|work from anywhere|home\s?office|homeoffice|remote\s*\(?(?:eu|europe|europa)|eu[- ]?remote|remote in europa|von ueberall|von überall", re.I)
+ADZ_ONSITE = re.compile(r"vor[- ]?ort|on[- ]?site|pr[äae]senz|relocat|umzug|umziehen|move to|nach (?:griechenland|zypern|portugal|spanien|bulgarien|malta|polen|rum[äa]nien|serbien|albanien|kroatien|t[üu]rkei)|ziehen nach|relocation package|based in (?:greece|cyprus|portugal|spain|bulgaria|poland)|hybrid|teilweise remote|tage (?:im )?b[üu]ro|b[üu]ro[- ]?pflicht", re.I)
 def from_adzuna(raw):
     out=[]
     for j in (raw.get("results") or []):
         title=(j.get("title") or "").strip()
         desc=clean_text(j.get("description",""))
         loc=((j.get("location") or {}).get("display_name","")) or ""
-        if not ADZ_REMOTE.search((title+" "+desc+" "+loc)): continue     # nur Remote/Homeoffice
+        blob=title+" "+desc+" "+loc
+        if not ADZ_REMOTE.search(blob): continue     # nur ECHT voll-remote
+        if ADZ_ONSITE.search(blob):    continue     # Vor-Ort / Relocation / Hybrid raus (Qualitaet)
         out.append(dict(title=title, company=((j.get("company") or {}).get("display_name","")) or "",
             url=(j.get("redirect_url") or ""), info=desc,
             raw_tags=((j.get("category") or {}).get("label","")),
             raw_desc=clean_text(j.get("description",""),1000),
-            raw_loc=loc+" remote", region_hint="eu"))
+            raw_loc=loc+" remote", region_hint="eu", no_world=True))   # Adzuna = DE/EU-Markt: NIE als weltweit labeln
     return out
 
 # Arbeitsagentur (Bundesagentur fuer Arbeit) - groesste Jobdatenbank DE, oeffentliche API, KEIN Key noetig.
@@ -523,15 +528,16 @@ SOURCES += [
 def _ba(kw, size=100, page=1):
     return (f"https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v4/jobs"
             f"?was={urllib.parse.quote(kw)}&size={size}&page={page}")
-SOURCES += [
-    ("ba-ortsunabh-1",     _ba("ortsunabhängig",100,1),   from_arbeitsagentur, "json"),
-    ("ba-ortsunabh-2",     _ba("ortsunabhängig",100,2),   from_arbeitsagentur, "json"),
-    ("ba-standortunabh",   _ba("standortunabhängig"),      from_arbeitsagentur, "json"),
-    ("ba-vonueberall",     _ba("von überall arbeiten"),    from_arbeitsagentur, "json"),
-    ("ba-anywhere",        _ba("work from anywhere"),      from_arbeitsagentur, "json"),
-    ("ba-remote-ortsunabh",_ba("remote ortsunabhängig"),   from_arbeitsagentur, "json"),
-]
-print("[ba] Arbeitsagentur-Quellen aktiv (kein Key noetig)")
+# GEPARKT (Paul: "danach vlt arbeitsagentur"): BA-API gab 0 zurueck (Auth hat sich geaendert,
+# von hier aus nicht testbar) + Feeds bremsten den Build (Timeouts). Code bleibt, Quellen inaktiv.
+# Zum Reaktivieren: den folgenden Block einkommentieren, sobald die Auth (OAuth-Token) steht.
+# SOURCES += [
+#     ("ba-ortsunabh-1",     _ba("ortsunabhängig",100,1),   from_arbeitsagentur, "json"),
+#     ("ba-standortunabh",   _ba("standortunabhängig"),      from_arbeitsagentur, "json"),
+#     ("ba-vonueberall",     _ba("von überall arbeiten"),    from_arbeitsagentur, "json"),
+#     ("ba-anywhere",        _ba("work from anywhere"),      from_arbeitsagentur, "json"),
+# ]
+print("[ba] Arbeitsagentur geparkt (Auth offen) - inaktiv")
 
 # --- Adzuna (Boersen-Aggregator, Deutschland-nativ). Nur aktiv, wenn ADZUNA_APP_ID/KEY als
 #     GitHub-Secret gesetzt sind. Ohne Key: Quelle wird sauber uebersprungen (Board baut normal). ---
