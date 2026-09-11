@@ -613,6 +613,17 @@ if JSEARCH_KEY:
         ("jsearch-kundenberater", _js("remote kundenberater deutsch"),               from_jsearch, "json"),
     ]
     print("[jsearch] Key gefunden -> 5 JSearch-Quellen aktiv (Gratis-Tier schonen: 5 Anfragen/Build)")
+    # DEBUG (temporaer, Lauf 29b): exakten 404-Grund + sicheren Key-Fingerabdruck loggen (nie den Key selbst)
+    import hashlib as _hl
+    print(f"[jsearch-debug] keylen={len(JSEARCH_KEY)} keyhash={_hl.sha256(JSEARCH_KEY.encode()).hexdigest()[:12]}")
+    try:
+        _tr=urllib.request.Request("https://jsearch.p.rapidapi.com/search?query=test&page=1&num_pages=1&remote_jobs_only=true&date_posted=week",
+            headers={"X-RapidAPI-Key":JSEARCH_KEY,"X-RapidAPI-Host":"jsearch.p.rapidapi.com","User-Agent":"Mozilla/5.0 (MissionfreiBot)"})
+        with urllib.request.urlopen(_tr,timeout=30) as _rr: print("[jsearch-debug] OK status", _rr.status)
+    except urllib.error.HTTPError as _e:
+        print(f"[jsearch-debug] HTTP {_e.code} body={_e.read().decode('utf-8','replace')[:200]}")
+    except Exception as _e:
+        print("[jsearch-debug] ERR", type(_e).__name__, str(_e)[:150])
 else:
     print("[jsearch] kein JSEARCH_KEY -> JSearch uebersprungen (Key als GitHub-Secret setzen, dann aktiv)")
 
