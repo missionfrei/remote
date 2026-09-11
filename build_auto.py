@@ -205,24 +205,49 @@ def from_remoteok(raw):
 # - region_hint="eu" + no_world=True: KEIN Fake-weltweit. deutsch-remote ist realistisch EU-gebunden ->
 #   ehrlich als EU labeln (untertreiben ist ok, uebertreiben nicht). Echte Weltweit-Freigabe erst nach
 #   Sichtung der realen Daten, nicht auf Verdacht.
+def _jsearch_jobs(raw):
+    """Findet die Job-Liste in der v2-Antwort, egal wie verschachtelt (data-Liste, data.jobs, top-level jobs...)."""
+    if not isinstance(raw, dict): return []
+    d = raw.get("data")
+    lst = d if isinstance(d, list) else []
+    if not lst and isinstance(d, dict):
+        for k in ("jobs","results","items","data","docs"):
+            if isinstance(d.get(k), list): lst = d[k]; break
+    if not lst:
+        for k in ("jobs","results","items"):
+            if isinstance(raw.get(k), list): lst = raw[k]; break
+    return [j for j in lst if isinstance(j, dict)]
+
 def from_jsearch(raw):
     out=[]
-    for j in (raw.get("data") or []):
-        title=(j.get("job_title") or "").strip()
+    jobs=_jsearch_jobs(raw)
+    try: print(f"[jsearch-debug] keys={list(raw.keys())[:6] if isinstance(raw,dict) else type(raw).__name__} njobs={len(jobs)}")
+    except Exception: pass
+    def g(j,*names):
+        for n in names:
+            v=j.get(n)
+            if v is not None and v != "": return v
+        return None
+    for j in jobs:
+        title=str(g(j,"job_title","title") or "").strip()
         if not title: continue
-        desc=clean_text(j.get("job_description",""))
-        city=(j.get("job_city") or ""); country=(j.get("job_country") or "")
+        desc=clean_text(str(g(j,"job_description","description") or ""))
+        city=str(g(j,"job_city","city") or ""); country=str(g(j,"job_country","country") or "")
         loc=" ".join(x for x in (city,country) if x)
-        empl=(j.get("job_employment_type") or "")
+        empl=str(g(j,"job_employment_type","employment_type") or "")
         blob=title+" "+desc+" "+loc+" "+empl
-        if not (j.get("job_is_remote") or ADZ_REMOTE.search(blob)): continue   # muss echt remote sein
-        if ADZ_ONSITE.search(blob): continue                                   # Vor-Ort/Relocation/Hybrid raus
-        link=(j.get("job_apply_link") or "").strip()
+        if not (g(j,"job_is_remote","is_remote") or ADZ_REMOTE.search(blob)): continue   # muss echt remote sein
+        if ADZ_ONSITE.search(blob): continue                                             # Vor-Ort/Relocation/Hybrid raus
+        link=str(g(j,"job_apply_link","apply_link","job_url","url") or "").strip()
+        if not link:
+            ao=j.get("apply_options") or j.get("job_apply_options")
+            if isinstance(ao,list) and ao and isinstance(ao[0],dict):
+                link=str(ao[0].get("apply_link") or ao[0].get("link") or "").strip()
         if not link: continue
-        out.append(dict(title=title, company=(j.get("employer_name") or ""),
+        out.append(dict(title=title, company=str(g(j,"employer_name","company_name","company") or ""),
             url=link, info=desc,
-            raw_tags=(j.get("job_publisher") or "")+" "+empl,
-            raw_desc=clean_text(j.get("job_description",""),1000),
+            raw_tags=str(g(j,"job_publisher","publisher") or "")+" "+empl,
+            raw_desc=clean_text(str(g(j,"job_description","description") or ""),1000),
             raw_loc=loc+" remote", region_hint="eu", no_world=True))   # nie als weltweit labeln (Qualitaet)
     return out
 
