@@ -35,8 +35,8 @@ BEREICHE = [
 
 # ---------- Bereich-Zuordnung nach Stichwoertern (Titel/Tags) ----------
 BEREICH_KW = {
-    "service":  ["kundenservice","kundenbetreu","customer support","customer service","customer care","customer success","customer experience","customer advocate","support agent","support specialist","support consultant","support representative","support engineer","technical support","chat support","live chat","email support","help desk","helpdesk","service agent","client support","member support","player support","guest","reservation","booking","reise","travel","hospitality","concierge","call center","callcenter","kundenberat","beschwerde","content moderat","trust and safety","trust & safety","happiness engineer","community support","onboarding specialist","tier 1","tier 2"],
-    "buero":    ["buchhalt","accounting","accountant","finance","finanzbuch","lohn","payroll","steuerfach","controlling","sachbearbeit","backoffice","back office","back-office","assistenz","assistant","virtual assistant","executive assistant","personal assistant","verwaltung","admin","office manager","operations specialist","operations coordinator","operations associate","customer operations","people operations","coordinator","scheduling","order management","datenerfassung","data entry","dateneingabe"],
+    "service":  ["kundenservice","kundenbetreu","kundensupport","kundendienst","customer support","customer service","customer care","customer success","customer experience","customer advocate","support agent","support specialist","support consultant","support representative","support engineer","technical support","chat support","live chat","email support","help desk","helpdesk","service agent","client support","member support","player support","guest","reservation","booking","reise","travel","hospitality","concierge","call center","callcenter","kundenberat","beschwerde","content moderat","trust and safety","trust & safety","happiness engineer","community support","onboarding specialist","tier 1","tier 2"],
+    "buero":    ["buchhalt","accounting","accountant","finance","finanzbuch","lohn","payroll","steuerfach","controlling","sachbearbeit","büromanagement","bueromanagement","bürokaufmann","bürokauffrau","backoffice","back office","back-office","assistenz","assistant","virtual assistant","executive assistant","personal assistant","verwaltung","admin","office manager","operations specialist","operations coordinator","operations associate","customer operations","people operations","coordinator","scheduling","order management","datenerfassung","data entry","dateneingabe"],
     "start":    [],   # frueher Mikrojobs - jetzt raus (Paul). Sektion zeigt nur noch manuelle Freelance-/Portal-Eintraege.
     "sprache":  ["übersetz","ubersetz","translat","lektor","proofread","texter","content writer","copywriter","redaktion","tutor","nachhilfe","language teacher","sprachlehrer"],
     "marketing":["marketing","social media","seo","content creator","content manager","grafik","design","designer","creative","video","brand","paid ads","performance market","kampagne","community manager"],
@@ -95,7 +95,9 @@ def detect(job):
 
 # ---------- Feeds ----------
 def http_json(url):
-    req = urllib.request.Request(url, headers={"User-Agent":"Mozilla/5.0 (MissionfreiBot)"})
+    h={"User-Agent":"Mozilla/5.0 (MissionfreiBot)"}
+    if "rest.arbeitsagentur.de" in url: h["X-API-Key"]="jobboerse-jobsuche"   # oeffentlicher BA-App-Key (kein Signup)
+    req = urllib.request.Request(url, headers=h)
     with urllib.request.urlopen(req, timeout=30) as r:
         return json.loads(r.read().decode("utf-8","replace"))
 
@@ -136,6 +138,32 @@ def from_adzuna(raw):
             raw_tags=((j.get("category") or {}).get("label","")),
             raw_desc=clean_text(j.get("description",""),1000),
             raw_loc=loc+" remote", region_hint="eu"))
+    return out
+
+# Arbeitsagentur (Bundesagentur fuer Arbeit) - groesste Jobdatenbank DE, oeffentliche API, KEIN Key noetig.
+# Paul-Wunsch: NUR echt weltweit machbare 100%-Remote-Stellen, immer Direktlink zur Stelle.
+# Strategie: die Suche (SOURCES) ist bereits auf ortsunabhaengig/weltweit gebogen -> region_hint="world".
+# detect() droppt trotzdem alles mit DE_ONLY-Marker (deutschlandweit/bundesweit/wohnsitz in DE).
+# Direktlink = BA-Jobdetail-Seite zur konkreten Stelle (refnr) -> is_direct=True (Ziffern-ID).
+def _ba_field(j, *names):
+    for n in names:
+        v=j.get(n)
+        if isinstance(v,str) and v.strip(): return v.strip()
+    return ""
+def from_arbeitsagentur(raw):
+    out=[]
+    for j in (raw.get("stellenangebote") or []):
+        title=_ba_field(j,"titel","beruf","stellenangebotsTitel","stellenbezeichnung")
+        refnr=_ba_field(j,"refnr","referenznummer","hashId")
+        if not title or not refnr: continue
+        comp=_ba_field(j,"arbeitgeber","arbeitgeberName") or "Arbeitgeber (ueber Arbeitsagentur)"
+        ao=j.get("arbeitsort") or {}
+        ort=(ao.get("ort") if isinstance(ao,dict) else "") or _ba_field(j,"ort") or ""
+        url=f"https://www.arbeitsagentur.de/jobsuche/jobdetail/{urllib.parse.quote(refnr, safe='')}"
+        out.append(dict(title=title, company=comp, url=url,
+            info="Ortsunabhaengige Remote-Stelle (deutschsprachig, weltweit machbar) - Details und Bewerbung ueber den Link.",
+            raw_tags=_ba_field(j,"beruf"), raw_loc=(ort+" ortsunabhaengig remote weltweit").strip(),
+            raw_desc="", region_hint="world"))
     return out
 
 def _j(x):  # list-oder-string -> string
@@ -489,6 +517,21 @@ SOURCES += [
     ("arbeitnow-9",           "https://www.arbeitnow.com/api/job-board-api?page=9",             from_arbeitnow, "json"),
     ("arbeitnow-10",          "https://www.arbeitnow.com/api/job-board-api?page=10",            from_arbeitnow, "json"),
 ]
+
+# --- Arbeitsagentur (Lauf #27): groesste dt. Jobdatenbank, oeffentliche API, KEIN Key noetig.
+#     Nur ortsunabhaengige/weltweit-machbare Treffer (Suche entsprechend gebogen). ---
+def _ba(kw, size=100, page=1):
+    return (f"https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v4/jobs"
+            f"?was={urllib.parse.quote(kw)}&size={size}&page={page}")
+SOURCES += [
+    ("ba-ortsunabh-1",     _ba("ortsunabhängig",100,1),   from_arbeitsagentur, "json"),
+    ("ba-ortsunabh-2",     _ba("ortsunabhängig",100,2),   from_arbeitsagentur, "json"),
+    ("ba-standortunabh",   _ba("standortunabhängig"),      from_arbeitsagentur, "json"),
+    ("ba-vonueberall",     _ba("von überall arbeiten"),    from_arbeitsagentur, "json"),
+    ("ba-anywhere",        _ba("work from anywhere"),      from_arbeitsagentur, "json"),
+    ("ba-remote-ortsunabh",_ba("remote ortsunabhängig"),   from_arbeitsagentur, "json"),
+]
+print("[ba] Arbeitsagentur-Quellen aktiv (kein Key noetig)")
 
 # --- Adzuna (Boersen-Aggregator, Deutschland-nativ). Nur aktiv, wenn ADZUNA_APP_ID/KEY als
 #     GitHub-Secret gesetzt sind. Ohne Key: Quelle wird sauber uebersprungen (Board baut normal). ---
