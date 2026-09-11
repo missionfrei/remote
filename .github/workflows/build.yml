@@ -26,6 +26,12 @@ jobs:
         with:
           python-version: "3.12"
       - name: Board bauen (Feeds -> index.html)
+        # Adzuna ist optional: nur aktiv, wenn beide Secrets gesetzt sind
+        # (Repo -> Settings -> Secrets and variables -> Actions -> ADZUNA_APP_ID / ADZUNA_APP_KEY).
+        # Fehlen sie, laeuft der Build normal weiter und ueberspringt Adzuna.
+        env:
+          ADZUNA_APP_ID: ${{ secrets.ADZUNA_APP_ID }}
+          ADZUNA_APP_KEY: ${{ secrets.ADZUNA_APP_KEY }}
         run: python build_auto.py
       - name: Aenderungen committen (nur wenn es welche gibt)
         run: |
