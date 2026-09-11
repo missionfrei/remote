@@ -333,6 +333,30 @@ def from_workingnomads(raw):
             raw_loc=j.get("location","")))
     return out
 
+# RemoteJobs.org (Lauf 31): freie JSON-API, worldwide-fokussiert. location-String z.B. "Remote (Worldwide)"
+# -> detect() macht daraus world; "Remote (US)" o.ae. ohne Weltweit-Marker faellt als de raus. Gutes Non-Tech.
+def from_remotejobs(raw):
+    out=[]
+    lst = raw.get("jobs") if isinstance(raw,dict) else raw
+    for j in (lst or []):
+        if not isinstance(j,dict): continue
+        title=(j.get("title") or "").strip()
+        c=j.get("company"); company=c.get("name") if isinstance(c,dict) else (c or "")
+        url=(j.get("apply_url") or j.get("url") or "").strip()
+        if not title or not url: continue
+        cat=j.get("category"); cslug=cat.get("slug") if isinstance(cat,dict) else (cat or "")
+        out.append(dict(title=title, company=str(company or ""), url=url,
+            info=clean_text(str(j.get("description") or "")),
+            raw_tags=str(cslug), raw_loc=str(j.get("location") or ""),
+            raw_desc=clean_text(str(j.get("description") or ""),1000)))
+    return out
+
+# RealWorkFromAnywhere (Lauf 31): ganzes Board ist per Definition 100% work-from-anywhere -> region world ehrlich.
+def from_realwfa(xmltext):
+    out=from_rss_generic(xmltext)
+    for j in out: j["region_hint"]="world"; j["raw_loc"]="worldwide remote"
+    return out
+
 def from_wwr(xmltext):
     import xml.etree.ElementTree as ET
     out=[]
@@ -530,7 +554,14 @@ SOURCES = [
     ("wwr-allother",  "https://weworkremotely.com/categories/all-other-remote-jobs.rss", from_wwr, "text"),
     ("wwr-design",    "https://weworkremotely.com/categories/remote-design-jobs.rss",     from_wwr, "text"),
     # --- Neue Quellen (aus dem Hauptboard uebernommen, fuer die Zukunft) ---
-    ("realworkfromanywhere","https://www.realworkfromanywhere.com/feed", from_rss_generic, "text"),
+    ("realworkfromanywhere","https://www.realworkfromanywhere.com/rss.xml", from_realwfa, "text"),
+    ("realwfa-cs",    "https://www.realworkfromanywhere.com/remote-customer-support-jobs/rss.xml", from_realwfa, "text"),
+    ("realwfa-salesmkt","https://www.realworkfromanywhere.com/remote-sales-and-marketing-jobs/rss.xml", from_realwfa, "text"),
+    ("remotejobs-cs",   "https://remotejobs.org/api/v1/jobs?category=customer-support&limit=50", from_remotejobs, "json"),
+    ("remotejobs-sales","https://remotejobs.org/api/v1/jobs?category=sales&limit=50",            from_remotejobs, "json"),
+    ("remotejobs-mkt",  "https://remotejobs.org/api/v1/jobs?category=marketing&limit=50",        from_remotejobs, "json"),
+    ("remotejobs-hr",   "https://remotejobs.org/api/v1/jobs?category=human-resources&limit=50",  from_remotejobs, "json"),
+    ("remotejobs-all",  "https://remotejobs.org/api/v1/jobs?limit=50",                           from_remotejobs, "json"),
     ("euremotejobs",  "https://euremotejobs.com/feed/",                  from_rss_generic, "text"),
     ("nodesk",        "https://nodesk.co/remote-jobs/feed/",             from_rss_generic, "text"),
     ("jobspresso",    "https://jobspresso.co/remote-work/feed/",         from_rss_generic, "text"),
@@ -800,9 +831,9 @@ FD_SECTION = ('<section id="fuerdich" class="hidden">\n'
 FD_JS = r'''
   /* ---- Personalisierte "Fuer dich"-Auswahl: pro Login-Passwort, nur Job-Kriterien ---- */
   var PROFILES={
-   "lisamaria26":{ber:{service:3,buero:1,sprache:1,start:0.5},
-     plus:["guest","reservation","hotel","hospitality","travel","reise","concierge","front desk","reception","empfang","gäste","booking","tourism","customer","support","kundenservice","kundensupport","kundenbetreuung","betreuung","service","chat support"],
-     minus:["developer","engineer","software","vertrieb","sales","closer","setter","designer","marketing","crypto","blockchain","devops","qa engineer","data scientist","rater","annotation","ai training"],
+   "lisamaria26":{ber:{buero:3,start:1,sprache:0.5,service:0},
+     plus:["office","back office","backoffice","verwaltung","administration","sachbearbeit","assistenz","teamassistenz","projektassistenz","executive assistant","personal assistant","koordination","coordinator","disposition","auftragsabwicklung","datenerfassung","data entry","dateneingabe","dokumenten","organisation","office manager","office administration","office assistant","operations","scheduling","order management"],
+     minus:["kundenservice","kundensupport","kundenkontakt","kundenbetreuung","kundendienst","customer service","customer support","customer care","customer success","guest","hospitality","hotel","reservation","concierge","call center","callcenter","telefonie","inbound","outbound","chat support","live chat","help desk","helpdesk","support agent","beschwerde","developer","engineer","software","vertrieb","sales","closer","setter","designer","marketing","crypto","blockchain","devops","rater","annotation","ai training"],
      hard:["developer","software engineer","devops","data engineer","qa engineer"],langs:["de","en"],reg:{world:3,eu:2,de:0}},
    "annette26":{ber:{service:3,buero:3,start:0.5},
      plus:["customer","support","kundenservice","kundensupport","kundenbetreuung","betreuung","service","assistant","assistenz","virtual assistant","office","back office","administration","verwaltung","operations","koordination","coordinator","data entry","sachbearbeit","empfang"],
