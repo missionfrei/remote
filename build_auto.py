@@ -13,7 +13,7 @@ Design: uebernimmt template.html (das aktuelle Board) unveraendert und
 ersetzt nur die 7 Bereichs-Sektionen. Login-Gate, Chips, Favoriten-Sterne,
 Freelance, Toolbox, Footer bleiben wie sie sind.
 """
-import json, re, sys, os, datetime, urllib.request, urllib.error
+import json, re, sys, os, datetime, urllib.request, urllib.error, urllib.parse
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE = os.path.join(HERE, "template.html")
@@ -88,6 +88,7 @@ def detect(job):
     if any(m in t for m in DE_ONLY_MARKERS): region = "de"   # Land-gebunden hat Vorrang -> wird von der Weltweit-First-Regel gedroppt
     elif any(m in t for m in WORLD_MARKERS): region = "world"
     elif any(m in t for m in EU_MARKERS):  region = "eu"
+    elif job.get("region_hint") in ("world","eu"): region = job["region_hint"]   # Feed-Hinweis (z.B. Adzuna: deutsch-remote = EU-Bruecke). DE_ONLY oben schlaegt ihn -> echt DE-gebundene fallen trotzdem raus.
     else: region = "de"   # ohne expliziten Weltweit-/EU-Marker: als Deutschland-nur behandeln (-> wird gefiltert)
     level = "einsteiger" if any(m in t for m in EINSTEIGER_MARKERS) else "erfahren"
     return lang, region, level
@@ -116,6 +117,25 @@ def from_remotive(raw):
             url=j.get("url",""), info=clean_text(j.get("description","")),
             raw_tags=(j.get("category","")+" "+" ".join(j.get("tags",[]) or [])),
             raw_loc=j.get("candidate_required_location","")))
+    return out
+
+# Adzuna: Boersen-Aggregator, Deutschland-nativ (tappt dt. Boersen + Indeed-DE, die wir nicht scrapen).
+# Nur Remote-Treffer aufnehmen (Adzuna ist gemischt). region_hint="eu" -> deutsch-remote als EU-Bruecke
+# (echt DE-gebundene mit DE_ONLY-Marker fallen in detect() trotzdem raus). redirect_url hat numerische
+# Ad-ID -> is_direct()=True. Braucht ADZUNA_APP_ID/KEY (GitHub-Secret); ohne Key wird die Quelle uebersprungen.
+ADZ_REMOTE = re.compile(r"remote|home[\- ]?office|homeoffice|ortsunabh|mobiles arbeiten|telearbeit|work from home|von zuhause|von zu hause|standortunabh", re.I)
+def from_adzuna(raw):
+    out=[]
+    for j in (raw.get("results") or []):
+        title=(j.get("title") or "").strip()
+        desc=clean_text(j.get("description",""))
+        loc=((j.get("location") or {}).get("display_name","")) or ""
+        if not ADZ_REMOTE.search((title+" "+desc+" "+loc)): continue     # nur Remote/Homeoffice
+        out.append(dict(title=title, company=((j.get("company") or {}).get("display_name","")) or "",
+            url=(j.get("redirect_url") or ""), info=desc,
+            raw_tags=((j.get("category") or {}).get("label","")),
+            raw_desc=clean_text(j.get("description",""),1000),
+            raw_loc=loc+" remote", region_hint="eu"))
     return out
 
 def _j(x):  # list-oder-string -> string
@@ -454,6 +474,45 @@ SOURCES = [
     ("jobicy-de2",            "https://jobicy.com/api/v2/remote-jobs?count=100&tag=deutsch", from_jobicy, "json"),
     ("remoteok-support",      "https://remoteok.com/remote-customer-support-jobs.rss",   from_rss_generic, "text"),
 ]
+
+# --- Lauf #26: mehr freie Suchen (sofort, ohne Key) - profilnah (CS/Reise/Admin/deutsch) ---
+SOURCES += [
+    ("remotive-german-cust",  "https://remotive.com/api/remote-jobs?search=german%20customer", from_remotive, "json"),
+    ("remotive-reise2",       "https://remotive.com/api/remote-jobs?search=reise",             from_remotive, "json"),
+    ("remotive-hotel",        "https://remotive.com/api/remote-jobs?search=hotel",             from_remotive, "json"),
+    ("remotive-billing",      "https://remotive.com/api/remote-jobs?search=billing",           from_remotive, "json"),
+    ("remotive-community",    "https://remotive.com/api/remote-jobs?search=community",          from_remotive, "json"),
+    ("remotive-account-mgr",  "https://remotive.com/api/remote-jobs?search=account%20manager",  from_remotive, "json"),
+    ("jobicy-cust",           "https://jobicy.com/api/v2/remote-jobs?count=100&tag=customer-support", from_jobicy, "json"),
+    ("jobicy-anywhere-admin", "https://jobicy.com/api/v2/remote-jobs?count=100&geo=anywhere&industry=admin", from_jobicy, "json"),
+    ("remoteok-german",       "https://remoteok.com/api?tags=german",                          from_remoteok, "json"),
+    ("arbeitnow-9",           "https://www.arbeitnow.com/api/job-board-api?page=9",             from_arbeitnow, "json"),
+    ("arbeitnow-10",          "https://www.arbeitnow.com/api/job-board-api?page=10",            from_arbeitnow, "json"),
+]
+
+# --- Adzuna (Boersen-Aggregator, Deutschland-nativ). Nur aktiv, wenn ADZUNA_APP_ID/KEY als
+#     GitHub-Secret gesetzt sind. Ohne Key: Quelle wird sauber uebersprungen (Board baut normal). ---
+ADZUNA_ID  = os.environ.get("ADZUNA_APP_ID","").strip()
+ADZUNA_KEY = os.environ.get("ADZUNA_APP_KEY","").strip()
+def _adz(country, what, page=1):
+    return (f"https://api.adzuna.com/v1/api/jobs/{country}/search/{page}"
+            f"?app_id={ADZUNA_ID}&app_key={ADZUNA_KEY}&results_per_page=50"
+            f"&what={urllib.parse.quote(what)}&content-type=application/json")
+if ADZUNA_ID and ADZUNA_KEY:
+    SOURCES += [
+        ("adzuna-de-remote-eu",    _adz("de","remote europa"),         from_adzuna, "json"),
+        ("adzuna-de-eu-remote",    _adz("de","eu remote"),             from_adzuna, "json"),
+        ("adzuna-de-deutschspr",   _adz("de","deutschsprachig remote"),from_adzuna, "json"),
+        ("adzuna-de-kundenservice",_adz("de","remote kundenservice"),  from_adzuna, "json"),
+        ("adzuna-de-assistenz",    _adz("de","remote assistenz"),      from_adzuna, "json"),
+        ("adzuna-de-reise",        _adz("de","remote reise"),          from_adzuna, "json"),
+        ("adzuna-at-remote",       _adz("at","remote europa"),         from_adzuna, "json"),
+        ("adzuna-gb-german",       _adz("gb","german speaking remote"),from_adzuna, "json"),
+        ("adzuna-us-german",       _adz("us","german speaking remote"),from_adzuna, "json"),
+    ]
+    print("[adzuna] Key gefunden -> 9 Adzuna-Quellen aktiv")
+else:
+    print("[adzuna] kein ADZUNA_APP_ID/KEY -> Adzuna uebersprungen (Key als GitHub-Secret setzen, dann aktiv)")
 
 def gather():
     jobs=[]
