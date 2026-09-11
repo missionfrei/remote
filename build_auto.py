@@ -623,7 +623,7 @@ FD_JS = r'''
     if(c.dataset.level==='einsteiger')s+=0.4;
     return s;
   }
-  function fdStars(s,top){var r=top>0?s/top:0;var n=Math.max(1,Math.min(5,Math.round(1+4*r)));var o='';for(var i=0;i<5;i++)o+=(i<n?'★':'☆');return o;}
+  function fdStars(s){var n=(s>=10?5:(s>=8?4:(s>=6?3:(s>=4?2:1))));var o='';for(var i=0;i<5;i++)o+=(i<n?'★':'☆');return o;}
   function buildFD(){
     var sec=document.getElementById('fuerdich');if(!sec)return;
     var grid=sec.querySelector('.grid');var empty=sec.querySelector('.fdempty');var cnt=sec.querySelector('h2 .cnt');
@@ -632,20 +632,21 @@ FD_JS = r'''
     var arr=[];
     document.querySelectorAll('.card').forEach(function(c){
       if(c.closest('#favoriten')||c.closest('#toolbox')||c.closest('#freelance')||c.closest('#fuerdich'))return;
-      var s=fdScore(c,p);if(s>5)arr.push({c:c,s:s});
+      var s=fdScore(c,p);if(s>-900)arr.push({c:c,s:s});
     });
-    arr.sort(function(a,b){return b.s-a.s;});arr=arr.slice(0,30);
-    var top=arr.length?arr[0].s:0;
-    arr.forEach(function(o){
+    arr.sort(function(a,b){return b.s-a.s;});
+    var sel=arr.filter(function(o){return o.s>=6;});   /* alle Treffer mit >=3 von 5 Sternen */
+    if(sel.length<50)sel=arr.slice(0,50);              /* aber immer mindestens 50 */
+    sel.forEach(function(o){
       var cl=o.c.cloneNode(true);cl.classList.remove('hidden');
       var badge=document.createElement('div');badge.className='fdfit';
       badge.style.cssText='font-size:11px;font-weight:800;color:#a8842e;letter-spacing:.06em;margin:2px 0 8px';
-      badge.textContent='PASST ZU DIR  '+fdStars(o.s,top);
+      badge.textContent='PASST ZU DIR  '+fdStars(o.s);
       cl.insertBefore(badge,cl.firstChild);
       grid.appendChild(cl);
     });
-    if(empty)empty.style.display=arr.length?'none':'block';
-    if(cnt)cnt.textContent=arr.length?(arr.length+' handverlesene Treffer für dich'):'';
+    if(empty)empty.style.display=sel.length?'none':'block';
+    if(cnt)cnt.textContent=sel.length?(sel.length+' passende Treffer für dich'):'';
     paintStars();
   }
   function activateFDForUser(){
@@ -655,6 +656,7 @@ FD_JS = r'''
       try{
         document.querySelectorAll('.chip:not(.lv):not(.langf):not(.directf)').forEach(function(x){x.classList.remove('active');});
         chip.classList.add('active');active='fd';apply();
+        try{var _fd=document.getElementById('fuerdich');var _tb=document.querySelector('.toolbar');var _off=_tb?_tb.offsetHeight:0;var _y=_fd.getBoundingClientRect().top+window.pageYOffset-_off-8;window.scrollTo(0,Math.max(0,_y));}catch(_s){}   /* auf die Treffer scrollen, nicht auf leeren Header */
       }catch(e){ active='all'; try{apply();}catch(_){ } }   /* Fallback: nie das Board zerschiessen */
     }else{chip.style.display='none';}
   }
