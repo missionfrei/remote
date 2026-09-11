@@ -218,6 +218,12 @@ def _jsearch_jobs(raw):
             if isinstance(raw.get(k), list): lst = raw[k]; break
     return [j for j in lst if isinstance(j, dict)]
 
+# Weltweit-Erkennung (Paul: 100% remote WELTWEIT ist das Ziel). Ehrlich labeln:
+# JS_WORLD = echte "von ueberall"-Signale -> region world. JS_LOCK = laendergebunden
+# (US/UK only, "authorized to work in ...") -> raus, WENN nicht weltweit (nutzlos beim Auswandern).
+JS_WORLD = re.compile(r"worldwide|work from anywhere|anywhere in the world|from anywhere|globally remote|global remote|remote\s*\(?global\)?|fully distributed|location[- ]independent|from any country|any location|no location restriction|work from any location|von ueberall|von überall|weltweit|ortsunabh|standortunabh", re.I)
+JS_LOCK = re.compile(r"\b(us|u\.s\.?|usa|uk|canada|canadian|india|philippines)[- ]only\b|only\s+(?:open\s+)?(?:to|for)\s+(?:candidates|residents|applicants)?[^.]{0,30}\b(US|United States|UK|Canada|EU|EEA|Germany)\b|must (?:be|reside|live)[^.]{0,30}\b(US|United States|UK|Canada|Germany|Deutschland|EU|EEA)\b|based in (?:the )?(US|United States|UK|Canada)\b|authoriz(?:ed|ation) to work in|eligible to work in|work authorization in|(?:US|EU|UK|EEA)[- ]based only", re.I)
+
 def from_jsearch(raw):
     out=[]
     jobs=_jsearch_jobs(raw)
@@ -236,6 +242,8 @@ def from_jsearch(raw):
         blob=title+" "+desc+" "+loc+" "+empl
         if not (g(j,"job_is_remote","is_remote") or ADZ_REMOTE.search(blob)): continue   # muss echt remote sein
         if ADZ_ONSITE.search(blob): continue                                             # Vor-Ort/Relocation/Hybrid raus
+        world = bool(JS_WORLD.search(blob))                                              # echt weltweit machbar?
+        if not world and JS_LOCK.search(blob): continue                                  # laendergebunden + nicht weltweit -> raus (nutzlos beim Auswandern)
         link=str(g(j,"job_apply_link","apply_link","job_url","url") or "").strip()
         if not link:
             ao=j.get("apply_options") or j.get("job_apply_options")
@@ -246,7 +254,7 @@ def from_jsearch(raw):
             url=link, info=desc,
             raw_tags=str(g(j,"job_publisher","publisher") or "")+" "+empl,
             raw_desc=clean_text(str(g(j,"job_description","description") or ""),1000),
-            raw_loc=loc+" remote", region_hint="eu", no_world=True))   # nie als weltweit labeln (Qualitaet)
+            raw_loc=loc+(" weltweit remote" if world else " remote"), region_hint=("world" if world else "eu"), no_world=(not world)))  # weltweit NUR wenn die Anzeige es hergibt
     return out
 
 def http_text(url):
@@ -623,19 +631,22 @@ else:
 #     als GitHub-Secret gesetzt ist. Header-Auth (Key NICHT in der URL). Gratis-Tier hat ein Monatslimit ->
 #     bewusst schlank: 5 Anfragen/Build (num_pages=1), profilnah. Bei gutem Yield spaeter mehr Queries. ---
 JSEARCH_KEY = os.environ.get("JSEARCH_KEY","").strip()
-def _js(query, page=1):
+def _js(query, country="us", page=1):
     return (f"https://jsearch.p.rapidapi.com/search-v2"
             f"?query={urllib.parse.quote(query)}&page={page}&num_pages=1"
-            f"&country=de&remote_jobs_only=true&date_posted=month")
+            f"&country={country}&remote_jobs_only=true&date_posted=month")
+# Paul-Ziel: 100% remote WELTWEIT. Suchen bewusst auf "work from anywhere" gebogen (country=us =
+# groesster Pool globaler Remote-Anzeigen); from_jsearch labelt world nur bei echtem Weltweit-Signal
+# und wirft US-/laendergebundene raus. 1 de-Query fuer deutschen EU-Nachschub.
 if JSEARCH_KEY:
     SOURCES += [
-        ("jsearch-kundenservice", _js("deutschsprachiger kundenservice remote"),    from_jsearch, "json"),
-        ("jsearch-german-cs",     _js("german speaking customer support remote"),    from_jsearch, "json"),
-        ("jsearch-assistenz",     _js("remote assistenz deutsch virtual assistant"), from_jsearch, "json"),
-        ("jsearch-german-remote", _js("german speaking remote"),                     from_jsearch, "json"),
-        ("jsearch-kundenberater", _js("remote kundenberater deutsch"),               from_jsearch, "json"),
+        ("jsearch-anywhere-cs",     _js("customer support work from anywhere remote","us"),   from_jsearch, "json"),
+        ("jsearch-anywhere-va",     _js("virtual assistant work from anywhere remote","us"),  from_jsearch, "json"),
+        ("jsearch-anywhere-service",_js("remote customer service anywhere in the world","us"),from_jsearch, "json"),
+        ("jsearch-german-anywhere", _js("german speaking work from anywhere remote","us"),    from_jsearch, "json"),
+        ("jsearch-de-remote",       _js("remote kundenservice ortsunabhaengig","de"),         from_jsearch, "json"),
     ]
-    print("[jsearch] Key gefunden -> 5 JSearch-Quellen aktiv (Gratis-Tier schonen: 5 Anfragen/Build)")
+    print("[jsearch] Key gefunden -> 5 JSearch-Quellen aktiv (Weltweit-Fokus, Gratis-Tier: 5 Anfragen/Build)")
 else:
     print("[jsearch] kein JSEARCH_KEY -> JSearch uebersprungen (Key als GitHub-Secret setzen, dann aktiv)")
 
