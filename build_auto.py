@@ -266,6 +266,16 @@ ATS_COMPANIES = [
     ("Linear",     "ashby",      "linear",            "service", "world"),
     ("Ramp",       "ashby",      "ramp",              "service", "world"),
     ("withClutch", "ashby",      "withclutch",        "service", "world"),
+    # Lauf #22: Reisebranche/Hotel-Tech (fuer Lisa) - Slugs im Browser gegen die Board-API verifiziert.
+    # region-default "eu" (NICHT world): reine "Remote"-Rollen dieser Firmen sind meist EU-remote,
+    # nicht echt weltweit -> ehrlich als EU-Bruecke einsortieren, kein Fake-"weltweit".
+    # Echt-weltweite Rollen (Location sagt worldwide/anywhere) werden trotzdem als world erkannt.
+    ("Mews",         "greenhouse", "mewssystems",  "service", "eu"),
+    ("apaleo",       "greenhouse", "apaleo",       "service", "eu"),
+    ("GetYourGuide", "greenhouse", "getyourguide", "service", "eu"),
+    ("trivago",      "greenhouse", "trivago",      "service", "eu"),
+    ("Lighthouse",   "greenhouse", "lighthouse",   "service", "eu"),
+    ("Revinate",     "lever",      "revinate",     "service", "eu"),
 ]
 # Sprach-Signal. Trick: \bgerman\b trifft "German" (Sprache) aber NICHT "Germany" (Land) -
 # so faellt "Country Manager, Germany" raus, "German Support/Speaker" bleibt drin.
@@ -510,18 +520,31 @@ def lang_tag(l):  return '<span class="tag delang">Deutsch</span>' if l=="de" el
 def fd_tag(fd):   return '<span class="tag" style="background:#f3ead4;color:#a8842e;font-weight:650">⭐ Für dich</span>' if fd else ''
 
 def is_direct(url):
-    """True = Link fuehrt direkt zur Einzelstelle. False = Firmen-/Boersen-Karriereseite (Liste)."""
+    """True = Link fuehrt direkt zur Einzelstelle. False = Firmen-/Boersen-/Kategorie-/Suchseite (Liste).
+    Reihenfolge wichtig: erst Suchseiten raus, dann STARKE Einzelstellen-Signale (Job-ID/UUID),
+    dann Kategorie-/Sammel-Seiten raus, dann schwaechere Einzelstellen-Signale."""
     s=(url or "").lower().rstrip("/")
     path=re.sub(r"^https?://[^/]+","",s)
     if path=="": return False
-    # generische Landing-/Karriereseiten -> keine Einzelstelle
+    seg=path.split("?")[0].rstrip("/")
+    last=seg.rsplit("/",1)[-1]
+    # 0) Suchergebnis-/Filter-Seiten (Query-Parameter) -> nie eine Einzelstelle
+    if re.search(r"[?&](search|q|query|keywords?|kw|geo|location|category|page)=", s): return False
+    # 1) STARKE Einzelstellen-Signale zuerst: numerische Job-ID / UUID -> echte Stelle
+    #    (auch bei /kategorie/slug-ID-Struktur wie remotive/arbeitnow/jobicy)
+    if re.search(r"\d{5,}", path): return True
+    if re.search(r"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}", path): return True
+    # 2) Sammel-/Kategorie-Slugs ohne ID (enden auf -jobs/-stellen/-companies ...) -> Boerse/Liste raus
+    if re.search(r"-(jobs|stellen|companies|firms|firmen|joblist|jobsuche|listings?|roles|openings)$", last): return False
+    # 3) Taxonomie-Pfade /remote-jobs|jobs/<kategorie-oder-land>/<...> ohne ID -> Kategorieseite raus
+    if re.search(r"^/(remote-jobs|jobs|job-board|stellenmarkt|stellen)/[a-z][a-z-]{1,}/[a-z]", seg): return False
+    # 4) bekannte Boersen-/Suchpfade
+    if re.search(r"/(jobs-with|search-jobs|job-search|find-jobs|browse|explore|jobs-kundenservice|jobs-in|hotel-tech-companies)(/|-|$)", seg): return False
+    # 5) generische Landing-/Karriereseiten -> keine Einzelstelle
     if re.search(r"/(careers?|jobs|hire|karriere|career|job-vacancies|vacancies|stellenangebote|stellen|join|openings|positions|offene-stellen|all-jobs)$", path): return False
-    # Kategorie-/Boersen-Seiten (z.B. yeahbase /jobs/setter/remote, top-closer /jobs/appointment-setter)
     if re.search(r"/jobs?/(setter|closer|remote|homeoffice|appointment-setter|closer-deutschland|high-ticket)(/|$)", path): return False
     if "?title=" in s or s.endswith("/jobs") or s.endswith("/career"): return False
-    # Einzelstellen-Signale
-    if re.search(r"\d{5,}", path): return True                                  # numerische Job-ID
-    if re.search(r"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}", path): return True      # UUID (lever/greenhouse)
+    # 6) schwaechere Einzelstellen-Signale
     if re.search(r"/(jobs?|job|o|position|stelle|vacancies|remote-jobs|remote/jobs|listing)/[a-z0-9][a-z0-9-]{6,}", path): return True
     if re.search(r"/companies/[^/]+/[a-z0-9]", path): return True
     if re.search(r"/[a-z0-9]+-[a-z0-9]+-[a-z0-9]+-[a-z0-9]+", path): return True # langer Slug (>=4 Woerter)
@@ -599,12 +622,17 @@ def main():
     cust=[m for m in manual if m["src"]=="customer"]
     pool=[m for m in manual if m["src"]!="customer"] + auto
     alljobs=cust+pool
-    # Paul #21: Firmen-/Karriereseiten fast ausstreichen. In den 7 Bereichen nur noch DIREKT-Stellen
-    # (Link fuehrt direkt zur Anzeige) + die kuratierten ⭐-Kundenpicks. Nicht-direkte Nicht-Picks raus.
+    # Paul #22: Karriere-/Boersen-/Kategorieseiten KOMPLETT ausstreichen ("immer direkt auf die Stelle,
+    # nicht auf irgendeine Karriere-Seite"). In den 7 Bereichen bleiben NUR noch echte Direkt-Einzelstellen -
+    # auch bei den ⭐-Kundenpicks. Ersatz-Deckung fuer die Kunden liefert die ATS-Engine (zieht die
+    # aktuellen Direkt-Links der Firmen automatisch) + die verbleibenden Direkt-Picks.
     # (Die statischen Freelance-/Toolbox-Sektionen im Template bleiben unberuehrt.)
     _before=len(alljobs)
-    alljobs=[j for j in alljobs if is_direct(j["url"]) or j.get("fd")]
-    print(f"[direkt] Firmen-/Karriereseiten entfernt: {_before-len(alljobs)} -> {len(alljobs)} bleiben (nur Direkt + ⭐-Picks)")
+    _dropped=[j for j in alljobs if not is_direct(j["url"])]
+    alljobs=[j for j in alljobs if is_direct(j["url"])]
+    print(f"[direkt] Karriere-/Boersenseiten entfernt: {_before-len(alljobs)} -> {len(alljobs)} bleiben (NUR Direkt-Einzelstellen)")
+    _dfd=sum(1 for j in _dropped if j.get("fd"))
+    print(f"[direkt] davon {_dfd} entfernte ⭐-Kundenpicks (Karriereseiten) - Deckung via ATS-Engine + Direkt-Picks")
 
     sections, by = build_sections(alljobs)
     total=len(alljobs); de=sum(1 for j in alljobs if j["lang"]=="de")
