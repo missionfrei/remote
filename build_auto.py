@@ -670,8 +670,20 @@ if ADZUNA_ID and ADZUNA_KEY:
         ("adzuna-gb-customer",     _adz("gb","remote customer support"),from_adzuna, "json"),
         ("adzuna-gb-assistant",    _adz("gb","remote virtual assistant"),from_adzuna, "json"),
         ("adzuna-us-customer",     _adz("us","fully remote customer support"),from_adzuna, "json"),
+        # Seite 2 der ergiebigen Suchen + weitere EU-Maerkte (mehr Tiefe fuer die 1000)
+        ("adzuna-de-kundenservice2",_adz("de","remote kundenservice",2),  from_adzuna, "json"),
+        ("adzuna-de-assistenz2",   _adz("de","remote assistenz",2),       from_adzuna, "json"),
+        ("adzuna-de-marketing2",   _adz("de","remote marketing",2),       from_adzuna, "json"),
+        ("adzuna-de-buchhaltung2", _adz("de","remote buchhaltung",2),     from_adzuna, "json"),
+        ("adzuna-de-vertrieb2",    _adz("de","remote vertrieb",2),        from_adzuna, "json"),
+        ("adzuna-at-remote2",      _adz("at","remote",2),                 from_adzuna, "json"),
+        ("adzuna-nl-remote2",      _adz("nl","fully remote",2),           from_adzuna, "json"),
+        ("adzuna-gb-remote2",      _adz("gb","fully remote",2),           from_adzuna, "json"),
+        ("adzuna-es-remote2",      _adz("es","remote",2),                 from_adzuna, "json"),
+        ("adzuna-it-remote2",      _adz("it","remote",2),                 from_adzuna, "json"),
+        ("adzuna-be-remote",       _adz("be","fully remote"),             from_adzuna, "json"),
     ]
-    print("[adzuna] Key gefunden -> 26 Adzuna-Quellen aktiv (Volumen-Ausbau)")
+    print("[adzuna] Key gefunden -> Adzuna aktiv (37 Suchen, Volumen-Ausbau)")
 else:
     print("[adzuna] kein ADZUNA_APP_ID/KEY -> Adzuna uebersprungen (Key als GitHub-Secret setzen, dann aktiv)")
 
@@ -807,7 +819,7 @@ def card(j):
 
 # Deckel pro Bereich - kippt den Mix Richtung Service/Buero statt IT-Flut.
 # Lauf #20 (Paul: mehr Volumen) deutlich angehoben.
-CAP={"service":600,"buero":350,"start":200,"sprache":200,"marketing":220,"vertrieb":200,"it":220}
+CAP={"service":600,"buero":400,"start":200,"sprache":200,"marketing":300,"vertrieb":250,"it":320}
 def _rank(j):
     # Paul #21: (1) Deutschland-nur ganz unten, (2) DIREKT vor Firma (Firma fast raus -> unten),
     # (3) deutsch vor englisch (so weit oben wie moeglich), (4) weltweit vor EU, (5) ⭐ zuerst.
