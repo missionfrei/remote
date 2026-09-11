@@ -35,12 +35,12 @@ BEREICHE = [
 
 # ---------- Bereich-Zuordnung nach Stichwoertern (Titel/Tags) ----------
 BEREICH_KW = {
-    "service":  ["kundenservice","kundenbetreu","kundensupport","kundendienst","customer support","customer service","customer care","customer success","customer experience","customer advocate","support agent","support specialist","support consultant","support representative","support engineer","technical support","chat support","live chat","email support","help desk","helpdesk","service agent","client support","member support","player support","guest","reservation","booking","reise","travel","hospitality","concierge","call center","callcenter","kundenberat","beschwerde","content moderat","trust and safety","trust & safety","happiness engineer","community support","onboarding specialist","tier 1","tier 2"],
-    "buero":    ["buchhalt","accounting","accountant","finance","finanzbuch","lohn","payroll","steuerfach","controlling","sachbearbeit","büromanagement","bueromanagement","bürokaufmann","bürokauffrau","backoffice","back office","back-office","assistenz","assistant","virtual assistant","executive assistant","personal assistant","verwaltung","admin","office manager","operations specialist","operations coordinator","operations associate","customer operations","people operations","coordinator","scheduling","order management","datenerfassung","data entry","dateneingabe"],
+    "service":  ["kundenservice","kundenbetreu","kundensupport","kundendienst","customer support","customer service","customer care","customer success","customer experience","customer advocate","support agent","support specialist","support consultant","support representative","support engineer","technical support","chat support","live chat","email support","help desk","helpdesk","service agent","client support","member support","player support","guest","reservation","booking","reise","travel","hospitality","concierge","call center","callcenter","kundenberat","beschwerde","content moderat","trust and safety","trust & safety","happiness engineer","community support","onboarding specialist","tier 1","tier 2","customer relations","client services","member services","user support","customer experience associate"],
+    "buero":    ["buchhalt","accounting","accountant","finance","finanzbuch","lohn","payroll","steuerfach","controlling","sachbearbeit","büromanagement","bueromanagement","bürokaufmann","bürokauffrau","backoffice","back office","back-office","assistenz","assistant","virtual assistant","executive assistant","personal assistant","verwaltung","admin","office manager","operations specialist","operations coordinator","operations associate","customer operations","people operations","coordinator","scheduling","order management","datenerfassung","data entry","dateneingabe","bookkeep","procurement","recruit","talent acquisition","human resources","hr generalist","hr assistant","billing","claims","clerk","administrative","dispatcher","logistics coordinator","records management","personalsachbearbeit","office assistant","office administration","transcription"],
     "start":    [],   # frueher Mikrojobs - jetzt raus (Paul). Sektion zeigt nur noch manuelle Freelance-/Portal-Eintraege.
     "sprache":  ["übersetz","ubersetz","translat","lektor","proofread","texter","content writer","copywriter","redaktion","tutor","nachhilfe","language teacher","sprachlehrer"],
     "marketing":["marketing","social media","seo","content creator","content manager","grafik","design","designer","creative","video","brand","paid ads","performance market","kampagne","community manager"],
-    "vertrieb": ["sales","vertrieb","sdr","sales development","setter","closer","business development","account executive","akquise","inside sales"],
+    "vertrieb": ["sales","vertrieb","sdr","sales development","setter","closer","business development","account executive","akquise","inside sales","account manager","partnerships","partner manager","bdr","revenue operations"],
     "it":       ["developer","engineer","software","devops","entwickl","programmier","backend","frontend","fullstack","full stack","data scientist","data analyst","qa engineer","it-support","it support","system admin","kotlin","python","javascript","react"],
 }
 BEREICH_ORDER = [b[0] for b in BEREICHE]
@@ -340,11 +340,6 @@ def from_workingnomads(raw):
 
 # RemoteJobs.org (Lauf 31): freie JSON-API, worldwide-fokussiert. location-String z.B. "Remote (Worldwide)"
 # -> detect() macht daraus world; "Remote (US)" o.ae. ohne Weltweit-Marker faellt als de raus. Gutes Non-Tech.
-# RealWorkFromAnywhere (Lauf 31): ganzes Board ist per Definition 100% work-from-anywhere -> region world ehrlich.
-def from_realwfa(xmltext):
-    out=from_rss_generic(xmltext)
-    for j in out: j["region_hint"]="world"; j["raw_loc"]="worldwide remote"
-    return out
 
 def from_wwr(xmltext):
     import xml.etree.ElementTree as ET
@@ -542,11 +537,7 @@ SOURCES = [
     ("wwr-product",   "https://weworkremotely.com/categories/remote-product-jobs.rss",  from_wwr, "text"),
     ("wwr-allother",  "https://weworkremotely.com/categories/all-other-remote-jobs.rss", from_wwr, "text"),
     ("wwr-design",    "https://weworkremotely.com/categories/remote-design-jobs.rss",     from_wwr, "text"),
-    # --- Neue Quellen (aus dem Hauptboard uebernommen, fuer die Zukunft) ---
-    ("realworkfromanywhere","https://www.realworkfromanywhere.com/rss.xml", from_realwfa, "text"),
-    ("realwfa-cs",    "https://www.realworkfromanywhere.com/remote-customer-support-jobs/rss.xml", from_realwfa, "text"),
-    ("realwfa-salesmkt","https://www.realworkfromanywhere.com/remote-sales-and-marketing-jobs/rss.xml", from_realwfa, "text"),
-    ("realwfa-mgmtfin","https://www.realworkfromanywhere.com/remote-management-and-finance-jobs/rss.xml", from_realwfa, "text"),
+    # --- Weitere freie RSS-Boards ---
     ("euremotejobs",  "https://euremotejobs.com/feed/",                  from_rss_generic, "text"),
     ("nodesk",        "https://nodesk.co/remote-jobs/feed/",             from_rss_generic, "text"),
     ("jobspresso",    "https://jobspresso.co/remote-work/feed/",         from_rss_generic, "text"),
@@ -602,6 +593,30 @@ SOURCES += [
     ("remoteok-german",       "https://remoteok.com/api?tags=german",                          from_remoteok, "json"),
     ("arbeitnow-9",           "https://www.arbeitnow.com/api/job-board-api?page=9",             from_arbeitnow, "json"),
     ("arbeitnow-10",          "https://www.arbeitnow.com/api/job-board-api?page=10",            from_arbeitnow, "json"),
+]
+
+# --- Lauf #32: Volumen-Ausbau (Paul-Ziel 1000). Jobicy ist die ergiebigste freie API (100/Call)
+#     -> alle relevanten Branchen x Regionen abgrasen. RemoteOK-Tags dazu. Dedup faengt Ueberschneidungen. ---
+SOURCES += [
+    ("jobicy-marketing",   "https://jobicy.com/api/v2/remote-jobs?count=100&industry=marketing",  from_jobicy, "json"),
+    ("jobicy-sales",       "https://jobicy.com/api/v2/remote-jobs?count=100&industry=sales",       from_jobicy, "json"),
+    ("jobicy-business",    "https://jobicy.com/api/v2/remote-jobs?count=100&industry=business",    from_jobicy, "json"),
+    ("jobicy-hr",          "https://jobicy.com/api/v2/remote-jobs?count=100&industry=hr",          from_jobicy, "json"),
+    ("jobicy-finance",     "https://jobicy.com/api/v2/remote-jobs?count=100&industry=finance",     from_jobicy, "json"),
+    ("jobicy-management",  "https://jobicy.com/api/v2/remote-jobs?count=100&industry=management",  from_jobicy, "json"),
+    ("jobicy-seller",      "https://jobicy.com/api/v2/remote-jobs?count=100&industry=seller",      from_jobicy, "json"),
+    ("jobicy-copywriting", "https://jobicy.com/api/v2/remote-jobs?count=100&industry=copywriting", from_jobicy, "json"),
+    ("jobicy-europe",      "https://jobicy.com/api/v2/remote-jobs?count=100&geo=europe",           from_jobicy, "json"),
+    ("jobicy-emea",        "https://jobicy.com/api/v2/remote-jobs?count=100&geo=emea",             from_jobicy, "json"),
+    ("jobicy-any-mkt",     "https://jobicy.com/api/v2/remote-jobs?count=100&geo=anywhere&industry=marketing", from_jobicy, "json"),
+    ("jobicy-any-sales",   "https://jobicy.com/api/v2/remote-jobs?count=100&geo=anywhere&industry=sales",     from_jobicy, "json"),
+    ("jobicy-any-business","https://jobicy.com/api/v2/remote-jobs?count=100&geo=anywhere&industry=business",  from_jobicy, "json"),
+    ("jobicy-any-hr",      "https://jobicy.com/api/v2/remote-jobs?count=100&geo=anywhere&industry=hr",        from_jobicy, "json"),
+    ("remoteok-support2",  "https://remoteok.com/api?tags=customer+support", from_remoteok, "json"),
+    ("remoteok-admin",     "https://remoteok.com/api?tags=admin",            from_remoteok, "json"),
+    ("remoteok-nontech2",  "https://remoteok.com/api?tags=non+tech",         from_remoteok, "json"),
+    ("remoteok-marketing", "https://remoteok.com/api?tags=marketing",        from_remoteok, "json"),
+    ("remoteok-sales",     "https://remoteok.com/api?tags=sales",            from_remoteok, "json"),
 ]
 
 # --- Arbeitsagentur (Lauf #27): groesste dt. Jobdatenbank, oeffentliche API, KEIN Key noetig.
@@ -776,7 +791,7 @@ def card(j):
 
 # Deckel pro Bereich - kippt den Mix Richtung Service/Buero statt IT-Flut.
 # Lauf #20 (Paul: mehr Volumen) deutlich angehoben.
-CAP={"service":500,"buero":250,"start":200,"sprache":180,"marketing":120,"vertrieb":120,"it":120}
+CAP={"service":600,"buero":350,"start":200,"sprache":200,"marketing":220,"vertrieb":200,"it":220}
 def _rank(j):
     # Paul #21: (1) Deutschland-nur ganz unten, (2) DIREKT vor Firma (Firma fast raus -> unten),
     # (3) deutsch vor englisch (so weit oben wie moeglich), (4) weltweit vor EU, (5) ⭐ zuerst.
