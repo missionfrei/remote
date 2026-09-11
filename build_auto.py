@@ -235,11 +235,12 @@ def from_jsearch(raw):
     for j in jobs:
         title=str(g(j,"job_title","title") or "").strip()
         if not title: continue
-        desc=clean_text(str(g(j,"job_description","description") or ""))
+        full_desc=str(g(j,"job_description","description") or "")
+        desc=clean_text(full_desc)
         city=str(g(j,"job_city","city") or ""); country=str(g(j,"job_country","country") or "")
         loc=" ".join(x for x in (city,country) if x)
         empl=str(g(j,"job_employment_type","employment_type") or "")
-        blob=title+" "+desc+" "+loc+" "+empl
+        blob=title+" "+clean_text(full_desc,2000)+" "+loc+" "+empl   # GANZE Beschreibung fuer Signal-Erkennung (world/lock/onsite), nicht nur 170 Zeichen
         if not (g(j,"job_is_remote","is_remote") or ADZ_REMOTE.search(blob)): continue   # muss echt remote sein
         if ADZ_ONSITE.search(blob): continue                                             # Vor-Ort/Relocation/Hybrid raus
         world = bool(JS_WORLD.search(blob))                                              # echt weltweit machbar?
