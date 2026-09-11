@@ -221,8 +221,6 @@ def _jsearch_jobs(raw):
 def from_jsearch(raw):
     out=[]
     jobs=_jsearch_jobs(raw)
-    try: print(f"[jsearch-debug] keys={list(raw.keys())[:6] if isinstance(raw,dict) else type(raw).__name__} njobs={len(jobs)}")
-    except Exception: pass
     def g(j,*names):
         for n in names:
             v=j.get(n)
