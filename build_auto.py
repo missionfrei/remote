@@ -1189,6 +1189,14 @@ def main():
                       r"data (engineer|scientist|analyst)|business intelligence|\bbi[- ]|"
                       r"solution architect|enterprise architect|scrum master|product owner|"
                       r"wirtschaftspr(ü|ue)f|aktuar|actuary|penetration|security engineer", re.I)
+    # Paul: "1-3 Tage Homeoffice bringt nichts, muss schon 100% immer remote sein."
+    _HYBRID=re.compile(r"hybrid|teilweise (home|remote)|anteilig home|\d\s*[-–bis]{1,3}\s*\d?\s*tage?\s*(pro\s*woche\s*)?(home|remote|b(ü|ue)ro)|"
+                       r"\d\s*(tage?|days?)\s*(pro\s*woche|per\s*week|/\s*week)\s*(im\s*)?(home|remote|office)|"
+                       r"\b(2|3|4)\s*days?\s*(in\s*)?(the\s*)?office|office[- ]first", re.I)
+    _bh=len(alljobs)
+    alljobs=[j for j in alljobs if not _HYBRID.search(j.get("title","")+" "+j.get("info",""))]
+    print(f"[100remote] Hybrid-/Teil-Homeoffice entfernt: {_bh-len(alljobs)} -> {len(alljobs)} bleiben")
+
     _bn=len(alljobs)
     alljobs=[j for j in alljobs if not _NOFIT.search(j.get("title",""))]
     print(f"[passung] Beratungs-/Spezialistenrollen entfernt: {_bn-len(alljobs)} -> {len(alljobs)} bleiben")
