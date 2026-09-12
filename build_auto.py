@@ -1161,13 +1161,27 @@ def main():
     # 1) Deutschsprachig: ALLES behalten (world, eu, de).
     # 2) Englisch: nur kundennah/Buero/Text UND nur weltweit oder EU (englisch + DE-gebunden = wertlos).
     # 3) Danach Englisch deckeln, damit Deutsch klar in der Mehrheit bleibt.
+    # Paul: "100% remote und Quereinsteiger muss auf jeden Fall gegeben sein."
+    # Fuehrungs-/Senior-Titel passen nicht zu Quereinsteigern -> board-weit raus.
+    _SEN=re.compile(r"\bsenior\b|\blead\b|\bhead of\b|\bprincipal\b|\bstaff\b|\bdirector\b|\bvp\b|"
+                    r"vice president|\bchief\b|teamleit|teamlead|team lead|abteilungsleit|bereichsleit|"
+                    r"gesch(ä|ae)ftsf(ü|ue)hr|\bexpert(e|in)?\b|\barchitect\b|10\+ years", re.I)
+    _bs=len(alljobs)
+    alljobs=[j for j in alljobs if not _SEN.search(j.get("title",""))]
+    print(f"[einstieg] Senior-/Fuehrungsstellen entfernt: {_bs-len(alljobs)} -> {len(alljobs)} bleiben (Quereinsteiger-Fokus)")
+
     _bw=len(alljobs)
     _de=[j for j in alljobs if j.get("lang")=="de"]
     _en=[j for j in alljobs if j.get("lang")!="de"
          and j.get("bereich") in ("service","buero","sprache","start")
          and j.get("region") in ("world","eu")]
-    _en.sort(key=lambda j:(j.get("region")!="world", j.get("level")!="einsteiger"))
-    _cap=int(len(_de)*0.6)                      # Englisch max ~37% des Boards
+    # Paul: "80% der stellen müssen auf deutsch sein und 20% können englisch, am besten mit Deutsch-Bezug."
+    # -> englische Stellen mit Deutsch-Bezug zuerst, dann weltweit, dann Einsteiger.
+    _deref=re.compile(r"german|deutsch|dach\b", re.I)
+    _en.sort(key=lambda j:(not _deref.search((j.get("title","")+" "+j.get("info",""))),
+                           j.get("region")!="world",
+                           j.get("level")!="einsteiger"))
+    _cap=int(len(_de)*0.25)                     # Englisch max 20% des Boards (Paul: 80/20)
     _encut=len(_en)-min(len(_en),_cap)
     _en=_en[:_cap]
     alljobs=_de+_en
