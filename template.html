@@ -4494,7 +4494,9 @@
     if(cnt)cnt.textContent=n?(n+' '+(n===1?'Stelle':'Stellen')):'Deine mit Stern markierten Stellen';
     paintStars();
   }
-  document.getElementById('app').addEventListener('click',function(e){
+  /* Stern-Klicks global abfangen: #fuerdich, #favoriten, #freelance und #toolbox liegen AUSSERHALB
+     von #app -> ein Listener auf #app erreicht deren Sterne nie (Favoriten liessen sich dort nicht speichern). */
+  document.addEventListener('click',function(e){
     var st=e.target.closest?e.target.closest('.star'):null;
     if(!st)return;
     e.preventDefault(); e.stopPropagation();
