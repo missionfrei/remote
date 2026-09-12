@@ -1217,6 +1217,20 @@ def main():
     # Board-weit (Paul-Wunsch): Portal-/Redirect-URLs (Adzuna & Co) auf die ECHTE Einzelstelle aufloesen,
     # damit der Kandidat direkt auf der Anzeige landet; sicher-tote Links (404/410) komplett raus.
     alljobs, dead, resolved = resolve_and_prune(alljobs)
+
+    # 80/20 ERST NACH dem Tote-Link-Check festziehen: vorher weiss niemand, wie viele Stellen
+    # ueberhaupt uebrig bleiben. Paul: 80% deutsch, 20% englisch (englisch bevorzugt mit Deutsch-Bezug).
+    _de2=[j for j in alljobs if j.get("lang")=="de"]
+    _en2=[j for j in alljobs if j.get("lang")!="de"]
+    _deref2=re.compile(r"german|deutsch|dach\b", re.I)
+    _en2.sort(key=lambda j:(not _deref2.search((j.get("title","")+" "+j.get("info",""))),
+                            j.get("region")!="world", j.get("level")!="einsteiger"))
+    _cap2=max(1, int(len(_de2)*0.25))
+    _cut2=max(0, len(_en2)-_cap2)
+    alljobs=_de2+_en2[:_cap2]
+    print(f"[sprache-final] Deutsch {len(_de2)} / Englisch {min(len(_en2),_cap2)} "
+          f"({_cut2} englische gedeckelt) -> Deutsch-Anteil "
+          f"{round(100*len(_de2)/max(1,len(alljobs)))}%")
     print(f"[links] {resolved} Portal-Links direkt aufgeloest, {dead} tote (404/410) raus -> {len(alljobs)} echte, lebende Direkt-Stellen")
 
     sections, by = build_sections(alljobs)
