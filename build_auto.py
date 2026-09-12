@@ -579,9 +579,6 @@ SOURCES = [
     ("wwr-design",    "https://weworkremotely.com/categories/remote-design-jobs.rss",     from_wwr, "text"),
     # --- Weitere freie RSS-Boards ---
     ("euremotejobs",  "https://euremotejobs.com/feed/",                  from_rss_generic, "text"),
-    ("nodesk",        "https://nodesk.co/remote-jobs/feed/",             from_rss_generic, "text"),
-    ("jobspresso",    "https://jobspresso.co/remote-work/feed/",         from_rss_generic, "text"),
-    ("remote3",       "https://remote3.co/feed",                         from_rss_generic, "text"),
     # --- Runde: mehr Boersen + gezielte deutschsprachige/kundennahe Suchen ---
     ("remotive-kundenservice","https://remotive.com/api/remote-jobs?search=kundenservice",   from_remotive, "json"),
     ("remotive-support-de",   "https://remotive.com/api/remote-jobs?search=german%20support", from_remotive, "json"),
@@ -593,22 +590,15 @@ SOURCES = [
     ("arbeitnow-6",           "https://www.arbeitnow.com/api/job-board-api?page=6", from_arbeitnow, "json"),
     ("arbeitnow-7",           "https://www.arbeitnow.com/api/job-board-api?page=7", from_arbeitnow, "json"),
     ("arbeitnow-8",           "https://www.arbeitnow.com/api/job-board-api?page=8", from_arbeitnow, "json"),
-    ("remoteok-cs",           "https://remoteok.com/remote-customer-support-jobs.rss", from_rss_generic, "text"),
-    ("remoteok-nontech",      "https://remoteok.com/remote-non-tech-jobs.rss",         from_rss_generic, "text"),
     ("remotewoman",           "https://remotewoman.com/feed/",                         from_rss_generic, "text"),
     ("jobicy-rss",            "https://jobicy.com/?feed=job_feed",                     from_rss_generic, "text"),
-    ("dailyremote",           "https://dailyremote.com/feed",                          from_rss_generic, "text"),
     # --- Lauf #19: neue Boards + gezielt Reise/Hospitality (Paul-Wunsch) ---
     ("remotive-hospitality",  "https://remotive.com/api/remote-jobs?search=hospitality", from_remotive, "json"),
     ("remotive-guest",        "https://remotive.com/api/remote-jobs?search=guest%20experience", from_remotive, "json"),
     ("remotive-booking",      "https://remotive.com/api/remote-jobs?search=booking",     from_remotive, "json"),
     ("remotive-concierge",    "https://remotive.com/api/remote-jobs?search=concierge",   from_remotive, "json"),
     ("jobicy-anywhere2",      "https://jobicy.com/api/v2/remote-jobs?count=100&geo=anywhere&industry=supporting", from_jobicy, "json"),
-    ("remoteok-worldwide",    "https://remoteok.com/remote-worldwide-jobs.rss",          from_rss_generic, "text"),
-    ("remoteok-travel",       "https://remoteok.com/remote-travel-jobs.rss",             from_rss_generic, "text"),
-    ("dynamitejobs",          "https://dynamitejobs.com/feed",                          from_rss_generic, "text"),
     ("cryptojobslist",        "https://cryptojobslist.com/feed",                        from_rss_generic, "text"),
-    ("remote-co",             "https://remote.co/remote-jobs/feed/",                     from_rss_generic, "text"),
     ("pangian",               "https://pangian.com/job-board/feed/",                     from_rss_generic, "text"),
     # --- Lauf #21: mehr kundennahe/deutsche Suchen (mehr Direkt-Einzelstellen) ---
     ("remotive-success",      "https://remotive.com/api/remote-jobs?search=customer%20success", from_remotive, "json"),
@@ -617,7 +607,6 @@ SOURCES = [
     ("remotive-onboarding",   "https://remotive.com/api/remote-jobs?search=onboarding",  from_remotive, "json"),
     ("remotive-german3",      "https://remotive.com/api/remote-jobs?search=deutschsprachig", from_remotive, "json"),
     ("jobicy-de2",            "https://jobicy.com/api/v2/remote-jobs?count=100&tag=deutsch", from_jobicy, "json"),
-    ("remoteok-support",      "https://remoteok.com/remote-customer-support-jobs.rss",   from_rss_generic, "text"),
 ]
 
 # --- Lauf #26: mehr freie Suchen (sofort, ohne Key) - profilnah (CS/Reise/Admin/deutsch) ---
@@ -701,16 +690,7 @@ if ADZUNA_ID and ADZUNA_KEY:
         ("adzuna-ch-homeoffice",   _adz("ch","homeoffice"),             from_adzuna, "json"),
         ("adzuna-ch-remote",       _adz("ch","100% remote"),            from_adzuna, "json"),
         # Weitere EU-Maerkte (englisch, EU-remote)
-        ("adzuna-nl-remote",       _adz("nl","fully remote"),           from_adzuna, "json"),
-        ("adzuna-es-remote",       _adz("es","remote"),                 from_adzuna, "json"),
-        ("adzuna-pl-remote",       _adz("pl","fully remote"),           from_adzuna, "json"),
-        ("adzuna-it-remote",       _adz("it","remote"),                 from_adzuna, "json"),
-        ("adzuna-fr-remote",       _adz("fr","full remote"),            from_adzuna, "json"),
         # GB / US (englisch, kundennah/Assistenz)
-        ("adzuna-gb-remote",       _adz("gb","fully remote"),           from_adzuna, "json"),
-        ("adzuna-gb-customer",     _adz("gb","remote customer support"),from_adzuna, "json"),
-        ("adzuna-gb-assistant",    _adz("gb","remote virtual assistant"),from_adzuna, "json"),
-        ("adzuna-us-customer",     _adz("us","fully remote customer support"),from_adzuna, "json"),
         # Seite 2 der ergiebigen Suchen + weitere EU-Maerkte (mehr Tiefe fuer die 1000)
         ("adzuna-de-kundenservice2",_adz("de","remote kundenservice",2),  from_adzuna, "json"),
         ("adzuna-de-assistenz2",   _adz("de","remote assistenz",2),       from_adzuna, "json"),
@@ -718,11 +698,6 @@ if ADZUNA_ID and ADZUNA_KEY:
         ("adzuna-de-buchhaltung2", _adz("de","remote buchhaltung",2),     from_adzuna, "json"),
         ("adzuna-de-vertrieb2",    _adz("de","remote vertrieb",2),        from_adzuna, "json"),
         ("adzuna-at-remote2",      _adz("at","remote",2),                 from_adzuna, "json"),
-        ("adzuna-nl-remote2",      _adz("nl","fully remote",2),           from_adzuna, "json"),
-        ("adzuna-gb-remote2",      _adz("gb","fully remote",2),           from_adzuna, "json"),
-        ("adzuna-es-remote2",      _adz("es","remote",2),                 from_adzuna, "json"),
-        ("adzuna-it-remote2",      _adz("it","remote",2),                 from_adzuna, "json"),
-        ("adzuna-be-remote",       _adz("be","fully remote"),             from_adzuna, "json"),
         # Kundenservice / aus-dem-Ausland gezielt (Paul-Wunsch: mehr wie das StudySmarter-Beispiel fuer Annette)
         ("adzuna-de-tech-cs",      _adz("de","technischer kundenservice remote"), from_adzuna, "json"),
         ("adzuna-de-kundenberater",_adz("de","kundenberater remote"),            from_adzuna, "json"),
@@ -733,12 +708,6 @@ if ADZUNA_ID and ADZUNA_KEY:
         ("adzuna-de-homeoffice3",  _adz("de","homeoffice",3),             from_adzuna, "json"),
         ("adzuna-at-remote3",      _adz("at","remote",3),                 from_adzuna, "json"),
         ("adzuna-ch-homeoffice3",  _adz("ch","homeoffice",3),             from_adzuna, "json"),
-        ("adzuna-nl-remote3",      _adz("nl","fully remote",3),           from_adzuna, "json"),
-        ("adzuna-fr-remote3",      _adz("fr","full remote",3),            from_adzuna, "json"),
-        ("adzuna-gb-remote3",      _adz("gb","fully remote",3),           from_adzuna, "json"),
-        ("adzuna-be-remote2",      _adz("be","fully remote",2),           from_adzuna, "json"),
-        ("adzuna-it-remote3",      _adz("it","remote",3),                 from_adzuna, "json"),
-        ("adzuna-us-customer2",    _adz("us","fully remote customer support",2), from_adzuna, "json"),
     ]
     print("[adzuna] Key gefunden -> Adzuna aktiv (51 Suchen, Tiefe + Kundenservice-Fokus)")
 else:
@@ -757,13 +726,8 @@ def _js(query, country="us", page=1):
 # und wirft US-/laendergebundene raus. 1 de-Query fuer deutschen EU-Nachschub.
 if JSEARCH_KEY:
     SOURCES += [
-        ("jsearch-anywhere-cs",     _js("customer support work from anywhere remote","us"),   from_jsearch, "json"),
-        ("jsearch-anywhere-va",     _js("virtual assistant work from anywhere remote","us"),  from_jsearch, "json"),
-        ("jsearch-anywhere-service",_js("remote customer service anywhere in the world","us"),from_jsearch, "json"),
-        ("jsearch-german-anywhere", _js("german speaking work from anywhere remote","us"),    from_jsearch, "json"),
-        ("jsearch-de-remote",       _js("remote kundenservice ortsunabhaengig","de"),         from_jsearch, "json"),
     ]
-    print("[jsearch] Key gefunden -> 5 JSearch-Quellen aktiv (Weltweit-Fokus, Gratis-Tier: 5 Anfragen/Build)")
+    print("[jsearch] deaktiviert: lieferte nur Portal-Links (glassdoor/indeed/jobrapido), die ins Leere laufen")
 else:
     print("[jsearch] kein JSEARCH_KEY -> JSearch uebersprungen (Key als GitHub-Secret setzen, dann aktiv)")
 
