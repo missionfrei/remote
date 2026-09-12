@@ -890,8 +890,8 @@ FD_JS = r'''
      hard:["developer","software engineer","devops","buchhalt","steuerber","steuerfach","bilanzbuch","lohnbuchhalt","datev","accountant","accounting","bookkeep"],langs:["de","en"],reg:{world:3,eu:2,de:0}},
    "francesco26":{ber:{service:3,buero:2,start:0.5},
      plus:["kundenservice","kundensupport","kundenbetreuung","kundendienst","kundenberater","customer support","customer service","chat support","email support","technischer support","technischer kundenservice","helpdesk","it-support","1st level","first level","content moderat","moderator","support agent","betreuung","backoffice","back office","sachbearbeit","datenerfassung","data entry","auftragsabwicklung","versand","verwaltung","assistenz","office"],
-     minus:["sales","closer","setter","outbound","kaltakquise","telefonverkauf","designer","marketing","seo","provision"],
-     hard:["vertrieb","sales development","account executive","business development","sdr","sales manager","sales representative","außendienst","akquise","developer","software engineer","devops","data scientist","data engineer"],langs:["de"],reg:{world:3,eu:2,de:0}},
+     minus:["sales","closer","setter","outbound","kaltakquise","telefonverkauf","designer","marketing","seo","provision","buchhaltung","accounting","steuer","datev","controlling","lohn","bilanz","debitoren","kreditoren","rechnungswesen","finanzbuch"],
+     hard:["vertrieb","sales development","account executive","business development","sdr","sales manager","sales representative","außendienst","akquise","developer","software engineer","devops","data scientist","data engineer","buchhalt","buchhaltung","steuerber","steuerfach","steuerass","bilanzbuch","lohnbuchhalt","datev","accountant","accounting","bookkeep","controlling","debitoren","kreditoren","rechnungswesen","payroll","wirtschaftsprüf"],langs:["de"],deonly:true,reg:{world:3,eu:2,de:0}},
    "stefanie26":{ber:{buero:3,start:2,service:1},
      plus:["buchhaltung","accounting","steuer","datev","lohn","bilanz","finanz","controlling","rechnungswesen","sachbearbeit","office","verwaltung","back office"],
      minus:["developer","engineer","software","vertrieb","sales","closer","designer","marketing","devops"],
@@ -902,13 +902,15 @@ FD_JS = r'''
   function fdScore(c,p){
     var title=((c.querySelector('h3')||{}).textContent||'').toLowerCase();
     for(var i=0;i<p.hard.length;i++){if(title.indexOf(p.hard[i])>-1)return -999;}
+    /* Paul: "die englischen Stellen muessen raus" -> wer nur Deutsch arbeitet, sieht NUR deutschsprachige Stellen. */
+    if(p.deonly && c.dataset.lang!=='de')return -999;
     var s=0,t=fdText(c),ber=c.dataset.bereich||'';
     s+=(p.ber[ber]||0);
     var ph=0;for(var j=0;j<p.plus.length;j++){if(t.indexOf(p.plus[j])>-1)ph++;}s+=Math.min(ph*1.4,5.5);
     var mh=0;for(var k=0;k<p.minus.length;k++){if(t.indexOf(p.minus[k])>-1)mh++;}s-=mh*2.2;
     s+=(p.reg[fdRegion(c)]||0);
     if(p.langs.indexOf(c.dataset.lang)>-1)s+=1;
-    if(c.dataset.lang==='de')s+=0.6;
+    if(c.dataset.lang==='de')s+=2.5; else s-=1.5;   /* Deutsch klar vor Englisch (Paul) */
     if(c.dataset.level==='einsteiger')s+=0.4;
     return s;
   }
@@ -1045,6 +1047,14 @@ def main():
     print(f"[direkt] Karriere-/Boersenseiten entfernt: {_before-len(alljobs)} -> {len(alljobs)} bleiben (NUR Direkt-Einzelstellen)")
     _dfd=sum(1 for j in _dropped if j.get("fd"))
     print(f"[direkt] davon {_dfd} entfernte ⭐-Kundenpicks (Karriereseiten) - Deckung via ATS-Engine + Direkt-Picks")
+
+    # Paul: "sind viele Stellen die auf Englisch sind und die muessen doch eig alle raus."
+    # Regel: englischsprachige Stellen bleiben NUR, wenn sie echte 100%-remote-weltweit-Stellen sind
+    # (das sind die "Goldstuecke", die Paul ausdruecklich immer drin haben will) oder Kundenpick.
+    # Englisch mit EU-/DE-Bindung bringt unseren deutschsprachigen Kandidaten nichts -> raus.
+    _be=len(alljobs)
+    alljobs=[j for j in alljobs if j.get("lang")=="de" or j.get("region")=="world" or j.get("src")=="customer"]
+    print(f"[sprache] Englisch ohne Weltweit-Status entfernt: {_be-len(alljobs)} -> {len(alljobs)} bleiben")
 
     # Titel+Firma-Dedup (Paul: viele Wiederholungen). URL-Dedup greift nicht, wenn Adzuna dieselbe Stelle
     # in mehreren Laendern (de/at/ch) mit verschiedenen redirect-URLs listet. Erst-gesehen gewinnt
