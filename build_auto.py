@@ -299,23 +299,38 @@ def prune_dead(jobs, workers=24):
     kept=[j for j,a in zip(jobs,alive) if a]
     return kept, len(jobs)-len(kept)
 
+# Paul (12.09.): Kunden landeten auf "This page doesn't exist"-Seiten, die HTTP 200 liefern.
+# Solche SOFT-404 erkennt man nur am Seiteninhalt. Nur sehr eindeutige Formulierungen, damit
+# keine gueltige Anzeige faelschlich rausfliegt.
+SOFT404 = re.compile(
+    r"this page doesn.?t exist|page not found|seite nicht gefunden|seite existiert nicht|"
+    r"no longer listed|no longer available|not accepting applications|this job (has )?expired|"
+    r"job (is )?no longer|position (has been|is) (filled|closed)|"
+    r"stelle (ist )?nicht mehr (verf(ü|ue)gbar|aktuell|online)|anzeige (wurde )?(entfernt|deaktiviert)|"
+    r"diese stelle wurde (bereits )?(besetzt|entfernt)|stellenanzeige nicht gefunden|"
+    r"leider ist diese stelle", re.I)
+
 def resolve_link(url):
-    """Folgt Redirects -> (finale_url, lebt). lebt=False NUR bei 404/410 (Paul: nur sicher-tote raus).
-    So werden Portal-/Redirect-Landing-URLs (Adzuna & Co) auf die ECHTE Einzelstelle beim Arbeitgeber
-    aufgeloest -> Kandidat landet direkt auf der Anzeige, nicht auf einer Zwischenseite."""
-    for method in ("HEAD","GET"):
-        try:
-            req=urllib.request.Request(url, method=method, headers=UA_LC)
-            with urllib.request.urlopen(req, timeout=12) as r:
-                return (r.geturl() or url), True
-        except urllib.error.HTTPError as e:
-            if e.code in (404,410): return url, False           # sicher tot -> raus
-            if method=="HEAD" and e.code in (403,405,501): continue   # HEAD verboten -> GET testen
-            try: return (e.geturl() or url), True               # anderer Fehler -> behalten
-            except Exception: return url, True
-        except Exception:
-            return url, True   # Timeout/DNS/Verbindung -> im Zweifel behalten (Original-URL)
-    return url, True
+    """Folgt Redirects -> (finale_url, lebt). lebt=False bei 404/410 UND bei Soft-404 (HTTP 200,
+    aber 'Seite existiert nicht'). So werden auch Portal-Landing-URLs auf die echte Anzeige
+    aufgeloest, und tote Anzeigen fliegen raus, bevor ein Kunde draufklickt."""
+    try:
+        req=urllib.request.Request(url, method="GET", headers=UA_LC)
+        with urllib.request.urlopen(req, timeout=14) as r:
+            final=r.geturl() or url
+            ctype=(r.headers.get("Content-Type") or "").lower()
+            if "html" in ctype or ctype=="":
+                body=r.read(120000).decode("utf-8","replace")
+                head=body[:60000]
+                if SOFT404.search(head):
+                    return url, False
+            return final, True
+    except urllib.error.HTTPError as e:
+        if e.code in (404,410): return url, False
+        try: return (e.geturl() or url), True
+        except Exception: return url, True
+    except Exception:
+        return url, True   # Timeout/DNS/Verbindung -> im Zweifel behalten
 
 def resolve_and_prune(jobs, workers=32):
     """Board-weit: Redirect-/Portal-URLs auf die echte Einzelstelle aufloesen (nur wenn die aufgeloeste
@@ -908,6 +923,8 @@ def is_direct(url):
     if path=="": return False
     seg=path.split("?")[0].rstrip("/")
     last=seg.rsplit("/",1)[-1]
+    # 0a) Indeed-Einzelanzeige: /viewjob?jk=<id> ist die konkrete Stelle, kein Suchergebnis
+    if re.search(r"/viewjob\?jk=[a-z0-9]{8,}", s): return True
     # 0) Suchergebnis-/Filter-Seiten (Query-Parameter) -> nie eine Einzelstelle
     if re.search(r"[?&](search|q|query|keywords?|kw|geo|location|category|page)=", s): return False
     # 1) STARKE Einzelstellen-Signale zuerst: numerische Job-ID / UUID -> echte Stelle
@@ -950,12 +967,14 @@ def _rank(j):
     # (3) deutsch vor englisch (so weit oben wie moeglich), (4) weltweit vor EU, (5) ⭐ zuerst.
     # -> ganz oben in jeder Sektion: deutsch + direkt + weltweit.
     reg = j.get("region"); de = j.get("lang")=="de"; direct = is_direct(j.get("url",""))
+    # Paul (12.09.): "mach als erstes doch besser immer deutsche" - oben sollen serioes wirkende
+    # deutschsprachige Stellen stehen, danach innerhalb Deutsch weltweit vor EU vor DE-gebunden.
     return (
-        1 if reg=="de" else 0,        # Deutschland-nur (nicht weltweit) ganz unten
-        0 if direct else 1,           # DIREKT zur Stelle zuerst, Firmen-/Karriereseiten nach unten
-        0 if de else 1,               # deutsch vor englisch
-        0 if reg=="world" else 1,     # weltweit vor EU
-        0 if j.get("fd") else 1,      # ⭐ Fuer-dich zuerst
+        0 if de else 1,                                   # 1. DEUTSCH ganz oben
+        0 if direct else 1,                               # 2. Direktlink vor allem anderen
+        {"world":0,"eu":1}.get(reg,2),                    # 3. weltweit, dann EU, dann DE-gebunden
+        0 if j.get("level")=="einsteiger" else 1,         # 4. Einsteiger/Quereinsteiger vor Erfahrung
+        0 if j.get("fd") else 1,                          # 5. ⭐ Fuer-dich zuerst
     )
 
 # ==================== Personalisierte "Fuer dich"-Ansicht (Lauf #23) ====================
@@ -985,8 +1004,8 @@ FD_JS = r'''
   /* ---- Personalisierte "Fuer dich"-Auswahl: pro Login-Passwort, nur Job-Kriterien ---- */
   var PROFILES={
    "lisamaria26":{ber:{buero:3,start:1,sprache:0.5,service:0},
-     plus:["office","back office","backoffice","verwaltung","administration","sachbearbeit","assistenz","teamassistenz","projektassistenz","executive assistant","personal assistant","koordination","coordinator","disposition","auftragsabwicklung","datenerfassung","data entry","dateneingabe","dokumenten","organisation","office manager","office administration","office assistant","operations","scheduling","order management"],
-     minus:["kundenservice","kundensupport","kundenkontakt","kundenbetreuung","kundendienst","customer service","customer support","customer care","customer success","guest","hospitality","hotel","reservation","concierge","call center","callcenter","telefonie","inbound","outbound","chat support","live chat","help desk","helpdesk","support agent","beschwerde","developer","engineer","software","vertrieb","sales","closer","setter","designer","marketing","crypto","blockchain","devops","rater","annotation","ai training"],
+     plus:["office","back office","backoffice","verwaltung","administration","sachbearbeit","assistenz","teamassistenz","projektassistenz","virtuelle assistenz","virtual assistant","executive assistant","personal assistant","koordination","coordinator","disposition","auftragsabwicklung","datenerfassung","data entry","dateneingabe","dokumenten","organisation","office manager","office administration","office assistant","operations","scheduling","order management","reservierung","reservations","reservation agent","booking","buchung","reisebuero","reisebüro","reiseverkehrskauffrau","touristik","travel consultant","business travel","reiseberat","hotel reservation","revenue","groups & events"],
+     minus:["kundenservice","kundensupport","kundenkontakt","kundenbetreuung","kundendienst","customer service","customer support","customer care","customer success","concierge","call center","callcenter","telefonie","telefonist","inbound","outbound","chat support","live chat","help desk","helpdesk","support agent","beschwerde","developer","engineer","software","vertrieb","sales","closer","setter","designer","marketing","crypto","blockchain","devops","rater","annotation","ai training"],
      hard:["developer","software engineer","devops","data engineer","qa engineer"],langs:["de","en"],reg:{world:3,eu:2,de:0}},
    "annette26":{ber:{service:3,buero:2,start:0.5},
      plus:["customer","support","kundenservice","kundensupport","kundenbetreuung","kundenberater","kundendienst","betreuung","service","technischer support","technischer kundenservice","assistant","assistenz","virtual assistant","office","back office","administration","verwaltung","operations","koordination","coordinator","data entry","sachbearbeit","empfang"],
@@ -1163,6 +1182,17 @@ def main():
     # 3) Danach Englisch deckeln, damit Deutsch klar in der Mehrheit bleibt.
     # Paul: "100% remote und Quereinsteiger muss auf jeden Fall gegeben sein."
     # Fuehrungs-/Senior-Titel passen nicht zu Quereinsteigern -> board-weit raus.
+    # Paul: solche Treffer duerfen Kunden nicht sehen ("fuer was zahlen sie 1,5k").
+    # Beratungs-/Spezialisten-Rollen, die kein Quereinsteiger bekommt.
+    _NOFIT=re.compile(r"implementation consultant|solution(s)? consultant|technical consultant|"
+                      r"pre-?sales|presales|\bsap\b|\berp\b|salesforce|workday|dynamics 365|"
+                      r"data (engineer|scientist|analyst)|business intelligence|\bbi[- ]|"
+                      r"solution architect|enterprise architect|scrum master|product owner|"
+                      r"wirtschaftspr(ü|ue)f|aktuar|actuary|penetration|security engineer", re.I)
+    _bn=len(alljobs)
+    alljobs=[j for j in alljobs if not _NOFIT.search(j.get("title",""))]
+    print(f"[passung] Beratungs-/Spezialistenrollen entfernt: {_bn-len(alljobs)} -> {len(alljobs)} bleiben")
+
     _SEN=re.compile(r"\bsenior\b|\blead\b|\bhead of\b|\bprincipal\b|\bstaff\b|\bdirector\b|\bvp\b|"
                     r"vice president|\bchief\b|teamleit|teamlead|team lead|abteilungsleit|bereichsleit|"
                     r"gesch(ä|ae)ftsf(ü|ue)hr|\bexpert(e|in)?\b|\barchitect\b|10\+ years", re.I)
