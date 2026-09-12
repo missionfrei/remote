@@ -442,11 +442,48 @@ ATS_COMPANIES = [
     ("trivago",      "greenhouse", "trivago",      "service", "eu"),
     ("Lighthouse",   "greenhouse", "lighthouse",   "service", "eu"),
     ("Revinate",     "lever",      "revinate",     "service", "eu"),
+    # --- Lauf #61: DEUTSCHE Arbeitgeber ueber ihre eigenen Bewerber-Systeme (kein Login, kein Key).
+    # Alle Firmen stellen nachweislich remote auf Deutsch ein (aus dem LinkedIn-/zuhausejobs-Abgleich).
+    # Slugs sind Kandidaten - was nicht antwortet, loggt "FEHLER" und wird beim naechsten Lauf entfernt.
+    ("Memberspot",            "personio", "memberspot",            "service", "de"),
+    ("hey contact heroes",    "personio", "heycontactheroes",      "service", "de"),
+    ("ready2order",           "personio", "ready2order",           "service", "de"),
+    ("zollsoft",              "personio", "zollsoft",              "service", "de"),
+    ("Thinksurance",          "personio", "thinksurance",          "service", "de"),
+    ("neue fische",           "personio", "neuefische",            "buero",   "de"),
+    ("Digital Career Institute","personio","digitalcareerinstitute","buero",  "de"),
+    ("Conceptboard",          "personio", "conceptboard",          "service", "de"),
+    ("OpenProject",           "personio", "openproject",           "service", "de"),
+    ("Floy",                  "personio", "floy",                  "service", "de"),
+    ("Edurino",               "personio", "edurino",               "service", "de"),
+    ("envelio",               "personio", "envelio",               "buero",   "de"),
+    ("Chrono24",              "personio", "chrono24",              "service", "de"),
+    ("TeleClinic",            "personio", "teleclinic",            "service", "de"),
+    ("ottonova",              "personio", "ottonova",              "service", "de"),
+    ("Lemontaps",             "personio", "lemontaps",             "buero",   "de"),
+    ("FORMEL SKIN",           "personio", "formelskin",            "service", "de"),
+    ("Pflegia",               "personio", "pflegia",               "service", "de"),
+    ("Taxfix",                "personio", "taxfix",                "service", "de"),
+    ("sevDesk",               "personio", "sevdesk",               "service", "de"),
+    ("Zenjob",                "personio", "zenjob",                "service", "de"),
+    ("MEDWING",               "personio", "medwing",               "service", "de"),
+    ("Workwise",              "personio", "workwise",              "buero",   "de"),
+    ("Urlaubsguru",           "personio", "urlaubsguru",           "service", "de"),
+    ("HomeToGo",              "greenhouse","hometogo",             "service", "eu"),
+    ("Raisin",                "greenhouse","raisin",               "service", "eu"),
+    ("Too Good To Go",        "greenhouse","toogoodtogo",          "service", "eu"),
+    ("Doctolib",              "smartrecruiters","Doctolib",        "service", "eu"),
+    ("Bosch",                 "smartrecruiters","BoschGroup",      "service", "de"),
+    ("Wolters Kluwer",        "workable", "wolterskluwer",         "buero",   "eu"),
+    ("Smoobu",                "recruitee","smoobu",                "service", "eu"),
+    ("Lassie",                "recruitee","lassie",                "service", "eu"),
+    ("Reebelo",               "recruitee","reebelo",               "service", "eu"),
 ]
 # Sprach-Signal. Trick: \bgerman\b trifft "German" (Sprache) aber NICHT "Germany" (Land) -
 # so faellt "Country Manager, Germany" raus, "German Support/Speaker" bleibt drin.
 # Titel darf breit sein; Description strenger (sonst triggert "expand into the German market").
 ATS_GER_TITLE = re.compile(r"\bgerman\b|\bdeutsch\b|deutschsprachig|deutschkenntnisse", re.I)
+ATS_DE_TITLE  = re.compile(r"\(m/w/d\)|\(w/m/d\)|\(m/f/d\)|\(d/m/w\)|\bm/w/d\b|mitarbeiter|kundenberat|kundenservice|kundenbetreu|kundensupport|sachbearbeit|assistenz|buchhalt|vertrieb|referent|fachkraft|teilzeit|vollzeit|deutschsprachig|berater|betreuer|kaufmann|kauffrau|sekretär|verwaltung|innendienst", re.I)  # Titel ist offensichtlich deutsch
 ATS_GER_DESC  = re.compile(r"german[\s\-]?speak|deutschsprachig|fluent in german|native german|deutschkenntnisse|verhandlungssicher|proficiency in german|german language|business[\s\-]?level german", re.I)
 ATS_REMOTE   = re.compile(r"\bremote\b|anywhere|worldwide|work from home|home[\- ]?office|distributed|\bwfh\b", re.I)
 ATS_WORLD    = re.compile(r"worldwide|anywhere|\bglobal\b|work from anywhere|fully distributed|\bdistributed\b|any location|remote - global|from any country", re.I)
@@ -462,7 +499,11 @@ def _ats_region(loc, region_default):
     if ATS_EU.search(l):    return "eu"
     stripped=re.sub(r"remote|anywhere|global|work from home|home[\- ]?office|distributed|wfh|[,\-/()\s]", "", l)
     if stripped=="": return region_default     # war nur 'remote'/leer -> Firmen-Default
-    return None                                # konkreter Ort (Berlin, Budapest, 'Germany - Remote') -> raus
+    # Lauf #61 (Paul: "zur Not erstmal auch remote aus Deutschland"): deutsche Firmen mit Default "de"
+    # duerfen ihre DACH-Orte behalten - die Stelle ist remote, nur eben aus Deutschland ausgeschrieben.
+    if region_default=="de" and re.search(r"deutschland|germany|österreich|austria|schweiz|switzerland|berlin|münchen|munich|hamburg|köln|cologne|frankfurt|stuttgart|düsseldorf|leipzig|dresden|hannover|nürnberg|bremen|dortmund|essen|mannheim|karlsruhe|freiburg|wien|vienna|zürich|zurich|dach", l):
+        return "de"
+    return None                                # konkreter Ort (Budapest, Austin, Lissabon) -> raus
 
 def _ats_emit(company, title, url, loc, desc, remote_flag, ber_default, region_default):
     title=(title or "").strip()
@@ -471,7 +512,7 @@ def _ats_emit(company, title, url, loc, desc, remote_flag, ber_default, region_d
     if not remote_ok: return None
     region=_ats_region(loc, region_default)
     if region is None: return None                       # laendergebunden ("Germany - Remote", "Budapest") -> raus
-    german = bool(ATS_GER_TITLE.search(title) or ATS_GER_DESC.search(desc or ""))
+    german = bool(ATS_GER_TITLE.search(title) or ATS_GER_DESC.search(desc or "") or ATS_DE_TITLE.search(title))
     custfacing = bool(ATS_CUSTFACING.search(title))
     # deutschsprachig: world ODER eu ok. Englisch: world ODER eu + kundennah (Lisa/Annette koennen Englisch;
     # eu-remote = Spanien/Portugal/Zypern, echte Auswander-Basen -> "nicht Deutschland-nur" erfuellt).
@@ -513,6 +554,63 @@ def from_lever(slug):
                     loc+" "+wt, j.get("descriptionPlain",""), wt.lower()=="remote"))
     return out
 
+def _xml_tag(block, tag):
+    m=re.search(r"<"+tag+r"[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?</"+tag+r">", block)
+    return (m.group(1).strip() if m else "")
+
+def from_personio(slug):
+    """Personio ist das Standard-System bei deutschen Firmen. Oeffentlicher XML-Feed, kein Login, kein Key."""
+    host = "jobs.personio.de" if "." not in slug else slug
+    url = f"https://{slug}.jobs.personio.de/xml" if "." not in slug else f"https://{slug}/xml"
+    try:
+        raw = http_text(url)
+    except Exception:
+        raw = http_text(f"https://{slug}.jobs.personio.com/xml")
+    out=[]
+    for block in raw.split("<position>")[1:]:
+        pid=_xml_tag(block,"id")
+        name=_xml_tag(block,"name")
+        if not pid or not name: continue
+        office=_xml_tag(block,"office")
+        dept=_xml_tag(block,"department")
+        sched=_xml_tag(block,"schedule")
+        desc=re.sub(r"<[^>]+>"," ", block[:6000])
+        desc=re.sub(r"\s+"," ",desc)
+        base = f"https://{slug}.jobs.personio.de" if "." not in slug else f"https://{slug}"
+        out.append((name, f"{base}/job/{pid}", (office+" "+dept+" "+sched).strip(), desc, "remote" in (office+" "+desc[:1500]).lower()))
+    return out
+
+def from_recruitee(slug):
+    d=http_json(f"https://{slug}.recruitee.com/api/offers/")
+    out=[]
+    for j in d.get("offers",[]):
+        loc=" ".join(str(x) for x in [j.get("location",""),j.get("city",""),j.get("country_code","")] if x)
+        url=j.get("careers_url") or j.get("careers_apply_url") or ""
+        desc=re.sub(r"<[^>]+>"," ",(j.get("description","") or ""))[:4000]
+        rf=bool(j.get("remote")) or "remote" in (loc+" "+(j.get("title","") or "")).lower()
+        out.append((j.get("title",""), url, loc, desc, rf))
+    return out
+
+def from_smartrecruiters(slug):
+    d=http_json(f"https://api.smartrecruiters.com/v1/companies/{slug}/postings?limit=100")
+    out=[]
+    for j in d.get("content",[]):
+        loc=j.get("location") or {}
+        locs=" ".join(str(x) for x in [loc.get("city",""),loc.get("region",""),loc.get("country",""),"remote" if loc.get("remote") else ""] if x)
+        jid=j.get("id","")
+        out.append((j.get("name",""), f"https://jobs.smartrecruiters.com/{slug}/{jid}", locs, "", bool(loc.get("remote"))))
+    return out
+
+def from_workable(slug):
+    d=http_json(f"https://apply.workable.com/api/v1/widget/accounts/{slug}?details=true")
+    out=[]
+    for j in d.get("jobs",[]):
+        loc=" ".join(str(x) for x in [j.get("city",""),j.get("country",""),j.get("workplace","")] if x)
+        desc=re.sub(r"<[^>]+>"," ",(j.get("description","") or ""))[:4000]
+        out.append((j.get("title",""), j.get("url") or j.get("shortlink",""), loc, desc,
+                    "remote" in (loc+" "+desc[:1200]).lower()))
+    return out
+
 def from_ashby(slug):
     d=http_json(f"https://api.ashbyhq.com/posting-api/job-board/{slug}?includeCompensation=false")
     out=[]
@@ -524,7 +622,9 @@ def from_ashby(slug):
 
 def gather_ats():
     if MOCK: return []
-    fx={"greenhouse":from_greenhouse,"lever":from_lever,"ashby":from_ashby}
+    fx={"greenhouse":from_greenhouse,"lever":from_lever,"ashby":from_ashby,
+        "personio":from_personio,"recruitee":from_recruitee,
+        "smartrecruiters":from_smartrecruiters,"workable":from_workable}
     out=[]
     for company,ats,slug,ber,region in ATS_COMPANIES:
         try:
@@ -534,7 +634,7 @@ def gather_ats():
                 e=_ats_emit(company,title,url,loc,desc,rf,ber,region)
                 if e: emitted.append(e)
             emitted.sort(key=lambda x:(x["lang"]!="de", x["level"]!="einsteiger"))  # deutsch + einsteiger zuerst behalten
-            emitted=emitted[:8]                                                       # Deckel pro Firma gegen Flut
+            emitted=emitted[:12]                                                      # Deckel pro Firma gegen Flut
             out+=emitted
             print(f"[ats] {company} ({ats}/{slug}): {len(rows)} -> {len(emitted)} passend (deutsch|weltweit-englisch kundennah)")
         except Exception as ex:
@@ -766,7 +866,8 @@ def process(raw_jobs):
         # WELTWEIT-FIRST (Paul): KEINE reinen Deutschland-Stellen. Aber ab Lauf #20 VOLLES Volumen:
         # ALLES weltweit ODER EU-remote behalten (deutsch UND englisch, alle Bereiche). Die Sortierung
         # (_rank: weltweit + deutsch + direkt ganz oben) und der CAP pro Bereich regeln Reihenfolge/Menge.
-        if region != "world": continue        # Paul (strenger): NUR 100% remote + auch aus dem Ausland machbar
+        # Paul (Lauf #61): weltweit + EU + (deutschsprachig auch DE-remote). Englisch-DE-gebunden raus.
+        if region == "de" and lang != "de": continue
         # Paul #21: aus den Job-Boards NUR Direkt-Links zur Einzelstelle aufnehmen (keine Karriere-/Firmenseiten).
         # Die Boards verlinken fast immer direkt auf die Anzeige -> genau die wollen wir.
         if not is_direct(j["url"]): continue
@@ -1055,12 +1156,23 @@ def main():
     # auch von ausserhalb Deutschlands machbar. "100% Homeoffice, aber nur mit Wohnsitz in DE" bringt
     # unseren Kandidaten nichts -> raus, egal ob deutsch oder englisch, egal ob Kundenpick.
     # Teilzeit, Vollzeit und Freelance sind alle erlaubt - nur die Ortsbindung ist das Ausschlusskriterium.
-    # Weltweit = immer ok. EU-remote = ok, ABER nur aus der kuratierten Schicht (manuell/ATS), wo das
-    # EU-Label aus der echten Anzeige kommt - aus dem Ausland (Spanien, Portugal ...) arbeitbar.
-    # Feed-"EU" ist geraten und meist doch Wohnsitz-gebunden -> raus. Region DE -> immer raus.
+    # --- Paul-Regel (Lauf #61): DEUTSCH ist Mehrheit. Weltweit und EU beide ok, und zur Not auch
+    # "remote aus Deutschland" - Paul: im Gespraech laesst sich EU/weltweit oft nachverhandeln.
+    # 1) Deutschsprachig: ALLES behalten (world, eu, de).
+    # 2) Englisch: nur kundennah/Buero/Text UND nur weltweit oder EU (englisch + DE-gebunden = wertlos).
+    # 3) Danach Englisch deckeln, damit Deutsch klar in der Mehrheit bleibt.
     _bw=len(alljobs)
-    alljobs=[j for j in alljobs if j.get("region")=="world" or (j.get("region")=="eu" and j.get("src")!="auto")]
-    print(f"[weltweit] Ortsgebundene Stellen entfernt: {_bw-len(alljobs)} -> {len(alljobs)} bleiben (100% remote + aus dem Ausland machbar)")
+    _de=[j for j in alljobs if j.get("lang")=="de"]
+    _en=[j for j in alljobs if j.get("lang")!="de"
+         and j.get("bereich") in ("service","buero","sprache","start")
+         and j.get("region") in ("world","eu")]
+    _en.sort(key=lambda j:(j.get("region")!="world", j.get("level")!="einsteiger"))
+    _cap=int(len(_de)*0.6)                      # Englisch max ~37% des Boards
+    _encut=len(_en)-min(len(_en),_cap)
+    _en=_en[:_cap]
+    alljobs=_de+_en
+    print(f"[sprache] Deutsch {len(_de)} + Englisch {len(_en)} (davon {_encut} englische gedeckelt) "
+          f"-> {len(alljobs)} von {_bw}; Deutsch-Anteil {round(100*len(_de)/max(1,len(alljobs)))}%")
 
     # Titel+Firma-Dedup (Paul: viele Wiederholungen). URL-Dedup greift nicht, wenn Adzuna dieselbe Stelle
     # in mehreren Laendern (de/at/ch) mit verschiedenen redirect-URLs listet. Erst-gesehen gewinnt
