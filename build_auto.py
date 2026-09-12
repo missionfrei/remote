@@ -728,8 +728,19 @@ if ADZUNA_ID and ADZUNA_KEY:
         ("adzuna-de-kundenberater",_adz("de","kundenberater remote"),            from_adzuna, "json"),
         ("adzuna-de-cs-homeoffice",_adz("de","kundenservice homeoffice"),         from_adzuna, "json"),
         ("adzuna-de-ausland",      _adz("de","remote aus dem ausland"),           from_adzuna, "json"),
+        # Seite 3 der ergiebigen Suchen -> ECHT neue (tiefere) Stellen, keine Dubletten (Volumen ehrlich Richtung 1000)
+        ("adzuna-de-remote3",      _adz("de","remote",3),                 from_adzuna, "json"),
+        ("adzuna-de-homeoffice3",  _adz("de","homeoffice",3),             from_adzuna, "json"),
+        ("adzuna-at-remote3",      _adz("at","remote",3),                 from_adzuna, "json"),
+        ("adzuna-ch-homeoffice3",  _adz("ch","homeoffice",3),             from_adzuna, "json"),
+        ("adzuna-nl-remote3",      _adz("nl","fully remote",3),           from_adzuna, "json"),
+        ("adzuna-fr-remote3",      _adz("fr","full remote",3),            from_adzuna, "json"),
+        ("adzuna-gb-remote3",      _adz("gb","fully remote",3),           from_adzuna, "json"),
+        ("adzuna-be-remote2",      _adz("be","fully remote",2),           from_adzuna, "json"),
+        ("adzuna-it-remote3",      _adz("it","remote",3),                 from_adzuna, "json"),
+        ("adzuna-us-customer2",    _adz("us","fully remote customer support",2), from_adzuna, "json"),
     ]
-    print("[adzuna] Key gefunden -> Adzuna aktiv (41 Suchen, Volumen + Kundenservice-Fokus)")
+    print("[adzuna] Key gefunden -> Adzuna aktiv (51 Suchen, Tiefe + Kundenservice-Fokus)")
 else:
     print("[adzuna] kein ADZUNA_APP_ID/KEY -> Adzuna uebersprungen (Key als GitHub-Secret setzen, dann aktiv)")
 
@@ -1074,14 +1085,23 @@ def main():
         t=re.sub(r"\(.*?\)"," ",(j.get("title") or "").lower())        # (m/w/d), (100% remote) ... raus
         t=re.sub(r"[^a-z0-9]+"," ",t).strip()
         c=re.sub(r"[^a-z0-9]+"," ",(j.get("company") or "").lower()).strip()
-        return t+"|"+c if t else None
-    _seen_dk=set(); _dd=[]
-    for j in alljobs:
+        return (t+"|"+c) if (t and c) else None   # NUR mit echter Firma mergen (kein Titel-only-Merge -> keine Fehl-Dubletten)
+    _rrank={"world":2,"eu":1,"de":0}
+    _best={}; _keep=[True]*len(alljobs)
+    for i,j in enumerate(alljobs):
         k=_dupkey(j)
-        if k and k in _seen_dk: continue
-        if k: _seen_dk.add(k)
-        _dd.append(j)
-    print(f"[dedup] Titel+Firma-Dubletten entfernt: {len(alljobs)-len(_dd)} -> {len(_dd)} bleiben")
+        if not k: continue                          # ohne echte Firma: nie als Dublette werfen
+        if k in _best:
+            pi=_best[k]
+            # Bei Dublette die Weltweit-/bessere-Region-Version behalten (Paul: 100% remote weltweit = Goldstueck, NIE wegwerfen).
+            if _rrank.get(j.get("region"),0) > _rrank.get(alljobs[pi].get("region"),0):
+                _keep[pi]=False; _best[k]=i
+            else:
+                _keep[i]=False
+        else:
+            _best[k]=i
+    _dd=[j for j,kp in zip(alljobs,_keep) if kp]
+    print(f"[dedup] Titel+Firma-Dubletten entfernt: {len(alljobs)-len(_dd)} -> {len(_dd)} bleiben (Weltweit-Version bevorzugt)")
     alljobs=_dd
 
     # Board-weit (Paul-Wunsch): Portal-/Redirect-URLs (Adzuna & Co) auf die ECHTE Einzelstelle aufloesen,
