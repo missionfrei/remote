@@ -668,7 +668,10 @@ def _adz(country, what, page=1):
     return (f"https://api.adzuna.com/v1/api/jobs/{country}/search/{page}"
             f"?app_id={ADZUNA_ID}&app_key={ADZUNA_KEY}&results_per_page=50&max_days_old=40"
             f"&what={urllib.parse.quote(what)}&content-type=application/json")
-if ADZUNA_ID and ADZUNA_KEY:
+# Adzuna ab Lauf #60 AUS: liefert DE/AT/CH-Markt (Wohnsitz-gebunden, nie weltweit) und nur
+# Interstitial-Links statt Direktlinks zur Anzeige. Beides verstoesst gegen Pauls Kriterien.
+ADZUNA_AN = False
+if ADZUNA_AN and ADZUNA_ID and ADZUNA_KEY:
     SOURCES += [
         # DE-Markt breit (deutschsprachig -> hebt Volumen UND die Deutsch-Quote). from_adzuna filtert hart auf ECHT voll-remote.
         ("adzuna-de-remote1",      _adz("de","remote"),                 from_adzuna, "json"),
@@ -763,7 +766,7 @@ def process(raw_jobs):
         # WELTWEIT-FIRST (Paul): KEINE reinen Deutschland-Stellen. Aber ab Lauf #20 VOLLES Volumen:
         # ALLES weltweit ODER EU-remote behalten (deutsch UND englisch, alle Bereiche). Die Sortierung
         # (_rank: weltweit + deutsch + direkt ganz oben) und der CAP pro Bereich regeln Reihenfolge/Menge.
-        if region not in ("world","eu"): continue        # nur Deutschland-nur/laendergebunden raus
+        if region != "world": continue        # Paul (strenger): NUR 100% remote + auch aus dem Ausland machbar
         # Paul #21: aus den Job-Boards NUR Direkt-Links zur Einzelstelle aufnehmen (keine Karriere-/Firmenseiten).
         # Die Boards verlinken fast immer direkt auf die Anzeige -> genau die wollen wir.
         if not is_direct(j["url"]): continue
@@ -1048,13 +1051,16 @@ def main():
     _dfd=sum(1 for j in _dropped if j.get("fd"))
     print(f"[direkt] davon {_dfd} entfernte ⭐-Kundenpicks (Karriereseiten) - Deckung via ATS-Engine + Direkt-Picks")
 
-    # Paul: "sind viele Stellen die auf Englisch sind und die muessen doch eig alle raus."
-    # Regel: englischsprachige Stellen bleiben NUR, wenn sie echte 100%-remote-weltweit-Stellen sind
-    # (das sind die "Goldstuecke", die Paul ausdruecklich immer drin haben will) oder Kundenpick.
-    # Englisch mit EU-/DE-Bindung bringt unseren deutschsprachigen Kandidaten nichts -> raus.
-    _be=len(alljobs)
-    alljobs=[j for j in alljobs if j.get("lang")=="de" or j.get("region")=="world" or j.get("src")=="customer"]
-    print(f"[sprache] Englisch ohne Weltweit-Status entfernt: {_be-len(alljobs)} -> {len(alljobs)} bleiben")
+    # Paul (strengere Kriterien, Lauf #60): auf dem Board stehen NUR Stellen, die 100% remote sind UND
+    # auch von ausserhalb Deutschlands machbar. "100% Homeoffice, aber nur mit Wohnsitz in DE" bringt
+    # unseren Kandidaten nichts -> raus, egal ob deutsch oder englisch, egal ob Kundenpick.
+    # Teilzeit, Vollzeit und Freelance sind alle erlaubt - nur die Ortsbindung ist das Ausschlusskriterium.
+    # Weltweit = immer ok. EU-remote = ok, ABER nur aus der kuratierten Schicht (manuell/ATS), wo das
+    # EU-Label aus der echten Anzeige kommt - aus dem Ausland (Spanien, Portugal ...) arbeitbar.
+    # Feed-"EU" ist geraten und meist doch Wohnsitz-gebunden -> raus. Region DE -> immer raus.
+    _bw=len(alljobs)
+    alljobs=[j for j in alljobs if j.get("region")=="world" or (j.get("region")=="eu" and j.get("src")!="auto")]
+    print(f"[weltweit] Ortsgebundene Stellen entfernt: {_bw-len(alljobs)} -> {len(alljobs)} bleiben (100% remote + aus dem Ausland machbar)")
 
     # Titel+Firma-Dedup (Paul: viele Wiederholungen). URL-Dedup greift nicht, wenn Adzuna dieselbe Stelle
     # in mehreren Laendern (de/at/ch) mit verschiedenen redirect-URLs listet. Erst-gesehen gewinnt
