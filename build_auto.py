@@ -723,8 +723,13 @@ if ADZUNA_ID and ADZUNA_KEY:
         ("adzuna-es-remote2",      _adz("es","remote",2),                 from_adzuna, "json"),
         ("adzuna-it-remote2",      _adz("it","remote",2),                 from_adzuna, "json"),
         ("adzuna-be-remote",       _adz("be","fully remote"),             from_adzuna, "json"),
+        # Kundenservice / aus-dem-Ausland gezielt (Paul-Wunsch: mehr wie das StudySmarter-Beispiel fuer Annette)
+        ("adzuna-de-tech-cs",      _adz("de","technischer kundenservice remote"), from_adzuna, "json"),
+        ("adzuna-de-kundenberater",_adz("de","kundenberater remote"),            from_adzuna, "json"),
+        ("adzuna-de-cs-homeoffice",_adz("de","kundenservice homeoffice"),         from_adzuna, "json"),
+        ("adzuna-de-ausland",      _adz("de","remote aus dem ausland"),           from_adzuna, "json"),
     ]
-    print("[adzuna] Key gefunden -> Adzuna aktiv (37 Suchen, Volumen-Ausbau)")
+    print("[adzuna] Key gefunden -> Adzuna aktiv (41 Suchen, Volumen + Kundenservice-Fokus)")
 else:
     print("[adzuna] kein ADZUNA_APP_ID/KEY -> Adzuna uebersprungen (Key als GitHub-Secret setzen, dann aktiv)")
 
@@ -904,10 +909,10 @@ FD_JS = r'''
      plus:["office","back office","backoffice","verwaltung","administration","sachbearbeit","assistenz","teamassistenz","projektassistenz","executive assistant","personal assistant","koordination","coordinator","disposition","auftragsabwicklung","datenerfassung","data entry","dateneingabe","dokumenten","organisation","office manager","office administration","office assistant","operations","scheduling","order management"],
      minus:["kundenservice","kundensupport","kundenkontakt","kundenbetreuung","kundendienst","customer service","customer support","customer care","customer success","guest","hospitality","hotel","reservation","concierge","call center","callcenter","telefonie","inbound","outbound","chat support","live chat","help desk","helpdesk","support agent","beschwerde","developer","engineer","software","vertrieb","sales","closer","setter","designer","marketing","crypto","blockchain","devops","rater","annotation","ai training"],
      hard:["developer","software engineer","devops","data engineer","qa engineer"],langs:["de","en"],reg:{world:3,eu:2,de:0}},
-   "annette26":{ber:{service:3,buero:3,start:0.5},
-     plus:["customer","support","kundenservice","kundensupport","kundenbetreuung","betreuung","service","assistant","assistenz","virtual assistant","office","back office","administration","verwaltung","operations","koordination","coordinator","data entry","sachbearbeit","empfang"],
-     minus:["developer","engineer","software","buchhaltung","accounting","steuer","datev","closer","setter","direct sales","außendienst","designer","devops"],
-     hard:["developer","software engineer","devops","buchhalter","steuerfach"],langs:["de","en"],reg:{world:3,eu:2,de:0}},
+   "annette26":{ber:{service:3,buero:2,start:0.5},
+     plus:["customer","support","kundenservice","kundensupport","kundenbetreuung","kundenberater","kundendienst","betreuung","service","technischer support","technischer kundenservice","assistant","assistenz","virtual assistant","office","back office","administration","verwaltung","operations","koordination","coordinator","data entry","sachbearbeit","empfang"],
+     minus:["developer","engineer","software","buchhaltung","accounting","steuer","datev","closer","setter","direct sales","außendienst","designer","devops","controlling","lohn","bilanz","wirtschaftsprüf"],
+     hard:["developer","software engineer","devops","buchhalt","steuerber","steuerfach","bilanzbuch","lohnbuchhalt","datev","accountant","accounting","bookkeep"],langs:["de","en"],reg:{world:3,eu:2,de:0}},
    "stefanie26":{ber:{buero:3,start:2,service:1},
      plus:["buchhaltung","accounting","steuer","datev","lohn","bilanz","finanz","controlling","rechnungswesen","sachbearbeit","office","verwaltung","back office"],
      minus:["developer","engineer","software","vertrieb","sales","closer","designer","marketing","devops"],
@@ -1061,6 +1066,23 @@ def main():
     print(f"[direkt] Karriere-/Boersenseiten entfernt: {_before-len(alljobs)} -> {len(alljobs)} bleiben (NUR Direkt-Einzelstellen)")
     _dfd=sum(1 for j in _dropped if j.get("fd"))
     print(f"[direkt] davon {_dfd} entfernte ⭐-Kundenpicks (Karriereseiten) - Deckung via ATS-Engine + Direkt-Picks")
+
+    # Titel+Firma-Dedup (Paul: viele Wiederholungen). URL-Dedup greift nicht, wenn Adzuna dieselbe Stelle
+    # in mehreren Laendern (de/at/ch) mit verschiedenen redirect-URLs listet. Erst-gesehen gewinnt
+    # (Kunden-Picks + manuelle + Direkt-Feeds stehen vor Adzuna im Pool -> die echte Direktstelle bleibt).
+    def _dupkey(j):
+        t=re.sub(r"\(.*?\)"," ",(j.get("title") or "").lower())        # (m/w/d), (100% remote) ... raus
+        t=re.sub(r"[^a-z0-9]+"," ",t).strip()
+        c=re.sub(r"[^a-z0-9]+"," ",(j.get("company") or "").lower()).strip()
+        return t+"|"+c if t else None
+    _seen_dk=set(); _dd=[]
+    for j in alljobs:
+        k=_dupkey(j)
+        if k and k in _seen_dk: continue
+        if k: _seen_dk.add(k)
+        _dd.append(j)
+    print(f"[dedup] Titel+Firma-Dubletten entfernt: {len(alljobs)-len(_dd)} -> {len(_dd)} bleiben")
+    alljobs=_dd
 
     # Board-weit (Paul-Wunsch): Portal-/Redirect-URLs (Adzuna & Co) auf die ECHTE Einzelstelle aufloesen,
     # damit der Kandidat direkt auf der Anzeige landet; sicher-tote Links (404/410) komplett raus.
