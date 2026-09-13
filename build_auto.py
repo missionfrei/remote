@@ -13,7 +13,7 @@ Design: uebernimmt template.html (das aktuelle Board) unveraendert und
 ersetzt nur die 7 Bereichs-Sektionen. Login-Gate, Chips, Favoriten-Sterne,
 Freelance, Toolbox, Footer bleiben wie sie sind.
 """
-import json, re, sys, os, datetime, urllib.request, urllib.error, urllib.parse
+import json, re, sys, os, datetime, datetime as dt, urllib.request, urllib.error, urllib.parse
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE = os.path.join(HERE, "template.html")
@@ -113,6 +113,7 @@ def from_arbeitnow(raw):
             url=j.get("url",""), info=clean_text(j.get("description","")),
             raw_tags=" ".join(j.get("tags",[]) or [])+" "+" ".join(j.get("job_types",[]) or []),
             raw_desc=clean_text(j.get("description",""), 1000),
+            posted=j.get("created_at") or j.get("created") or "",
             raw_loc=j.get("location","") + " remote"))
     return out
 
@@ -122,6 +123,7 @@ def from_remotive(raw):
         out.append(dict(title=j.get("title",""), company=j.get("company_name",""),
             url=j.get("url",""), info=clean_text(j.get("description","")),
             raw_tags=(j.get("category","")+" "+" ".join(j.get("tags",[]) or [])),
+            posted=j.get("publication_date") or "",
             raw_loc=j.get("candidate_required_location","")))
     return out
 
@@ -184,6 +186,7 @@ def from_jobicy(raw):
         out.append(dict(title=j.get("jobTitle",""), company=j.get("companyName",""),
             url=j.get("url",""), info=clean_text(j.get("jobExcerpt","")),
             raw_tags=_j(j.get("jobIndustry"))+" "+_j(j.get("jobType")),
+            posted=j.get("pubDate") or "",
             raw_loc=_j(j.get("jobGeo"))))
     return out
 
@@ -193,7 +196,8 @@ def from_remoteok(raw):
         if not isinstance(j,dict) or not j.get("position"): continue
         out.append(dict(title=j.get("position",""), company=j.get("company",""),
             url=j.get("url",""), info=clean_text(j.get("description","")),
-            raw_tags=_j(j.get("tags")), raw_loc=(j.get("location") or "remote")))
+            raw_tags=_j(j.get("tags")), posted=(j.get("date") or ""),
+            raw_loc=(j.get("location") or "remote")))
     return out
 
 # JSearch (RapidAPI / OpenWeb Ninja): aggregiert Google-for-Jobs (Indeed/LinkedIn/Glassdoor/ZipRecruiter)
@@ -869,6 +873,31 @@ def gather():
     return jobs
 
 # ---------- Aufbereiten ----------
+# Paul (13.09.): "Stellen sollen nicht aelter als zweieinhalb bis drei Wochen sein."
+# Wo die Quelle ein Veroeffentlichungsdatum liefert (Feeds ueber `posted`, manuelle Eintraege ueber
+# das Feld "posted"), wird alles Aeltere verworfen. Quellen OHNE Datum bleiben unberuehrt -
+# lieber eine undatierte Stelle drin als die halbe Datenbank blind wegwerfen.
+MAXAGE_DAYS = 21
+def _age_days(val):
+    """ISO-Datum, RFC-Datum oder Unix-Timestamp -> Alter in Tagen. None = unbekannt."""
+    if val is None or val == "": return None
+    try:
+        if isinstance(val,(int,float)) or (isinstance(val,str) and val.isdigit() and len(val)>=9):
+            ts=float(val)
+            return (dt.datetime.now(dt.timezone.utc)-dt.datetime.fromtimestamp(ts,dt.timezone.utc)).days
+        sval=str(val).strip().replace("Z","+00:00")
+        m=re.match(r"(\d{4})-(\d{2})-(\d{2})", sval)
+        if m:
+            d=dt.date(int(m.group(1)),int(m.group(2)),int(m.group(3)))
+            return (dt.date.today()-d).days
+        m=re.match(r"(\d{2})\.(\d{2})\.(\d{4})", sval)
+        if m:
+            d=dt.date(int(m.group(3)),int(m.group(2)),int(m.group(1)))
+            return (dt.date.today()-d).days
+    except Exception:
+        return None
+    return None
+
 def process(raw_jobs):
     seen=set(); result=[]
     for j in raw_jobs:
@@ -885,6 +914,8 @@ def process(raw_jobs):
         if region == "de" and lang != "de": continue
         # Paul #21: aus den Job-Boards NUR Direkt-Links zur Einzelstelle aufnehmen (keine Karriere-/Firmenseiten).
         # Die Boards verlinken fast immer direkt auf die Anzeige -> genau die wollen wir.
+        _a=_age_days(j.get("posted"))
+        if _a is not None and _a > MAXAGE_DAYS: continue   # zu alt (Paul: max ~3 Wochen)
         if not is_direct(j["url"]): continue
         u=j["url"].rstrip("/")
         if u in seen: continue
@@ -904,7 +935,8 @@ def load_manual():
         out.append(dict(title=j["title"], company=j.get("company",""), url=j["url"],
             info=j.get("info",""), lang=j.get("lang","de"), region=j.get("region","de"),
             level=j.get("level","einsteiger"), bereich=j.get("bereich","service"),
-            date=j.get("date",TODAY), fd=fd, src=j.get("src") or ("customer" if fd else "import")))
+            date=j.get("date",TODAY), posted=j.get("posted",""), fd=fd,
+            src=j.get("src") or ("customer" if fd else "import")))
     return out
 
 # ---------- Render ----------
@@ -1193,6 +1225,12 @@ def main():
     _HYBRID=re.compile(r"hybrid|teilweise (home|remote)|anteilig home|\d\s*[-–bis]{1,3}\s*\d?\s*tage?\s*(pro\s*woche\s*)?(home|remote|b(ü|ue)ro)|"
                        r"\d\s*(tage?|days?)\s*(pro\s*woche|per\s*week|/\s*week)\s*(im\s*)?(home|remote|office)|"
                        r"\b(2|3|4)\s*days?\s*(in\s*)?(the\s*)?office|office[- ]first", re.I)
+    # Alters-Filter auch fuer die manuelle Schicht (Feld "posted"). Ohne Datum -> bleibt drin.
+    _ba=len(alljobs)
+    alljobs=[j for j in alljobs
+             if (_age_days(j.get("posted")) is None) or (_age_days(j.get("posted")) <= MAXAGE_DAYS)]
+    print(f"[frisch] Aelter als {MAXAGE_DAYS} Tage entfernt: {_ba-len(alljobs)} -> {len(alljobs)} bleiben")
+
     _bh=len(alljobs)
     alljobs=[j for j in alljobs if not _HYBRID.search(j.get("title","")+" "+j.get("info",""))]
     print(f"[100remote] Hybrid-/Teil-Homeoffice entfernt: {_bh-len(alljobs)} -> {len(alljobs)} bleiben")
