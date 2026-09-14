@@ -1807,19 +1807,6 @@
   "src": "import"
  },
  {
-  "title": "Lernnotizen & Zusammenfassungen verkaufen",
-  "company": "Stuvia",
-  "url": "https://www.stuvia.com/en-us/sell-study-notes",
-  "info": "Lernunterlagen verkaufen: weltweit (127 Laender) Zusammenfassungen/Notizen hochladen und passiv verdienen, auch auf Deutsch, ohne Vorwissen.",
-  "lang": "de",
-  "region": "world",
-  "level": "einsteiger",
-  "bereich": "sprache",
-  "date": "30.08.2026",
-  "fd": false,
-  "src": "import"
- },
- {
   "title": "Deutsch unterrichten von ueberall",
   "company": "TUTOROO",
   "url": "https://www.tutoroo.co/online/german-tutoring-jobs",
@@ -1863,19 +1850,6 @@
   "company": "Fairlingo",
   "url": "https://www.fairlingo.com/en/for-translators",
   "info": "Cloud-Uebersetzungsplattform, ausdruecklich auch fuer Einsteiger. Mit Deutsch uebersetzen, weltweit ortsunabhaengig, Hochleveln moeglich.",
-  "lang": "de",
-  "region": "world",
-  "level": "einsteiger",
-  "bereich": "sprache",
-  "date": "27.08.2026",
-  "fd": false,
-  "src": "import"
- },
- {
-  "title": "Als Freelance-Uebersetzer:in registrieren",
-  "company": "Translated (T.O.P.)",
-  "url": "https://translated.com/top/sign-up",
-  "info": "Offenes Uebersetzer-Netzwerk einer der groessten Agenturen: mit Deutsch arbeiten, weltweit ortsunabhaengig, Registrierung in 10 Min.",
   "lang": "de",
   "region": "world",
   "level": "einsteiger",
@@ -2067,49 +2041,10 @@
   "src": "import"
  },
  {
-  "title": "Templates, Grafiken & Fonts im eigenen Shop verkaufen",
-  "company": "Creative Market",
-  "url": "https://creativemarket.com/sell",
-  "info": "Eigenen Shop eroeffnen und Vorlagen, Grafiken, Social-Media-Templates & Fonts verkaufen - weltweit, Preise selbst setzen, reine Design-Arbeit.",
-  "lang": "en",
-  "region": "world",
-  "level": "einsteiger",
-  "bereich": "marketing",
-  "date": "01.09.2026",
-  "fd": false,
-  "src": "import"
- },
- {
   "title": "Grafiken & Vorlagen als Contributor verkaufen",
   "company": "Freepik Contributor",
   "url": "https://contributor.freepik.com/",
   "info": "Von ueberall auf der Welt arbeiten: Vektoren, PSDs, Grafiken & Icons hochladen, pro Download verdienen. Anfaengerfreundlich, eigenes Tempo.",
-  "lang": "en",
-  "region": "world",
-  "level": "einsteiger",
-  "bereich": "marketing",
-  "date": "01.09.2026",
-  "fd": false,
-  "src": "import"
- },
- {
-  "title": "Designs auf Produkten verkaufen (Print-on-Demand)",
-  "company": "Society6",
-  "url": "https://society6.com/register?tab=artist",
-  "info": "Eigene Designs hochladen - Society6 druckt & versendet in 140+ Laender. Kostenlos, monatliche Auszahlung, sprachunabhaengig, passiv aufbaubar.",
-  "lang": "en",
-  "region": "world",
-  "level": "einsteiger",
-  "bereich": "marketing",
-  "date": "01.09.2026",
-  "fd": false,
-  "src": "import"
- },
- {
-  "title": "Canva-Vorlagen als Sofort-Download verkaufen",
-  "company": "Etsy",
-  "url": "https://www.etsy.com/sell",
-  "info": "Eigener Shop fuer digitale Downloads (Canva-Vorlagen, Planer, Social-Media-Kits) - riesiger Markt, anfaengerfreundlich, auch auf Deutsch nutzbar, weltweit verkaufen.",
   "lang": "en",
   "region": "world",
   "level": "einsteiger",
@@ -2141,32 +2076,6 @@
   "level": "einsteiger",
   "bereich": "marketing",
   "date": "01.09.2026",
-  "fd": false,
-  "src": "import"
- },
- {
-  "title": "Eigene Designs verkaufen (Print-on-Demand)",
-  "company": "Spreadshop",
-  "url": "https://www.spreadshop.de/t-shirts-verkaufen-online/",
-  "info": "Print-on-Demand: gratis deutschen Shop eroeffnen und eigene Designs weltweit verkaufen, ohne Startkapital, komplett auf Deutsch.",
-  "lang": "de",
-  "region": "world",
-  "level": "einsteiger",
-  "bereich": "marketing",
-  "date": "30.08.2026",
-  "fd": false,
-  "src": "import"
- },
- {
-  "title": "Designs auf Produkten verkaufen",
-  "company": "Redbubble",
-  "url": "https://www.redbubble.com/about/selling",
-  "info": "Print-on-Demand-Marktplatz: weltweit gratis Designs auf hunderten Produkten verkaufen, kein Startkapital, kein Vorwissen noetig.",
-  "lang": "en",
-  "region": "world",
-  "level": "einsteiger",
-  "bereich": "marketing",
-  "date": "30.08.2026",
   "fd": false,
   "src": "import"
  },
@@ -3939,19 +3848,6 @@
   "src": "import"
  },
  {
-  "title": "Startup-Jobboard",
-  "company": "startup.jobs",
-  "url": "https://startup.jobs/",
-  "info": "Jobs rund um Startups mit Remote-Filter, kleinere Firmen.",
-  "lang": "de",
-  "region": "world",
-  "level": "einsteiger",
-  "bereich": "start",
-  "date": "laufend offen",
-  "fd": false,
-  "src": "import"
- },
- {
   "title": "DACH-Startup-Jobs",
   "company": "Berlin Startup Jobs",
   "url": "https://berlinstartupjobs.com/",
@@ -4326,20 +4222,6 @@
   "fd": true,
   "src": "customer",
   "fuer": "reise"
- },
- {
-  "title": "Virtuelle Assistenz Back-Office (Deutsch)",
-  "company": "The Global Talent Co.",
-  "url": "https://startup.jobs/virtual-assistant-back-office-german-speaker-the-global-talent-co-7765851",
-  "info": "Deutschsprachige VA-/Back-Office-Rolle, remote - genau Verwaltung/Assistenz mit Menschenkontakt, kein Verkauf.",
-  "lang": "de",
-  "region": "world",
-  "level": "einsteiger",
-  "bereich": "buero",
-  "date": "laufend offen",
-  "fd": true,
-  "src": "customer",
-  "fuer": "service"
  },
  {
   "title": "Virtuelle Assistenz (remote)",
@@ -4843,19 +4725,6 @@
   "region": "world",
   "level": "einsteiger",
   "bereich": "service",
-  "date": "laufend offen",
-  "fd": false,
-  "src": "import"
- },
- {
-  "title": "Deutschsprachige Remote-Rollen",
-  "company": "GitLab",
-  "url": "https://about.gitlab.com/jobs/all-jobs/",
-  "info": "All-Remote weltweit, deutschsprachige Rollen (Support/Business), Vollzeit, ortsunabhaengig.",
-  "lang": "de",
-  "region": "world",
-  "level": "einsteiger",
-  "bereich": "buero",
   "date": "laufend offen",
   "fd": false,
   "src": "import"
