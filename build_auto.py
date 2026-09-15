@@ -925,6 +925,15 @@ def process(raw_jobs):
             lang=lang, region=region, level=level, bereich=ber, date=TODAY, fd=False, src="auto"))
     return result
 
+def _manual_fallback_posted(j):
+    """Paul (15.09.): Eintraege ohne 'posted' alterten nie raus -> Board zeigte Stellen von Mitte August.
+    Fallback = das Importdatum ('date', dd.mm.yyyy). Eine Stelle ist hoechstens so frisch wie ihr Import,
+    also ist das die konservative Untergrenze. Ohne jedes Datum bleibt der Eintrag wie bisher stehen."""
+    s=(j.get("date") or "").strip()
+    m=re.match(r"^(\d{2})\.(\d{2})\.(\d{4})$", s)
+    if not m: return ""
+    return f"{m.group(3)}-{m.group(2)}-{m.group(1)}"
+
 def load_manual():
     if not os.path.exists(MANUAL): return []
     try: data=json.load(open(MANUAL,encoding="utf-8"))
@@ -935,7 +944,7 @@ def load_manual():
         out.append(dict(title=j["title"], company=j.get("company",""), url=j["url"],
             info=j.get("info",""), lang=j.get("lang","de"), region=j.get("region","de"),
             level=j.get("level","einsteiger"), bereich=j.get("bereich","service"),
-            date=j.get("date",TODAY), posted=j.get("posted",""), fd=fd,
+            date=j.get("date",TODAY), posted=(j.get("posted") or _manual_fallback_posted(j)), fd=fd,
             src=j.get("src") or ("customer" if fd else "import")))
     return out
 
