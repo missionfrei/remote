@@ -27,6 +27,7 @@ BEREICHE = [
     ("service",  "#0e7a52", "🟢 Service"),
     ("buero",    "#b07d10", "🟡 Büro & Orga"),
     ("start",    "#c2610c", "🟠 Schnell-Start"),
+    ("gesundheit","#0d7a7a","🩺 Gesundheit"),
     ("sprache",  "#6d3fb0", "🟣 Sprache & Text"),
     ("marketing","#1e57b0", "🔵 Marketing & Kreativ"),
     ("vertrieb", "#b3261e", "🔴 Vertrieb & Sales"),
@@ -38,6 +39,7 @@ BEREICH_KW = {
     "service":  ["kundenservice","kundenbetreu","kundensupport","kundendienst","customer support","customer service","customer care","customer success","customer experience","customer advocate","support agent","support specialist","support consultant","support representative","support engineer","technical support","chat support","live chat","email support","help desk","helpdesk","service agent","client support","member support","player support","guest","reservation","booking","reise","travel","hospitality","concierge","call center","callcenter","kundenberat","beschwerde","content moderat","trust and safety","trust & safety","happiness engineer","community support","onboarding specialist","tier 1","tier 2","customer relations","client services","member services","user support","customer experience associate"],
     "buero":    ["buchhalt","accounting","accountant","finance","finanzbuch","lohn","payroll","steuerfach","controlling","sachbearbeit","büromanagement","bueromanagement","bürokaufmann","bürokauffrau","backoffice","back office","back-office","assistenz","assistant","virtual assistant","executive assistant","personal assistant","verwaltung","admin","office manager","operations specialist","operations coordinator","operations associate","customer operations","people operations","coordinator","scheduling","order management","datenerfassung","data entry","dateneingabe","bookkeep","procurement","recruit","talent acquisition","human resources","hr generalist","hr assistant","billing","claims","clerk","administrative","dispatcher","logistics coordinator","records management","personalsachbearbeit","office assistant","office administration","transcription"],
     "start":    [],   # frueher Mikrojobs - jetzt raus (Paul). Sektion zeigt nur noch manuelle Freelance-/Portal-Eintraege.
+    "gesundheit":[],  # Zuordnung laeuft ueber GESUND_KW (greift VOR allen anderen Bereichen), nicht ueber diese Liste.
     "sprache":  ["übersetz","ubersetz","translat","lektor","proofread","texter","content writer","copywriter","redaktion","tutor","nachhilfe","language teacher","sprachlehrer"],
     "marketing":["marketing","social media","seo","content creator","content manager","grafik","design","designer","creative","video","brand","paid ads","performance market","kampagne","community manager"],
     "vertrieb": ["sales","vertrieb","sdr","sales development","setter","closer","business development","account executive","akquise","inside sales","account manager","partnerships","partner manager","bdr","revenue operations"],
@@ -73,8 +75,25 @@ def clean_text(s, n=170):
     s = re.sub(r"\s+", " ", s).strip()
     return s[:n].rsplit(" ",1)[0] + ("…" if len(s) > n else "")
 
+# Gesundheits-Bereich (Paul 17.09., Kooperation Gesundheitsfakten): der Branchenbezug schlaegt die Rolle.
+# Ein Kundenservice bei einem Telemedizin-Anbieter gehoert zu Gesundheit, nicht zu Service.
+# BEWUSST eng gehalten: kein "care" (sonst faengt es jedes "Customer Care"), kein "vital", kein "fit".
+GESUND_KW = [
+    "gesundheit","gesundheits","healthcare","health care","health-tech","healthtech","digital health",
+    "medizin","medizinisch","medical","telemedizin","telehealth","e-health","ehealth",
+    "patient","patienten","klinik","klinisch","clinical","arztpraxis","krankenkasse",
+    "krankenversicherung","krankenhaus","apotheke","pharmazie","pharma","arzneimittel",
+    "pflege","pflegedienst","therapie","therapeut","physiotherapie","ergotherapie","psychotherapie",
+    "zahnarzt","zahnmedizin","dental","labor","diagnostik","radiologie","orthopäd","rezept",
+    "krankenpfleg","mfa (","medizinische fachangestellte","gesundheitsberat","ernährungsberat",
+    "nutrition coach","abrechnung goä","goä","ebm-abrechnung","medizincontrolling","mdk","medizinischer dienst",
+]
+
 def detect_bereich(text):
     t = text.lower()
+    for kw in GESUND_KW:
+        if kw in t:
+            return "gesundheit"
     for ber in BEREICH_ORDER:
         for kw in BEREICH_KW[ber]:
             if kw in t:
@@ -1002,7 +1021,7 @@ def card(j):
 
 # Deckel pro Bereich - kippt den Mix Richtung Service/Buero statt IT-Flut.
 # Lauf #20 (Paul: mehr Volumen) deutlich angehoben.
-CAP={"service":600,"buero":400,"start":200,"sprache":200,"marketing":300,"vertrieb":250,"it":320}
+CAP={"service":600,"buero":400,"start":200,"gesundheit":300,"sprache":200,"marketing":300,"vertrieb":250,"it":320}
 def _rank(j):
     # Paul #21: (1) Deutschland-nur ganz unten, (2) DIREKT vor Firma (Firma fast raus -> unten),
     # (3) deutsch vor englisch (so weit oben wie moeglich), (4) weltweit vor EU, (5) ⭐ zuerst.
@@ -1270,7 +1289,7 @@ def main():
     _bw=len(alljobs)
     _de=[j for j in alljobs if j.get("lang")=="de"]
     _en=[j for j in alljobs if j.get("lang")!="de"
-         and j.get("bereich") in ("service","buero","sprache","start")
+         and j.get("bereich") in ("service","buero","sprache","start","gesundheit")
          and j.get("region") in ("world","eu")]
     # Paul: "80% der stellen müssen auf deutsch sein und 20% können englisch, am besten mit Deutsch-Bezug."
     # -> englische Stellen mit Deutsch-Bezug zuerst, dann weltweit, dann Einsteiger.
