@@ -331,7 +331,14 @@ SOFT404 = re.compile(
     r"job (is )?no longer|position (has been|is) (filled|closed)|"
     r"stelle (ist )?nicht mehr (verf(ü|ue)gbar|aktuell|online)|anzeige (wurde )?(entfernt|deaktiviert)|"
     r"diese stelle wurde (bereits )?(besetzt|entfernt)|stellenanzeige nicht gefunden|"
-    r"leider ist diese stelle", re.I)
+    r"leider ist diese stelle|"
+    # Paul (19.09.): "alle links muessen funktionieren". Weitere Formulierungen, die wir live gesehen haben.
+    r"diese anzeige ist nicht mehr|stelle bereits vergeben|vakanz (wurde )?geschlossen|"
+    r"bewerbungsfrist (ist )?abgelaufen|job (posting )?(is )?closed|applications (are )?closed|"
+    r"we are no longer accepting|this (job|role|vacancy) is (closed|filled)|"
+    r"404\s*[-–|]\s*(not found|seite)|fehler 404|error 404|"
+    r"oops[!,.]?\s*(something|diese|die seite)|"
+    r"sorry,? (wir konnten|we couldn.?t find)|nichts gefunden zu dieser", re.I)
 
 def resolve_link(url):
     """Folgt Redirects -> (finale_url, lebt). lebt=False bei 404/410 UND bei Soft-404 (HTTP 200,
@@ -1288,14 +1295,17 @@ def main():
 
     _bw=len(alljobs)
     _de=[j for j in alljobs if j.get("lang")=="de"]
+    # Paul (19.09.): "auch mehr weltweit". Der 20%-Deckel war NICHT die Bremse (englisch lag bei 14%),
+    # sondern diese Zulassungsliste: marketing und it waren ausgeschlossen, und genau dort sitzen die
+    # meisten weltweiten Stellen. Jetzt zugelassen, der 20%-Deckel begrenzt weiterhin die Menge.
     _en=[j for j in alljobs if j.get("lang")!="de"
-         and j.get("bereich") in ("service","buero","sprache","start","gesundheit")
+         and j.get("bereich") in ("service","buero","sprache","start","gesundheit","marketing","it")
          and j.get("region") in ("world","eu")]
     # Paul: "80% der stellen müssen auf deutsch sein und 20% können englisch, am besten mit Deutsch-Bezug."
-    # -> englische Stellen mit Deutsch-Bezug zuerst, dann weltweit, dann Einsteiger.
+    # -> weltweit zuerst (Kunden gehen ins Ausland), dann Deutsch-Bezug, dann Einsteiger.
     _deref=re.compile(r"german|deutsch|dach\b", re.I)
-    _en.sort(key=lambda j:(not _deref.search((j.get("title","")+" "+j.get("info",""))),
-                           j.get("region")!="world",
+    _en.sort(key=lambda j:(j.get("region")!="world",
+                           not _deref.search((j.get("title","")+" "+j.get("info",""))),
                            j.get("level")!="einsteiger"))
     _cap=int(len(_de)*0.25)                     # Englisch max 20% des Boards (Paul: 80/20)
     _encut=len(_en)-min(len(_en),_cap)
@@ -1339,8 +1349,9 @@ def main():
     _de2=[j for j in alljobs if j.get("lang")=="de"]
     _en2=[j for j in alljobs if j.get("lang")!="de"]
     _deref2=re.compile(r"german|deutsch|dach\b", re.I)
-    _en2.sort(key=lambda j:(not _deref2.search((j.get("title","")+" "+j.get("info",""))),
-                            j.get("region")!="world", j.get("level")!="einsteiger"))
+    _en2.sort(key=lambda j:(j.get("region")!="world",
+                            not _deref2.search((j.get("title","")+" "+j.get("info",""))),
+                            j.get("level")!="einsteiger"))
     _cap2=max(1, int(len(_de2)*0.25))
     _cut2=max(0, len(_en2)-_cap2)
     alljobs=_de2+_en2[:_cap2]
