@@ -1278,10 +1278,19 @@ def main():
     _HYBRID=re.compile(r"hybrid|teilweise (home|remote)|anteilig home|\d\s*[-–bis]{1,3}\s*\d?\s*tage?\s*(pro\s*woche\s*)?(home|remote|b(ü|ue)ro)|"
                        r"\d\s*(tage?|days?)\s*(pro\s*woche|per\s*week|/\s*week)\s*(im\s*)?(home|remote|office)|"
                        r"\b(2|3|4)\s*days?\s*(in\s*)?(the\s*)?office|office[- ]first", re.I)
-    # Alters-Filter auch fuer die manuelle Schicht (Feld "posted"). Ohne Datum -> bleibt drin.
+    # Alters-Filter auch fuer die manuelle Schicht (Feld "posted").
+    # Paul (20.09., Kundenmeldung von Leia und Merlin): "Dort sind viele alte Stellen die abgelaufen sind."
+    # Ursache: Eintraege OHNE jedes Datum wurden bisher behalten und alterten deshalb NIE raus.
+    # 174 solche Eintraege standen seit Wochen auf dem Board, fast alle Plattform-Landingpages.
+    # Neue Regel: kein Datum -> raus. Wer aufs Board will, braucht ein Veroeffentlichungsdatum.
     _ba=len(alljobs)
+    _nodate=[j for j in alljobs if j.get("src") in ("import","customer") and _age_days(j.get("posted")) is None]
+    if _nodate:
+        print(f"[frisch] WARN {len(_nodate)} manuelle Eintraege ohne Datum -> entfernt "
+              f"(z.B. {_nodate[0].get('title','')[:50]})")
     alljobs=[j for j in alljobs
-             if (_age_days(j.get("posted")) is None) or (_age_days(j.get("posted")) <= MAXAGE_DAYS)]
+             if (j.get("src") not in ("import","customer") and _age_days(j.get("posted")) is None)
+             or (_age_days(j.get("posted")) is not None and _age_days(j.get("posted")) <= MAXAGE_DAYS)]
     print(f"[frisch] Aelter als {MAXAGE_DAYS} Tage entfernt: {_ba-len(alljobs)} -> {len(alljobs)} bleiben")
 
     _bh=len(alljobs)
