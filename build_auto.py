@@ -1306,6 +1306,49 @@ def main():
     alljobs=[j for j in alljobs if not _NOFIT.search(j.get("title",""))]
     print(f"[passung] Beratungs-/Spezialistenrollen entfernt: {_bn-len(alljobs)} -> {len(alljobs)} bleiben")
 
+    # Paul (21.09.): "Brauchen keine Stellen bei denen man im Ausland sitzen muss, und unsere Kunden
+    # sprechen nur Deutsch und manche Englisch."
+    # Zwei harte Ausschluesse, die vorher fehlten:
+    #  1) Wohnsitzpflicht im Ausland / Relocation -> die Kunden ziehen selbst um, wohin SIE wollen.
+    #     Eine Stelle, die einen bestimmten Wohnsitz verlangt, ist fuer sie wertlos.
+    #  2) Dritte Sprache als Pflicht (Franzoesisch, Niederlaendisch, Italienisch, ...). Deutsch und
+    #     Englisch reichen bei unseren Kunden. "Deutsch UND Franzoesisch" ist ein Ausschluss.
+    _RELOC=re.compile(
+        r"relocation|relocate|umzug nach|umziehen nach|"
+        r"remote (in|from) (greece|portugal|spain|poland|bulgaria|romania|cyprus|malta|italy|hungary|czech|"
+        r"griechenland|portugal|spanien|bulgarien|rum(ä|ue|ae)nien|zypern|ungarn)|"
+        r"(nur|only) (in|for) (greece|portugal|spain|bulgaria|romania|cyprus|malta)|"
+        r"must be (located|based|residing|living) in|"
+        r"wohnsitz in (griechenland|portugal|spanien|bulgarien|zypern|malta|rum(ä|ae)nien)|"
+        r"vor ort in (griechenland|portugal|spanien|bulgarien)", re.I)
+    _L3=(r"franz(ö|oe)sisch|french|niederl(ä|ae)ndisch|dutch|nederlands|italienisch|italian|"
+         r"spanisch|spanish|portugiesisch|portuguese|t(ü|ue)rkisch|turkish|polnisch|polish|"
+         r"schwedisch|swedish|norwegisch|norwegian|d(ä|ae)nisch|danish|finnisch|finnish|"
+         r"russisch|russian|arabisch|arabic|japanisch|japanese|chinesisch|mandarin|korean(isch)?|"
+         r"griechisch|greek|tschechisch|czech|ungarisch|hungarian|rum(ä|ae)nisch|romanian|"
+         r"hebr(ä|ae)isch|hebrew|ukrainisch|ukrainian|bulgarisch|bulgarian")
+    # Im Titel reicht die Sprache allein als Signal ("Call Center Agent Franzoesisch").
+    _L3_TITLE=re.compile(_L3, re.I)
+    # Im Fliesstext nur, wenn daneben eine Anforderung steht - sonst faengt man jede Laenderaufzaehlung.
+    _L3_INFO=re.compile(r"(" + _L3 + r")[^.]{0,60}(kenntnis|sprachkenntnis|flie(ß|ss)end|verhandlungssicher|"
+                        r"muttersprach|native|speaking|speaker|erforderlich|vorausgesetzt|required|fluent|"
+                        r"nennt|verlangt|gefordert|ben(ö|oe)tigt|zwingend)|"
+                        r"(flie(ß|ss)end|verhandlungssicher|muttersprach|native|fluent|sehr gute|verlangt|nennt)"
+                        r"[^.]{0,40}(" + _L3 + r")|"
+                        # "Deutsch UND Franzoesisch" ist der haeufigste Fall und der klarste Ausschluss
+                        r"(deutsch|german)[^.]{0,25}(und|and|sowie|\+|&|/)[^.]{0,25}(" + _L3 + r")|"
+                        r"(" + _L3 + r")[^.]{0,25}(und|and|sowie|\+|&|/)[^.]{0,25}(deutsch|german)", re.I)
+    _br=len(alljobs)
+    def _ortsfrei(j):
+        t=j.get("title","") or ""; i=j.get("info","") or ""
+        if _RELOC.search(t+" "+i): return False
+        if _L3_TITLE.search(t): return False
+        if _L3_INFO.search(i): return False
+        return True
+    alljobs=[j for j in alljobs if _ortsfrei(j)]
+    print(f"[ortsfrei] Wohnsitzpflicht im Ausland / dritte Pflichtsprache entfernt: "
+          f"{_br-len(alljobs)} -> {len(alljobs)} bleiben")
+
     _SEN=re.compile(r"\bsenior\b|\blead\b|\bhead of\b|\bprincipal\b|\bstaff\b|\bdirector\b|\bvp\b|"
                     r"vice president|\bchief\b|teamleit|teamlead|team lead|abteilungsleit|bereichsleit|"
                     r"gesch(ä|ae)ftsf(ü|ue)hr|\bexpert(e|in)?\b|\barchitect\b|10\+ years", re.I)
