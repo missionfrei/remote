@@ -374,6 +374,23 @@ def resolve_and_prune(jobs, workers=32):
             i=futs[f]
             try: res[i]=f.result()
             except Exception: res[i]=(jobs[i]["url"], True)
+    # Lauf #102: Zweitpruefung, bevor eine Stelle als tot geloescht wird.
+    # Messung: derselbe Eingabestand ergab in zwei aufeinanderfolgenden Builds einmal 411 und
+    # einmal 450 Karten. Unter 32 parallelen Abrufen antworten manche Hosts mit einer Fehler-
+    # oder Drosselungsseite, die der SOFT404-Regex trifft. Dadurch verschwanden gute Stellen
+    # zufaellig. Jetzt wird jeder Totfund einzeln und mit Pause nachgeprueft - nur wer zweimal
+    # durchfaellt, fliegt raus.
+    import time as _t
+    _recheck=[i for i,(fi,al) in enumerate(res) if not al]
+    if _recheck:
+        print(f"[linkcheck] {len(_recheck)} Verdachtsfaelle -> Zweitpruefung einzeln")
+        _rescued=0
+        for i in _recheck:
+            _t.sleep(0.4)
+            fi2,al2=resolve_link(jobs[i]["url"])
+            if al2:
+                res[i]=(fi2,True); _rescued+=1
+        print(f"[linkcheck] Zweitpruefung: {_rescued} von {len(_recheck)} waren faelschlich tot gemeldet")
     kept=[]; dead=0; resolved=0; seen=set()
     for j,(final,alive) in zip(jobs,res):
         if not alive: dead+=1; continue
