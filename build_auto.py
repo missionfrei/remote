@@ -1472,6 +1472,27 @@ def main():
         if _L3_INFO.search(i): return False
         return True
     alljobs=[j for j in alljobs if _ortsfrei(j)]
+
+    # !! Lauf #106 - Paul hat es auf dem Board gesehen: in einem info-Text standen Kundennamen
+    # ("Genau das Profil fuer Annette, Francesco und Merlin"). Das Board ist fuer ALLE Kunden
+    # dasselbe Dokument - jeder haette die Namen der anderen gelesen. Das darf nie wieder passieren.
+    # Deshalb ab jetzt eine harte Sperre im Build: Saetze mit Kundennamen fliegen raus, mit WARN.
+    _KUNDENNAMEN = re.compile(
+        r"\b(annette|francesco|merlin|leia|lisa[- ]?maria|lisa|stefanie|steffanie|harun)\b", re.I)
+    _nm = 0
+    for _j in alljobs:
+        _inf = _j.get("info", "") or ""
+        if not _KUNDENNAMEN.search(_inf):
+            continue
+        _saetze = [s for s in re.split(r"(?<=\.)\s+", _inf) if not _KUNDENNAMEN.search(s)]
+        _neu = re.sub(r"\s{2,}", " ", " ".join(_saetze)).strip()
+        print(f"[pii] WARN Kundenname im Text entfernt: {_j.get('title','')[:60]}")
+        _j["info"] = _neu
+        _nm += 1
+    if _nm:
+        print(f"[pii] {_nm} Eintraege bereinigt - Kundennamen gehoeren NIE ins Board")
+    else:
+        print("[pii] keine Kundennamen in den Texten - ok")
     print(f"[ortsfrei] Wohnsitzpflicht im Ausland / dritte Pflichtsprache entfernt: "
           f"{_br-len(alljobs)} -> {len(alljobs)} bleiben")
 
