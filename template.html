@@ -152,6 +152,25 @@
   .star:hover{transform:scale(1.15);color:var(--gold);background:var(--gold-soft)}
   .star.on{color:var(--gold)}
   .favempty{color:var(--muted);font-size:14px;padding:10px 2px 4px;line-height:1.55}
+  /* Lauf #105 - Kundenwunsch: Haken setzen, sobald man sich beworben hat. */
+  .card h3{padding-right:70px}
+  .appl{position:absolute;top:9px;right:43px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:none;background:transparent;cursor:pointer;font-size:17px;line-height:1;color:#cdc6b6;padding:0;margin:0;border-radius:8px;transition:transform .12s ease,color .12s ease,background .12s ease;z-index:3}
+  .appl:hover{transform:scale(1.15);color:#1f7a44;background:#e8f5ed}
+  .appl.on{color:#1f7a44}
+  .card.beworben{background:#f6faf7;border-color:#bfe0cc}
+  .card.beworben h3{color:#1f7a44}
+  .tag.bew{color:#1f7a44;border-color:#bfe0cc;background:#e8f5ed;font-weight:700}
+  .tag.neu{color:#9a4a00;border-color:#f0c9a0;background:#fff3e6;font-weight:700}
+  /* Sync-Feld: Favoriten und Haken zwischen Handy und Laptop uebertragen */
+  .syncbox{max-width:1120px;margin:0 auto 18px;padding:14px 18px;border:1px solid #e4dfd3;border-radius:12px;background:#fbfaf7}
+  @media (max-width:640px){.syncbox{margin-left:13px;margin-right:13px}}
+  .syncbox h3{margin:0 0 6px;font-size:15px}
+  .syncbox p{margin:0 0 10px;font-size:13px;color:var(--muted);line-height:1.5}
+  .syncbox textarea{width:100%;box-sizing:border-box;min-height:64px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;padding:8px;border:1px solid #e4dfd3;border-radius:8px;background:#fff;resize:vertical}
+  .syncbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .syncbtns button{cursor:pointer;border:1px solid #e4dfd3;background:#fff;border-radius:8px;padding:7px 13px;font-size:13px}
+  .syncbtns button:hover{background:#f3f0e8}
+  .syncmsg{font-size:13px;margin-top:8px;min-height:18px}
   /* Fix: lange Feed-Texte umbrechen, kein horizontales Abschneiden am Laptop */
   .grid{min-width:0}
   .card{min-width:0}
@@ -210,7 +229,9 @@
     <span class="chip" data-f="ber:it">⚫ IT &amp; Tech</span>
     <span class="chip" data-f="freelance">🧑‍💻 Freelance</span>
     <span class="chip" data-f="toolbox">🧰 Toolbox</span>
+    <span class="chip" data-f="neu">🆕 Neu (7 Tage)</span>
     <span class="chip" data-f="fav">⭐ Deine Favoriten</span>
+    <span class="chip" data-f="bew">✅ Beworben</span>
   </div>
 </div>
 
@@ -4431,6 +4452,23 @@
   <p class="favempty">Noch keine Favoriten gespeichert. Tippe bei einer Stelle oben rechts auf den ☆ Stern – dann sammelst du sie hier, nur für dich sichtbar.</p>
 </section>
 
+<section id="beworben" class="hidden">
+  <h2 style="border-left:4px solid #1f7a44;padding-left:12px">✅ Beworben <span class="cnt">Deine abgehakten Bewerbungen</span></h2>
+  <div class="grid"></div>
+  <p class="favempty">Noch nichts abgehakt. Sobald du dich auf eine Stelle beworben hast, tippe oben rechts auf den ✓ Haken – dann steht sie hier und du verlierst den Überblick nicht.</p>
+  <div class="syncbox">
+    <h3>Auf ein anderes Gerät übertragen</h3>
+    <p>Favoriten und Haken liegen auf dem Gerät, auf dem du sie gesetzt hast – Handy und Laptop wissen nichts voneinander. Mit diesem Code holst du beides rüber: hier <b>Code erzeugen</b>, Text kopieren, auf dem anderen Gerät einfügen und <b>Übernehmen</b> drücken. Nichts geht verloren, beide Stände werden zusammengeführt.</p>
+    <textarea id="syncta" placeholder="Hier erscheint dein Code – oder füge hier den Code vom anderen Gerät ein."></textarea>
+    <div class="syncbtns">
+      <button type="button" id="syncgen">Code erzeugen</button>
+      <button type="button" id="synccopy">Kopieren</button>
+      <button type="button" id="syncimp">Übernehmen</button>
+    </div>
+    <div class="syncmsg" id="syncmsg"></div>
+  </div>
+</section>
+
 <footer><b>Zugang &amp; Nutzung.</b> Dieser Mitglieder-Bereich und deine Zugangsdaten sind ausschließlich für dich persönlich bestimmt. Die Weitergabe von Link, Passwort oder Inhalten an Dritte ist nicht gestattet und kann zur sofortigen Sperrung des Zugangs führen. Die Zusammenstellung dieser Seite (Auswahl, Aufbereitung, Struktur) ist urheberrechtlich geschützt; eine Vervielfältigung oder Veröffentlichung – auch auszugsweise – bedarf unserer vorherigen Zustimmung.
 <br><br><b>Stellenangebote.</b> Alle gelisteten Positionen stammen von öffentlich zugänglichen Quellen bzw. den jeweiligen Anbietern und werden regelmäßig aktualisiert. Wir sind nicht der Anbieter dieser Stellen: Bewerbung, Vertragsschluss und alle Konditionen laufen ausschließlich zwischen dir und dem jeweiligen Unternehmen. Für Inhalte, Verfügbarkeit und Richtigkeit verlinkter Drittseiten übernehmen wir keine Gewähr; Angebote können jederzeit durch den Anbieter offline genommen werden. Diese Übersicht stellt keine Arbeitsvermittlung und keine Rechts- oder Steuerberatung dar; Erfolgs- oder Einstellungszusagen sind damit nicht verbunden.
 <br><br><b>Meldungen.</b> Ein Link funktioniert nicht oder eine Stelle ist vergeben? Sag uns kurz in deiner WhatsApp-Gruppe Bescheid – wir halten das Board für dich aktuell.
@@ -4462,27 +4500,68 @@
   function favKey(){return 'mf_fav_'+CUR;}
   function getFav(){try{return new Set(JSON.parse(localStorage.getItem(favKey())||'[]'));}catch(e){return new Set();}}
   function saveFav(set){try{localStorage.setItem(favKey(),JSON.stringify(Array.from(set)));}catch(e){}}
+  /* Lauf #105 - Kundenwunsch ueber Paul: "Stellen mit einem Haken markieren, sobald man sich
+     beworben hat." Gleiche Mechanik wie die Favoriten, eigener Speicher pro Person. */
+  function bewKey(){return 'mf_bew_'+CUR;}
+  function getBew(){try{return new Set(JSON.parse(localStorage.getItem(bewKey())||'[]'));}catch(e){return new Set();}}
+  function saveBew(set){try{localStorage.setItem(bewKey(),JSON.stringify(Array.from(set)));}catch(e){}}
   function cardUrl(c){var a=c.querySelector('.go a[href]');return a?a.getAttribute('href'):'';}
   function initStars(){
     document.querySelectorAll('.card').forEach(function(c){
-      if(c.closest('#toolbox')||c.closest('#favoriten'))return;
-      if(c.querySelector('.star'))return;
+      if(c.closest('#toolbox')||c.closest('#favoriten')||c.closest('#beworben'))return;
       var u=cardUrl(c); if(!u)return;
-      var b=document.createElement('button');
-      b.type='button'; b.className='star'; b.textContent='\u2606';
-      b.setAttribute('data-url',u);
-      b.setAttribute('aria-label','Zu Favoriten hinzuf\u00fcgen');
-      c.insertBefore(b,c.firstChild);
+      if(!c.querySelector('.star')){
+        var b=document.createElement('button');
+        b.type='button'; b.className='star'; b.textContent='\u2606';
+        b.setAttribute('data-url',u);
+        b.setAttribute('aria-label','Zu Favoriten hinzuf\u00fcgen');
+        c.insertBefore(b,c.firstChild);
+      }
+      if(!c.querySelector('.appl')){
+        var a2=document.createElement('button');
+        a2.type='button'; a2.className='appl'; a2.textContent='\u2713';
+        a2.setAttribute('data-url',u);
+        a2.setAttribute('aria-label','Als beworben markieren');
+        c.insertBefore(a2,c.firstChild);
+      }
     });
   }
   function paintStars(){
-    var f=getFav();
+    var f=getFav(), b=getBew();
     document.querySelectorAll('.star').forEach(function(st){
       var on=f.has(st.getAttribute('data-url'));
       st.classList.toggle('on',on);
       st.textContent=on?'\u2605':'\u2606';
       st.setAttribute('aria-label',on?'Aus Favoriten entfernen':'Zu Favoriten hinzuf\u00fcgen');
     });
+    document.querySelectorAll('.appl').forEach(function(ap){
+      var on=b.has(ap.getAttribute('data-url'));
+      ap.classList.toggle('on',on);
+      ap.setAttribute('aria-label',on?'Haken entfernen':'Als beworben markieren');
+      var c=ap.closest('.card');
+      if(c){
+        c.classList.toggle('beworben',on);
+        var meta=c.querySelector('.meta');
+        var tag=c.querySelector('.tag.bew');
+        if(on&&meta&&!tag){var t=document.createElement('span');t.className='tag bew';t.textContent='\u2705 beworben';meta.insertBefore(t,meta.firstChild);}
+        if(!on&&tag)tag.remove();
+      }
+    });
+  }
+  function buildBew(){
+    var sec=document.getElementById('beworben');
+    var grid=sec.querySelector('.grid');
+    var empty=sec.querySelector('.favempty');
+    var cnt=sec.querySelector('h2 .cnt');
+    var b=getBew(); grid.innerHTML=''; var n=0;
+    document.querySelectorAll('.card').forEach(function(c){
+      if(c.closest('#favoriten')||c.closest('#toolbox')||c.closest('#beworben'))return;
+      var u=cardUrl(c); if(!u||!b.has(u))return;
+      var cl=c.cloneNode(true); cl.classList.remove('hidden'); grid.appendChild(cl); n++;
+    });
+    empty.style.display=n?'none':'block';
+    if(cnt)cnt.textContent=n?(n+' '+(n===1?'Bewerbung':'Bewerbungen')):'Deine abgehakten Bewerbungen';
+    paintStars();
   }
   function buildFav(){
     var sec=document.getElementById('favoriten');
@@ -4491,7 +4570,7 @@
     var cnt=sec.querySelector('h2 .cnt');
     var f=getFav(); grid.innerHTML=''; var n=0;
     document.querySelectorAll('.card').forEach(function(c){
-      if(c.closest('#favoriten')||c.closest('#toolbox'))return;
+      if(c.closest('#favoriten')||c.closest('#toolbox')||c.closest('#beworben'))return;
       var u=cardUrl(c); if(!u||!f.has(u))return;
       var cl=c.cloneNode(true); cl.classList.remove('hidden'); grid.appendChild(cl); n++;
     });
@@ -4511,6 +4590,18 @@
     saveFav(f);
     if(active==='fav')buildFav(); else paintStars();
   });
+  /* Haken-Klicks - gleiche Falle wie beim Stern: die Sektionen liegen ausserhalb von #app,
+     der Listener muss deshalb an document haengen. */
+  document.addEventListener('click',function(e){
+    var ap=e.target.closest?e.target.closest('.appl'):null;
+    if(!ap)return;
+    e.preventDefault(); e.stopPropagation();
+    if(!CUR)return;
+    var b=getBew(); var u=ap.getAttribute('data-url');
+    if(b.has(u))b.delete(u); else b.add(u);
+    saveBew(b);
+    if(active==='bew')buildBew(); else if(active==='fav')buildFav(); else paintStars();
+  });
 
   var q=document.getElementById('q');
   var active='all';
@@ -4520,12 +4611,20 @@
     var tb=document.getElementById('toolbox');
     var fl=document.getElementById('freelance');
     var fav=document.getElementById('favoriten');
+    var bew=document.getElementById('beworben');
     var sects=document.querySelectorAll('section');
     fav.classList.add('hidden');
+    bew.classList.add('hidden');
     if(active==='fav'){
       buildFav();
       sects.forEach(function(s2){s2.classList.add('hidden');});
       fav.classList.remove('hidden');
+      return;
+    }
+    if(active==='bew'){
+      buildBew();
+      sects.forEach(function(s2){s2.classList.add('hidden');});
+      bew.classList.remove('hidden');
       return;
     }
     if(active==='toolbox'||active==='freelance'){
@@ -4537,18 +4636,21 @@
       return;
     }
     tb.classList.add('hidden');
-    sects.forEach(function(s2){if(s2!==tb && s2!==fav)s2.classList.remove('hidden');});
+    sects.forEach(function(s2){if(s2!==tb && s2!==fav && s2!==bew)s2.classList.remove('hidden');});
     var s=(q.value||'').toLowerCase();
+    /* "Neu" = hoechstens 7 Tage. data-age setzt der Build, damit hier nichts gerechnet wird. */
+    var neuOnly=(active==='neu');
     document.querySelectorAll('.card').forEach(function(c){
-      if(c.closest('#favoriten'))return;
-      var okB=(active==='all')||(active.indexOf('ber:')===0 && c.dataset.bereich===active.slice(4));
+      if(c.closest('#favoriten')||c.closest('#beworben'))return;
+      var okB=(active==='all')||neuOnly||(active.indexOf('ber:')===0 && c.dataset.bereich===active.slice(4));
       var okS=!s||c.textContent.toLowerCase().indexOf(s)>-1;
       var okL=!langOnly||c.dataset.lang==='de';
       var okD=!directOnly||c.dataset.direct==='1';
-      c.classList.toggle('hidden',!(okB&&okS&&okL&&okD));
+      var okN=!neuOnly||(c.dataset.age!==undefined && c.dataset.age!=='' && (+c.dataset.age)<=7);
+      c.classList.toggle('hidden',!(okB&&okS&&okL&&okD&&okN));
     });
     document.querySelectorAll('section').forEach(function(sec){
-      if(sec.id==='toolbox'||sec.id==='favoriten')return;
+      if(sec.id==='toolbox'||sec.id==='favoriten'||sec.id==='beworben')return;
       var vis=sec.querySelectorAll('.card:not(.hidden)').length;
       sec.classList.toggle('hidden',vis===0);
     });
@@ -4560,6 +4662,50 @@
   });});
   // Filter-Chips "Nur Deutsch" / "Nur Direkt-Stellen" entfernt (zu viele Buttons, Team-Wunsch).
   // Priorisierung passiert jetzt beim Bauen: deutsch+direkte Stellen stehen in jeder Sektion ganz oben.
+
+  /* ---- Uebertragung zwischen Handy und Laptop (Lauf #105) ----
+     Das Board liegt statisch auf GitHub Pages, es gibt keinen Server, der etwas speichern koennte.
+     Favoriten und Haken liegen deshalb im localStorage des jeweiligen Geraets. Echte automatische
+     Synchronisierung braucht einen Server (siehe STATUS). Bis dahin: ein Code zum Kopieren.
+     Wichtig: beim Uebernehmen wird ZUSAMMENGEFUEHRT, nie ersetzt - sonst verliert ein Geraet Daten. */
+  function syncSay(t,ok){var m=document.getElementById('syncmsg');if(!m)return;m.textContent=t;m.style.color=ok?'#1f7a44':'#a33';}
+  function syncGen(){
+    if(!CUR){syncSay('Bitte zuerst einloggen.',false);return;}
+    var data={v:1,p:CUR,f:Array.from(getFav()),b:Array.from(getBew())};
+    var code='';
+    try{code=btoa(unescape(encodeURIComponent(JSON.stringify(data))));}
+    catch(e){syncSay('Code konnte nicht erzeugt werden.',false);return;}
+    var ta=document.getElementById('syncta'); ta.value=code; ta.select();
+    syncSay('Code erzeugt: '+data.f.length+' Favoriten und '+data.b.length+' Haken. Jetzt kopieren und auf dem anderen Geraet einfuegen.',true);
+  }
+  function syncImp(){
+    if(!CUR){syncSay('Bitte zuerst einloggen.',false);return;}
+    var ta=document.getElementById('syncta'); var raw=(ta.value||'').trim();
+    if(!raw){syncSay('Bitte erst den Code vom anderen Geraet einfuegen.',false);return;}
+    var data=null;
+    try{data=JSON.parse(decodeURIComponent(escape(atob(raw))));}catch(e){data=null;}
+    if(!data||!data.v||(!data.f&&!data.b)){syncSay('Der Code ist unvollstaendig oder beschaedigt. Bitte auf dem anderen Geraet neu erzeugen.',false);return;}
+    if(data.p&&data.p!==CUR){syncSay('Der Code gehoert zu einem anderen Zugang. Bitte mit demselben Passwort einloggen.',false);return;}
+    var f=getFav(),b=getBew(),nf=0,nb=0;
+    (data.f||[]).forEach(function(u){if(u&&!f.has(u)){f.add(u);nf++;}});
+    (data.b||[]).forEach(function(u){if(u&&!b.has(u)){b.add(u);nb++;}});
+    saveFav(f); saveBew(b);
+    if(active==='bew')buildBew(); else if(active==='fav')buildFav(); else paintStars();
+    syncSay('Uebernommen: '+nf+' neue Favoriten und '+nb+' neue Haken. Gesamt jetzt '+f.size+' Favoriten, '+b.size+' Haken.',true);
+  }
+  var _sg=document.getElementById('syncgen'); if(_sg)_sg.addEventListener('click',syncGen);
+  var _si=document.getElementById('syncimp'); if(_si)_si.addEventListener('click',syncImp);
+  var _sc=document.getElementById('synccopy');
+  if(_sc)_sc.addEventListener('click',function(){
+    var ta=document.getElementById('syncta'); if(!ta.value){syncSay('Erst Code erzeugen.',false);return;}
+    ta.select();
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(ta.value).then(function(){syncSay('Code kopiert.',true);},function(){syncSay('Kopieren hat nicht geklappt - bitte von Hand markieren und kopieren.',false);});
+    } else {
+      try{document.execCommand('copy');syncSay('Code kopiert.',true);}
+      catch(e){syncSay('Kopieren hat nicht geklappt - bitte von Hand markieren und kopieren.',false);}
+    }
+  });
 
   initStars();
   try{var saved=localStorage.getItem('mf_pw'); if(saved && PWS.indexOf(saved)>-1){CUR=saved;unlock();}}catch(e){}

@@ -1036,11 +1036,23 @@ def card(j):
     badge = ('<span class="tag direct">→ Direkt zur Stelle</span>' if d
              else '<span class="tag firma">🏢 Firma · offene Stellen</span>')
     golabel = "Zur Stelle →" if d else "Zu den offenen Stellen →"
-    return (f'<div class="card" data-bereich="{j["bereich"]}" data-level="{j["level"]}" data-lang="{j["lang"]}" data-direct="{1 if d else 0}">\n'
+    # Lauf #105 (Kundenwunsch ueber Paul): "Filter fuer die zuletzt eingestellten Stellen."
+    # Dafuer braucht die Karte ein maschinenlesbares Datum. Das sichtbare Feld ist dd.mm.yyyy,
+    # danach kann man nicht sortieren. data-posted ist ISO und zusaetzlich data-age in Tagen,
+    # damit der Filter im Browser nicht rechnen muss.
+    _iso = j.get("posted") or ""
+    if not _iso:
+        _m = re.match(r"^(\d{2})\.(\d{2})\.(\d{4})$", str(j.get("date") or ""))
+        if _m: _iso = f"{_m.group(3)}-{_m.group(2)}-{_m.group(1)}"
+    _age = _age_days(_iso) if _iso else None
+    _agea = f' data-age="{_age}"' if _age is not None else ""
+    _neu = '<span class="tag neu">🆕 NEU</span>' if (_age is not None and _age <= 7) else ""
+    return (f'<div class="card" data-bereich="{j["bereich"]}" data-level="{j["level"]}" data-lang="{j["lang"]}" data-direct="{1 if d else 0}"'
+            f' data-posted="{_iso}"{_agea}>\n'
             f'  <h3>{esc(j["title"])}</h3>\n  <div class="company">{esc(j["company"])}</div>\n'
             f'  <p class="info">{esc(j["info"])}</p>\n'
             f'  <div class="meta">{region_tag(j["region"])}{level_tag(j["level"])}{lang_tag(j["lang"])}{fd_tag(j["fd"])}'
-            f'{badge}<span class="tag date">📅 {j["date"]}</span></div>\n'
+            f'{badge}{_neu}<span class="tag date">📅 {j["date"]}</span></div>\n'
             f'  <div class="go"><a href="{j["url"]}" target="_blank" rel="noopener">{golabel}</a></div>\n</div>')
 
 # Deckel pro Bereich - kippt den Mix Richtung Service/Buero statt IT-Flut.
