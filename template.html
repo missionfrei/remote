@@ -106,8 +106,13 @@
   .cnt{font-size:12px;color:var(--muted);font-weight:500;margin-left:8px;letter-spacing:.05em}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px}
   /* Sektionen auf gleiche Breite wie der Kopf begrenzen (sonst laufen die Karten an den Rand / rechts abgeschnitten) */
-  section[data-ber],#freelance,#toolbox,#favoriten{max-width:1120px;margin-left:auto;margin-right:auto;padding-left:22px;padding-right:22px;box-sizing:border-box}
-  @media (max-width:640px){section[data-ber],#freelance,#toolbox,#favoriten{padding-left:13px;padding-right:13px}}
+  section[data-ber],#freelance,#toolbox,#favoriten,#beworben,#fuerdich,#neuheiten{max-width:1120px;margin-left:auto;margin-right:auto;padding-left:22px;padding-right:22px;box-sizing:border-box}
+  @media (max-width:640px){section[data-ber],#freelance,#toolbox,#favoriten,#beworben,#fuerdich,#neuheiten{padding-left:13px;padding-right:13px}}
+  /* Lauf #107: Die ersten Sektionen liegen in einem Container, der die Innenabstaende schon mitbringt.
+     Dadurch bekamen sie sie doppelt - ihre Karten standen 22px weiter rechts als in allen anderen
+     Sektionen, und beim Umschalten der Filter sprang das Layout sichtbar. Hier einmal neutralisiert. */
+  .wrap section[data-ber]{max-width:none;padding-left:0;padding-right:0}
+  @media (max-width:640px){.wrap section[data-ber]{padding-left:0;padding-right:0}}
   .tag.direct{background:#e7f4ec;color:#0e7a52;font-weight:650}
   .tag.firma{background:#fbf1df;color:#b07d10;font-weight:650}
   .chip.directf{border-color:#1f4a6b;color:#1f4a6b}
@@ -143,7 +148,10 @@
   .linkcols{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
   .linkcols a{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:13px;font-weight:600;text-decoration:none;color:var(--text)}
   .linkcols a:hover{border-color:var(--gold);color:var(--gold)}
-  footer{margin-top:50px;border-top:1px solid var(--border-soft);padding-top:22px;color:#8b8577;font-size:12px;line-height:1.7;max-width:900px}
+  /* Lauf #107: Der Fussbereich lag frei am Body und klebte dadurch am linken Rand,
+     waehrend Kopf, Filter und alle Sektionen auf 1120px zentriert sind. Jetzt buendig. */
+  footer{margin:50px auto 0;border-top:1px solid var(--border-soft);padding:22px 22px 0;color:#8b8577;font-size:12px;line-height:1.7;max-width:1120px;box-sizing:border-box}
+  @media (max-width:640px){footer{padding-left:13px;padding-right:13px}}
   footer b{color:var(--muted)}
   /* Favoriten / Stern */
   .card{position:relative}
@@ -157,13 +165,12 @@
   .appl{position:absolute;top:9px;right:43px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:none;background:transparent;cursor:pointer;font-size:17px;line-height:1;color:#cdc6b6;padding:0;margin:0;border-radius:8px;transition:transform .12s ease,color .12s ease,background .12s ease;z-index:3}
   .appl:hover{transform:scale(1.15);color:#1f7a44;background:#e8f5ed}
   .appl.on{color:#1f7a44}
-  .card.beworben{background:#f6faf7;border-color:#bfe0cc}
-  .card.beworben h3{color:#1f7a44}
+  /* Beworben-Karte: dezent absetzen, aber Schrift und Aufbau bleiben wie ueberall sonst. */
+  .card.beworben{background:#f7faf8;border-color:#cfe3d6}
   .tag.bew{color:#1f7a44;border-color:#bfe0cc;background:#e8f5ed;font-weight:700}
   .tag.neu{color:#9a4a00;border-color:#f0c9a0;background:#fff3e6;font-weight:700}
-  /* Sync-Feld: Favoriten und Haken zwischen Handy und Laptop uebertragen */
-  .syncbox{max-width:1120px;margin:0 auto 18px;padding:14px 18px;border:1px solid #e4dfd3;border-radius:12px;background:#fbfaf7}
-  @media (max-width:640px){.syncbox{margin-left:13px;margin-right:13px}}
+  /* Sync-Feld liegt INNERHALB der Sektion -> keine eigene Zentrierung, sonst doppelt eingerueckt. */
+  .syncbox{width:100%;box-sizing:border-box;margin:22px 0 4px;padding:16px 18px;border:1px solid #e4dfd3;border-radius:12px;background:#fbfaf7}
   .syncbox h3{margin:0 0 6px;font-size:15px}
   .syncbox p{margin:0 0 10px;font-size:13px;color:var(--muted);line-height:1.5}
   .syncbox textarea{width:100%;box-sizing:border-box;min-height:64px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;padding:8px;border:1px solid #e4dfd3;border-radius:8px;background:#fff;resize:vertical}
