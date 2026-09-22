@@ -1084,16 +1084,26 @@ FD_CHIP = '<span class="chip" data-f="fd">⭐ Für dich</span>\n    '
 # #fuerdich/#favoriten liegen ausserhalb .wrap (direkt an body) -> sonst volle Breite (5+ pro Reihe).
 # Auf die Board-Breite (1120px, wie die normalen Sektionen) zentrieren -> 3 pro Reihe Desktop,
 # 1 pro Reihe Handy (erbt die mobile .grid-Regel). Desktop+Handy konsistent mit dem restlichen Board.
-FD_CSS = ('<style>#fuerdich,#favoriten{max-width:1120px;margin-left:auto;margin-right:auto;'
+FD_CSS = ('<style>#fuerdich,#favoriten,#neuheiten{max-width:1120px;margin-left:auto;margin-right:auto;'
           'padding-left:22px;padding-right:22px;box-sizing:border-box}'
-          '#fuerdich .grid,#favoriten .grid{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}'
-          '@media(max-width:640px){#fuerdich,#favoriten{padding-left:14px;padding-right:14px}'
-          '#fuerdich .grid,#favoriten .grid{grid-template-columns:1fr}}</style>\n')
+          '#fuerdich .grid,#favoriten .grid,#neuheiten .grid{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}'
+          '#neuheiten .fdhint{color:#6b6257;font-size:13px;margin:2px 0 12px;line-height:1.5}'
+          '@media(max-width:640px){#fuerdich,#favoriten,#neuheiten{padding-left:14px;padding-right:14px}'
+          '#fuerdich .grid,#favoriten .grid,#neuheiten .grid{grid-template-columns:1fr}}</style>\n')
 
 FD_SECTION = ('<section id="fuerdich" class="hidden">\n'
   '  <h2 style="border-left:4px solid #a8842e;padding-left:12px">⭐ Für dich <span class="cnt"></span></h2>\n'
   '  <div class="grid"></div>\n'
   '  <p class="fdempty">Für dich ist noch keine persönliche Auswahl hinterlegt. Sag kurz in deiner WhatsApp-Gruppe Bescheid – dann richten wir sie ein.</p>\n'
+  '</section>\n\n'
+  # Lauf #106 (Paul): "Bei den Stellen der letzten sieben Tage soll personalisiert stehen, was den
+  # Kunden am meisten interessiert. Wenn es nur 10 oder 20 sind, ist das halt so - aber nicht alle."
+  # Deshalb dieselbe Bewertung wie in "Für dich", zusaetzlich auf sieben Tage begrenzt.
+  '<section id="neuheiten" class="hidden">\n'
+  '  <h2 style="border-left:4px solid #9a4a00;padding-left:12px">🆕 Neu für dich <span class="cnt"></span></h2>\n'
+  '  <p class="fdhint">Die Stellen der letzten sieben Tage, die zu deinem Profil passen – die beste zuerst.</p>\n'
+  '  <div class="grid"></div>\n'
+  '  <p class="fdempty">Diese Woche ist noch nichts Passendes für dich dazugekommen. Schau unter ⭐ Für dich – dort steht der komplette Bestand, der zu dir passt.</p>\n'
   '</section>\n\n')
 
 FD_JS = r'''
@@ -1191,6 +1201,53 @@ FD_JS = r'''
     if(cnt)cnt.textContent=sel.length?(sel.length+' passende Treffer für dich'):'';
     paintStars();
   }
+  /* ---- "Neu fuer dich": die frischen Stellen, aber nur die, die zum Profil passen ----
+     Paul (22.09.): "Bei den Stellen der letzten sieben Tage soll personalisiert stehen, was den
+     Kunden am meisten interessiert. Wenn es nur 10 oder 20 sind, ist das halt so, aber nicht alle."
+     Deshalb: dieselbe Bewertung wie in "Fuer dich", zusaetzlich data-age <= 7, sortiert nach Score.
+     Wer kein Profil hat (mission-freiheit, harun26), sieht schlicht alle frischen Stellen. */
+  function buildNEU(){
+    var sec=document.getElementById('neuheiten');if(!sec)return;
+    var grid=sec.querySelector('.grid');var empty=sec.querySelector('.fdempty');
+    var cnt=sec.querySelector('h2 .cnt');var hint=sec.querySelector('.fdhint');
+    grid.innerHTML='';
+    var p=PROFILES[CUR];
+    var frisch=[];
+    document.querySelectorAll('.card').forEach(function(c){
+      if(c.closest('#favoriten')||c.closest('#toolbox')||c.closest('#freelance')||c.closest('#fuerdich')||c.closest('#beworben')||c.closest('#neuheiten'))return;
+      var a=c.dataset.age; if(a===undefined||a===''||(+a)>7)return;
+      frisch.push(c);
+    });
+    var sel=[];
+    if(p){
+      var arr=[];
+      frisch.forEach(function(c){var s=fdScore(c,p);if(s>-900)arr.push({c:c,s:s});});
+      arr.sort(function(a,b){return b.s-a.s;});
+      /* Paul: "die Stellen, die den Kunden am meisten interessieren - wenn es nur 10 oder 20 sind,
+         ist das halt so, aber nicht alle noch mal." Deshalb hier VIER Sterne als Schwelle, nicht drei
+         wie in "Fuer dich". Diese Liste soll eine Arbeitsliste sein, kein zweiter Gesamtbestand. */
+      sel=arr.filter(function(o){return o.s>=8;});               /* mindestens vier von fuenf Sternen */
+      if(sel.length<5)sel=arr.slice(0,Math.min(12,arr.length));  /* lieber ein paar schwaechere als eine leere Seite */
+      if(hint)hint.textContent='Die Stellen der letzten sieben Tage, die zu deinem Profil passen – die beste zuerst. Von '+frisch.length+' neuen Stellen insgesamt.';
+    }else{
+      frisch.sort(function(a,b){return (+a.dataset.age)-(+b.dataset.age);});
+      sel=frisch.map(function(c){return {c:c,s:null};});
+      if(hint)hint.textContent='Alle Stellen der letzten sieben Tage, die neueste zuerst.';
+    }
+    sel.forEach(function(o){
+      var cl=o.c.cloneNode(true);cl.classList.remove('hidden');
+      if(o.s!==null){
+        var badge=document.createElement('div');badge.className='fdfit';
+        badge.style.cssText='font-size:11px;font-weight:800;color:#9a4a00;letter-spacing:.06em;margin:2px 0 8px';
+        badge.textContent='NEU UND PASST ZU DIR  '+fdStars(o.s);
+        cl.insertBefore(badge,cl.firstChild);
+      }
+      grid.appendChild(cl);
+    });
+    if(empty)empty.style.display=sel.length?'none':'block';
+    if(cnt)cnt.textContent=sel.length?(sel.length+' neue '+(sel.length===1?'Stelle':'Stellen')+' für dich'):'';
+    paintStars();
+  }
   function activateFDForUser(){
     var chip=document.querySelector('.chip[data-f="fd"]');if(!chip)return;
     if(PROFILES[CUR]){
@@ -1230,17 +1287,41 @@ def _inject_fd(head, tail):
     # apply(): fd-Zweig
     tail = rep(tail, "    if(active==='fav'){",
         "    var fdS=document.getElementById('fuerdich'); if(fdS)fdS.classList.add('hidden');\n"
+        "    var nuS=document.getElementById('neuheiten'); if(nuS)nuS.classList.add('hidden');\n"
         "    if(active==='fd'){ buildFD(); sects.forEach(function(s2){s2.classList.add('hidden');}); if(fdS)fdS.classList.remove('hidden'); return; }\n"
+        "    if(active==='neu' && nuS){ buildNEU(); sects.forEach(function(s2){s2.classList.add('hidden');}); nuS.classList.remove('hidden'); return; }\n"
         "    if(active==='fav'){", "apply-fd")
     # Normalansicht: #fuerdich nicht mit einblenden
-    tail = rep(tail, "sects.forEach(function(s2){if(s2!==tb && s2!==fav)s2.classList.remove('hidden');});",
-        "sects.forEach(function(s2){if(s2!==tb && s2!==fav && s2.id!=='fuerdich')s2.classList.remove('hidden');});", "show")
-    # leere-Sektion-Schleife: fuerdich ueberspringen
-    tail = rep(tail, "if(sec.id==='toolbox'||sec.id==='favoriten')return;",
-        "if(sec.id==='toolbox'||sec.id==='favoriten'||sec.id==='fuerdich')return;", "emptyskip")
-    # buildFav: fuerdich-Klone nicht mitzaehlen
-    tail = rep(tail, "if(c.closest('#favoriten')||c.closest('#toolbox'))return;",
-        "if(c.closest('#favoriten')||c.closest('#toolbox')||c.closest('#fuerdich'))return;", "favskip")
+    # Lauf #106: das Template hat seit der Beworben-Sektion ein '&& s2!==bew' in dieser Zeile.
+    # Der alte Anker passte deshalb nicht mehr -> #fuerdich waere in der Normalansicht mitgelaufen.
+    # Beide Schreibweisen versuchen, damit der Anker nicht beim naechsten Template-Umbau wieder bricht.
+    _old_new = "sects.forEach(function(s2){if(s2!==tb && s2!==fav && s2!==bew)s2.classList.remove('hidden');});"
+    _old_alt = "sects.forEach(function(s2){if(s2!==tb && s2!==fav)s2.classList.remove('hidden');});"
+    _new = ("sects.forEach(function(s2){if(s2!==tb && s2!==fav && s2!==bew && s2.id!=='fuerdich' && s2.id!=='neuheiten')"
+            "s2.classList.remove('hidden');});")
+    if _old_new in tail: tail = tail.replace(_old_new, _new, 1)
+    elif _old_alt in tail:
+        tail = tail.replace(_old_alt, _new.replace(" && s2!==bew", ""), 1)
+    else:
+        print("[fd] WARN Anker fehlt (show) - #fuerdich/#neuheiten laufen in der Normalansicht mit")
+    # leere-Sektion-Schleife: fuerdich und neuheiten ueberspringen.
+    # Lauf #106: das Template listet inzwischen auch 'beworben' - Anker entsprechend nachgezogen.
+    _es_new = "if(sec.id==='toolbox'||sec.id==='favoriten'||sec.id==='beworben')return;"
+    _es_old = "if(sec.id==='toolbox'||sec.id==='favoriten')return;"
+    _es_rep = "if(sec.id==='toolbox'||sec.id==='favoriten'||sec.id==='beworben'||sec.id==='fuerdich'||sec.id==='neuheiten')return;"
+    if _es_new in tail: tail = tail.replace(_es_new, _es_rep, 1)
+    elif _es_old in tail: tail = tail.replace(_es_old, _es_rep.replace("||sec.id==='beworben'",""), 1)
+    else: print("[fd] WARN Anker fehlt (emptyskip)")
+    # buildFav / buildBew: Klone der Personalisierungs-Sektionen nicht mitzaehlen
+    _fs_new = "if(c.closest('#favoriten')||c.closest('#toolbox')||c.closest('#beworben'))return;"
+    _fs_old = "if(c.closest('#favoriten')||c.closest('#toolbox'))return;"
+    _fs_rep = "if(c.closest('#favoriten')||c.closest('#toolbox')||c.closest('#beworben')||c.closest('#fuerdich')||c.closest('#neuheiten'))return;"
+    if _fs_new in tail: tail = tail.replace(_fs_new, _fs_rep)
+    elif _fs_old in tail: tail = tail.replace(_fs_old, _fs_rep.replace("||c.closest('#beworben')",""))
+    else: print("[fd] WARN Anker fehlt (favskip)")
+    # initStars: auch in den neuen Sektionen keine doppelten Knoepfe
+    tail = tail.replace("if(c.closest('#toolbox')||c.closest('#favoriten')||c.closest('#beworben'))return;",
+                        "if(c.closest('#toolbox')||c.closest('#favoriten')||c.closest('#beworben')||c.closest('#fuerdich')||c.closest('#neuheiten'))return;")
     return head, tail
 
 def build_sections(jobs):
