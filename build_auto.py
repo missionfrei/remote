@@ -1349,6 +1349,17 @@ def main():
     head, tail = tpl[:i0], tpl[i1:]
     head, tail = _inject_fd(head, tail)   # personalisierte "Fuer dich"-Ansicht einbauen
 
+    # Fusszeilen-Datum automatisch mitziehen - stand vorher fest auf einem alten Tag
+    # und liess das Board fuer Kunden veraltet aussehen (gefunden Lauf #119).
+    _MON=["Januar","Februar","März","April","Mai","Juni","Juli",
+          "August","September","Oktober","November","Dezember"]
+    _d=datetime.date.today()
+    _stand=f"Stand: {_d.day}. {_MON[_d.month-1]} {_d.year}"
+    _pat=re.compile(r"Stand: \d{1,2}\. [A-Za-zää]+ \d{4}")
+    _n1=len(_pat.findall(head))+len(_pat.findall(tail))
+    head=_pat.sub(_stand, head); tail=_pat.sub(_stand, tail)
+    print(f"[stand] Fusszeilen-Datum gesetzt auf {_stand} ({_n1} Stelle(n))")
+
     auto=process(gather())
     manual=load_manual()
     ats=gather_ats()   # echte deutschsprachige Remote-Einzelstellen direkt von Firmen-Boards
