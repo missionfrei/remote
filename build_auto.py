@@ -1111,13 +1111,12 @@ FD_JS = r'''
   /* Paul (20.09.): "Wir bevorzugen immer weltweit. Als Zweites europaweit. Und nur wenn da nicht viele
      Treffer sind, gehen wir auf Deutschland zurueck. Aber es muss immer 100 % remote sein, nie an einen
      Standort gebunden." -> reg ist bei ALLEN Profilen gleich: weltweit 3, EU 2, Deutschland 1 als Rueckfall.
-     Vorher stand bei drei Profilen de:0 (deutschlandweite Stellen wurden weggerechnet) und bei Stefanie
+     Vorher stand bei drei Profilen de:0 (deutschlandweite Stellen wurden weggerechnet) und bei einem
      world:2 (weltweit war sogar schlechter als Deutschland). Beides war gegen die Regel. */
-  /* Lauf #100 (21.09.): Merlin und Leia bekamen im Bereich Gesundheit NULL Bereichspunkte.
+  /* Lauf #100 (21.09.): zwei Profile bekamen im Bereich Gesundheit NULL Bereichspunkte.
      Der Tab Gesundheit ist aber ein Funktions-Tab, kein Branchen-Tab - dort stehen Kundenservice,
      Sachbearbeitung und Social Media bei Gesundheitsunternehmen. Genau ihre Rollen. Deshalb
-     gesundheit:2 fuer Merlin und gesundheit:1.5 fuer Leia. Wirkung gemessen: Merlin 58 -> 63
-     Treffer mit vier oder fuenf Sternen, Leia 130 -> 131. */
+     Wirkung gemessen: 58 -> 63 bzw. 130 -> 131 Treffer mit vier oder fuenf Sternen. */
   var PROFILES={
    "lisamaria26":{ber:{buero:3,start:1,sprache:0.5,service:0},
      plus:["office","back office","backoffice","verwaltung","administration","sachbearbeit","assistenz","teamassistenz","projektassistenz","virtuelle assistenz","virtual assistant","executive assistant","personal assistant","koordination","coordinator","disposition","auftragsabwicklung","datenerfassung","data entry","dateneingabe","dokumenten","organisation","office manager","office administration","office assistant","operations","scheduling","order management","reservierung","reservations","reservation agent","booking","buchung","reisebuero","reisebüro","reiseverkehrskauffrau","touristik","travel consultant","business travel","reiseberat","hotel reservation","revenue","groups & events"],
@@ -1135,9 +1134,9 @@ FD_JS = r'''
      plus:["buchhaltung","accounting","steuer","datev","lohn","bilanz","finanz","controlling","rechnungswesen","sachbearbeit","office","verwaltung","back office"],
      minus:["developer","engineer","software","vertrieb","sales","closer","designer","marketing","devops"],
      hard:["developer","software engineer","devops"],langs:["de","en"],reg:{world:3,eu:2,de:1}},
-   /* Merlin (Hauptschulabschluss, Vertrieb/Support 2-3 J., DHL-Kommissionierer, baut selbst kleine Programme).
-      Will: Kundenservice, IT/Tech. Will NICHT: Vertrieb, Cold Calls, Produkte verkaufen. 20 h/Woche. Englisch B2. */
-      /* Lauf #101: Merlins plus-Block kannte "Kundenservice" und "Kundenbetreuung", aber weder
+   /* Profil A: Schwerpunkt Kundenservice und IT/Tech. Ausgeschlossen: Vertrieb, Kaltakquise,
+      Produktverkauf, Buchhaltung. Teilzeit moeglich, Deutsch und Englisch. */
+      /* Lauf #101: der plus-Block kannte "Kundenservice" und "Kundenbetreuung", aber weder
          "Kundenbetreuer" noch "Kundenberater" - genau die Titel, unter denen seine Rollen
          ausgeschrieben werden. Dazu "Inbound", weil eingehende Betreuung sein Wunsch ist
          (Outbound bleibt im minus-Block). */
@@ -1145,8 +1144,8 @@ FD_JS = r'''
      plus:["kundenservice","kundensupport","kundenbetreuung","kundendienst","customer support","customer service","customer care","chat support","email support","e-mail support","technischer support","technischer kundenservice","technical support","helpdesk","help desk","it-support","it support","service desk","1st level","first level","second level","support agent","support specialist","ticket","betreuung","kundenbetreuer","kundenberater","kundenberatung","inbound","erste anlaufstelle","anwenderbetreuung","anwendersupport","content moderat","moderator","qualitaetspruef","qualitätsprüf","datenerfassung","data entry","dateneingabe","annotation","ai training","rater","transkription","teilzeit","werkstudent","quereinsteiger","backoffice","back office","sachbearbeit","auftragsabwicklung"],
      minus:["vertrieb","sales","telesales","closer","setter","outbound","kaltakquise","akquise","telefonverkauf","aussendienst","außendienst","provision","mediaberater","verkaeufer","verkäufer","neukunden","business development","account executive","buchhaltung","accounting","steuer","datev","bilanz","lohn","designer","grafik","marketing","seo"],
      hard:["vertrieb","sales manager","sales representative","sales development","account executive","business development","sdr","telesales","akquise","closer","appointment setter","mediaberater","verkäufer","außendienst","buchhalt","steuerber","steuerfach","bilanzbuch","lohnbuchhalt","datev","accountant","accounting","payroll","senior","architekt"],langs:["de","en"],reg:{world:3,eu:2,de:1}},
-   /* Leia (Ausbildung Gestalterin visuelles Marketing, 4 J. Aushilfe Buchhaltung, Videografie/Schnitt, Canva/Photoshop/Premiere/Procreate, schreibt Buecher).
-      Will: Marketing, Verwaltung/Assistenz, Design. Will NICHT: Kundenservice, Dinge erklaeren, IT, Handwerk, Telefon. */
+   /* Profil B: Schwerpunkt Marketing, Design und Verwaltung/Assistenz. Ausgeschlossen:
+      Kundenservice, Telefonrollen, IT-Support, Handwerk. Deutsch und Englisch. */
    "leia26":{ber:{marketing:3,buero:2,start:1,sprache:0.5,service:0,gesundheit:1.5},
      plus:["marketing","online marketing","social media","content","content creation","contentproduktion","redaktion","texter","copywriter","autor","schreiben","blog","newsletter","grafik","grafikdesign","design","designer","gestalter","mediengestalter","visuelles marketing","visual","kreativ","creative","canva","photoshop","adobe","video","videobearbeitung","schnitt","editor","motion","bildbearbeitung","e-commerce","shop","produktdaten","seo","kampagne","brand","marke","backoffice","back office","sachbearbeit","datenerfassung","data entry","dateneingabe","verwaltung","administration","assistenz","projektassistenz","projektkoordination","koordination","coordinator","organisation","office","auftragsabwicklung","buchhaltung","rechnungswesen"],
      minus:["kundenservice","kundensupport","kundenbetreuung","kundendienst","customer service","customer support","customer care","customer success","call center","callcenter","telefonie","telefonist","inbound","outbound","helpdesk","help desk","it-support","it support","service desk","technischer support","support agent","beschwerde","developer","engineer","software","devops","systemadmin","netzwerk","handwerk","montage","lager","vertrieb","telesales","closer","setter","akquise","aussendienst","außendienst"],
@@ -1162,9 +1161,9 @@ FD_JS = r'''
     var s=0,t=fdText(c),ber=c.dataset.bereich||'';
     s+=(p.ber[ber]||0);
     var ph=0;for(var j=0;j<p.plus.length;j++){if(t.indexOf(p.plus[j])>-1)ph++;}s+=Math.min(ph*1.4,5.5);
-    /* Paul (19.09.): Lisa hatte mit Abstand die wenigsten Treffer (42 von 558). Ursache war nicht der Markt,
-       sondern ihr eigener minus-Block: "Business Travel Consultant" und "Reservations Agent" sind
-       Kundenkontakt-Rollen und wurden dadurch weggerechnet - obwohl genau das ihr Wunschjob ist.
+    /* Lauf #93: ein Profil hatte mit Abstand die wenigsten Treffer (42 von 558). Ursache war nicht
+       der Markt, sondern sein eigener minus-Block: "Business Travel Consultant" und "Reservations
+       Agent" sind Kundenkontakt-Rollen und wurden weggerechnet - obwohl genau das der Wunschjob ist.
        exempt = wenn der Titel diesen Kontext traegt, greift der minus-Block nicht. */
     if(!(p.exempt && p.exempt.test(title))){
       var mh=0;for(var k=0;k<p.minus.length;k++){if(t.indexOf(p.minus[k])>-1)mh++;}s-=mh*2.2;
