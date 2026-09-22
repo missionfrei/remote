@@ -1084,12 +1084,12 @@ FD_CHIP = '<span class="chip" data-f="fd">⭐ Für dich</span>\n    '
 # #fuerdich/#favoriten liegen ausserhalb .wrap (direkt an body) -> sonst volle Breite (5+ pro Reihe).
 # Auf die Board-Breite (1120px, wie die normalen Sektionen) zentrieren -> 3 pro Reihe Desktop,
 # 1 pro Reihe Handy (erbt die mobile .grid-Regel). Desktop+Handy konsistent mit dem restlichen Board.
-FD_CSS = ('<style>#fuerdich,#favoriten,#neuheiten{max-width:1120px;margin-left:auto;margin-right:auto;'
+FD_CSS = ('<style>#fuerdich,#favoriten,#neuheiten,#beworben{max-width:1120px;margin-left:auto;margin-right:auto;'
           'padding-left:22px;padding-right:22px;box-sizing:border-box}'
-          '#fuerdich .grid,#favoriten .grid,#neuheiten .grid{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}'
+          '#fuerdich .grid,#favoriten .grid,#neuheiten .grid,#beworben .grid{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}'
           '#neuheiten .fdhint{color:#6b6257;font-size:13px;margin:2px 0 12px;line-height:1.5}'
-          '@media(max-width:640px){#fuerdich,#favoriten,#neuheiten{padding-left:14px;padding-right:14px}'
-          '#fuerdich .grid,#favoriten .grid,#neuheiten .grid{grid-template-columns:1fr}}</style>\n')
+          '@media(max-width:640px){#fuerdich,#favoriten,#neuheiten,#beworben{padding-left:13px;padding-right:13px}'
+          '#fuerdich .grid,#favoriten .grid,#neuheiten .grid,#beworben .grid{grid-template-columns:1fr}}</style>\n')
 
 FD_SECTION = ('<section id="fuerdich" class="hidden">\n'
   '  <h2 style="border-left:4px solid #a8842e;padding-left:12px">⭐ Für dich <span class="cnt"></span></h2>\n'
