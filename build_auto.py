@@ -1308,7 +1308,14 @@ def main():
     # Paul: "1-3 Tage Homeoffice bringt nichts, muss schon 100% immer remote sein."
     _HYBRID=re.compile(r"hybrid|teilweise (home|remote)|anteilig home|\d\s*[-–bis]{1,3}\s*\d?\s*tage?\s*(pro\s*woche\s*)?(home|remote|b(ü|ue)ro)|"
                        r"\d\s*(tage?|days?)\s*(pro\s*woche|per\s*week|/\s*week)\s*(im\s*)?(home|remote|office)|"
-                       r"\b(2|3|4)\s*days?\s*(in\s*)?(the\s*)?office|office[- ]first", re.I)
+                       r"\b(2|3|4)\s*days?\s*(in\s*)?(the\s*)?office|office[- ]first|"
+                       # Lauf #104: drei Anzeigen sind nur deshalb durchgerutscht, weil "Office"
+                       # englisch geschrieben war oder das Buero als Benefit auftauchte.
+                       # Keyou: "Du entscheidest, ob du klassisch im Office oder Remote arbeitest".
+                       # Aampere: "mindestens vier Tage pro Woche bei uns im Office".
+                       # StudySmarter: "Modernes Buero mit Terrasse" - schon in #89 aufgefallen.
+                       r"im office|ins office|unserem office|b(ü|ue)ro mit |modernes b(ü|ue)ro|"
+                       r"office oder remote|remote oder office|einarbeitung (startet|beginnt) vor ort", re.I)
     # Alters-Filter auch fuer die manuelle Schicht (Feld "posted").
     # Paul (20.09., Kundenmeldung von Leia und Merlin): "Dort sind viele alte Stellen die abgelaufen sind."
     # Ursache: Eintraege OHNE jedes Datum wurden bisher behalten und alterten deshalb NIE raus.
