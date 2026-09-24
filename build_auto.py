@@ -1180,9 +1180,15 @@ FD_JS = r'''
     var grid=sec.querySelector('.grid');var empty=sec.querySelector('.fdempty');var cnt=sec.querySelector('h2 .cnt');
     grid.innerHTML='';var p=PROFILES[CUR];
     if(!p){if(empty)empty.style.display='block';if(cnt)cnt.textContent='';return;}
-    var arr=[];
+    var arr=[];var gesehen={};
     document.querySelectorAll('.card').forEach(function(c){
-      if(c.closest('#favoriten')||c.closest('#toolbox')||c.closest('#freelance')||c.closest('#fuerdich'))return;
+      /* Kundenmeldung 24.09.: Stellen standen in "Fuer dich" doppelt. Ursache: die Klone in
+         #beworben und #neuheiten bleiben im DOM stehen und wurden hier mitgezaehlt.
+         Beide Sektionen ueberspringen - und zusaetzlich jede Adresse nur einmal nehmen. */
+      if(c.closest('#favoriten')||c.closest('#toolbox')||c.closest('#freelance')||c.closest('#fuerdich')
+         ||c.closest('#beworben')||c.closest('#neuheiten'))return;
+      var u=(c.querySelector('.go a[href]')||{getAttribute:function(){return '';}}).getAttribute('href');
+      if(u){if(gesehen[u])return;gesehen[u]=1;}
       var s=fdScore(c,p);if(s>-900)arr.push({c:c,s:s});
     });
     arr.sort(function(a,b){return b.s-a.s;});
@@ -1211,10 +1217,12 @@ FD_JS = r'''
     var cnt=sec.querySelector('h2 .cnt');var hint=sec.querySelector('.fdhint');
     grid.innerHTML='';
     var p=PROFILES[CUR];
-    var frisch=[];
+    var frisch=[];var gesehenN={};
     document.querySelectorAll('.card').forEach(function(c){
       if(c.closest('#favoriten')||c.closest('#toolbox')||c.closest('#freelance')||c.closest('#fuerdich')||c.closest('#beworben')||c.closest('#neuheiten'))return;
       var a=c.dataset.age; if(a===undefined||a===''||(+a)>7)return;
+      var u=(c.querySelector('.go a[href]')||{getAttribute:function(){return '';}}).getAttribute('href');
+      if(u){if(gesehenN[u])return;gesehenN[u]=1;}   /* gleiche Dublettensperre wie in "Fuer dich" */
       frisch.push(c);
     });
     var sel=[];
@@ -1383,6 +1391,18 @@ def main():
     # auch bei den ⭐-Kundenpicks. Ersatz-Deckung fuer die Kunden liefert die ATS-Engine (zieht die
     # aktuellen Direkt-Links der Firmen automatisch) + die verbleibenden Direkt-Picks.
     # (Die statischen Freelance-/Toolbox-Sektionen im Template bleiben unberuehrt.)
+    # Kundenmeldung 23.09.: "wenn man eine Stelle als Beworben anklickt steht sie dann zweimal drinnen."
+    # Ursache war eine Stelle, die gleichzeitig in einem Bereich UND in der festen Freelance-Liste stand.
+    # Die Freelance-Liste gewinnt, die Pipeline-Karte faellt raus - sonst gibt es zwei Karten mit derselben URL.
+    _fl0=tail.find('<section id="freelance"')
+    if _fl0>=0:
+        _fl1=tail.find('</section>',_fl0)
+        _flurls={u.rstrip("/") for u in re.findall(r'href="(https?://[^"]+)"', tail[_fl0:_fl1])}
+        _bf=len(alljobs)
+        alljobs=[j for j in alljobs if j["url"].rstrip("/") not in _flurls]
+        if _bf-len(alljobs):
+            print(f"[dublette] {_bf-len(alljobs)} Karte(n) raus, weil sie schon in der Freelance-Liste stehen")
+
     _before=len(alljobs)
     _dropped=[j for j in alljobs if not is_direct(j["url"])]
     alljobs=[j for j in alljobs if is_direct(j["url"])]
@@ -1591,7 +1611,21 @@ def main():
     setstat("Positionen aktuell",total); setstat("weltweit machbar",world)
     setstat("Einsteiger-geeignet",einst); setstat("auf Deutsch",de)
 
-    open(OUT,"w",encoding="utf-8").write(head+sections+"\n\n"+tail)
+    _fertig = head+sections+"\n\n"+tail
+    # Schlusspruefung: keine URL darf zweimal auf dem Board stehen. Genau das liess eine Stelle
+    # in "Beworben" und in den Favoriten doppelt erscheinen (Kundenmeldung 23.09.).
+    _urls=re.findall(r'<div class="card"[^>]*>.*?href="(https?://[^"]+)"', _fertig, re.S)
+    _dop={u for u in _urls if _urls.count(u)>1}
+    if _dop:
+        print(f"[dublette] WARN {len(_dop)} URL(s) stehen mehrfach auf dem Board:")
+        for u in list(_dop)[:10]: print("   ", u[:100])
+    else:
+        print("[dublette] ok - jede URL steht genau einmal auf dem Board")
+    # Leere Klammern aus frueheren Textumschreibungen (Kundenmeldung 22.09.)
+    _kl=len(re.findall(r'\(\s*,|,\s*\)', _fertig))
+    if _kl: print(f"[text] WARN {_kl} kaputte Klammerstelle(n) im Text - pruefen")
+
+    open(OUT,"w",encoding="utf-8").write(_fertig)
     pct = round(100*de/total) if total else 0
     n_c=sum(1 for j in alljobs if j.get("src")=="customer")
     n_i=sum(1 for j in alljobs if j.get("src")=="import")
