@@ -1232,27 +1232,37 @@ FD_JS = r'''
   /* No-Gos -> was aus der Liste herausgerechnet (minus) bzw. ganz entfernt (hard) wird.
      Ein No-Go ist eine klare Ansage des Kunden, deshalb landen die eindeutigen Faelle hart
      im Ausschluss und nicht nur in der Abwertung. */
+  /* No-Gos -> was in der Liste nach unten rutscht.
+     Lauf #138, Pauls Ansage: "nicht extrem streng sein, dass sie dann alles direkt rauslöschen."
+     Deshalb stehen die No-Go-Woerter NUR im minus-Block, nicht im harten Ausschluss.
+     Wirkung: eine abgewaehlte Taetigkeit kostet pro Treffer 2,2 Punkte, und weil ein No-Go
+     meist mehrere Woerter trifft, landen solche Stellen weit unten statt zu verschwinden.
+     Wer sie trotzdem sehen will, findet sie - genau das war der Wunsch. */
+  /* No-Gos -> was in der Liste nach unten rutscht.
+     Lauf #138, Pauls Ansage: "nicht extrem streng sein, dass sie dann alles direkt rauslöschen."
+     Zwei Konsequenzen daraus:
+     1. Die No-Go-Woerter stehen NUR im minus-Block, es gibt keinen harten Ausschluss.
+     2. Pro No-Go stehen hier bewusst nur zwei bis vier Woerter. Der erste Versuch hatte bis zu
+        elf pro No-Go - bei 2,2 Punkten Abzug je Treffer fielen die Stellen damit unter die
+        Drei-Sterne-Grenze und verschwanden doch aus der Liste. Mit wenigen, treffenden Woertern
+        kostet ein No-Go rund vier bis sieben Punkte: die Stelle rutscht weit nach unten,
+        bleibt aber sichtbar. Genau das war der Wunsch. */
   var RT_NOGO={
-    tel:    {minus:['telefonie','telefonisch','hotline','anrufe','inbound','outbound'],
-             hard:['call center','callcenter','call agent','telefonist','telefonakquise']},
-    kunden: {minus:['kundenservice','kundenkontakt','kundenbetreuung','customer service','customer care'],
-             hard:['call center','callcenter','kundenservice','customer support']},
-    verkauf:{minus:['vertrieb','sales','verkauf','akquise','provision','neukunden'],
-             hard:['vertrieb','sales manager','sales representative','account executive','closer','appointment setter','telesales','kaltakquise']},
-    praes:  {minus:['praesentation','schulung','webinar','moderation'],hard:[]},
-    zahlen: {minus:['buchhaltung','controlling','rechnungswesen','bilanz','lohn','datev'],
-             hard:['buchhalt','steuerber','steuerfach','bilanzbuch','lohnbuchhalt','accountant']},
-    schreiben:{minus:['texter','copywriter','redaktion','content creation','lektorat'],hard:[]},
-    social: {minus:['social media','community management','instagram','tiktok','influencer'],
-             hard:['social media manager','community manager']},
-    team:   {minus:['teamarbeit','teamassistenz'],hard:[]},
-    allein: {minus:['eigenverantwortlich allein'],hard:[]},
-    monoton:{minus:['datenerfassung','data entry','dateneingabe','transkription','annotation'],hard:[]},
-    unklar: {minus:['startup','aufbau','greenfield'],hard:[]},
-    fest:   {minus:['feste arbeitszeiten','schichtplan','servicezeiten'],hard:[]},
-    schicht:{minus:['schicht','wochenende','nachtschicht'],hard:['schichtdienst','wechselschicht']},
-    verantw:{minus:['verantwortung','budgetverantwortung','fuehrung'],hard:['teamleit','abteilungsleit']},
-    screen: {minus:[],hard:[]}
+    tel:      ['call center','callcenter','telefonist','outbound'],
+    kunden:   ['kundenservice','customer service','kundenbetreuung'],
+    verkauf:  ['vertrieb','sales','akquise','closer'],
+    praes:    ['schulung','webinar'],
+    zahlen:   ['buchhaltung','steuer','controlling'],
+    schreiben:['texter','copywriter','redaktion'],
+    social:   ['social media','community management'],
+    team:     ['teamassistenz'],
+    allein:   [],
+    monoton:  ['datenerfassung','data entry','transkription'],
+    unklar:   ['startup'],
+    fest:     ['feste arbeitszeiten','schichtplan'],
+    schicht:  ['schicht','wochenende'],
+    verantw:  ['teamleit','abteilungsleit'],
+    screen:   []
   };
   function rtProfile(){
     if(!CUR)return null;
@@ -1284,21 +1294,33 @@ FD_JS = r'''
     (o.skills||[]).forEach(function(s){ (RT_SKILL[s]||[]).forEach(function(w){ if(plus.indexOf(w)<0)plus.push(w); }); });
     var minus=[],hard=[];
     (o.nogos||[]).forEach(function(n){
-      var r=RT_NOGO[n]; if(!r)return;
-      r.minus.forEach(function(w){ if(minus.indexOf(w)<0)minus.push(w); });
-      r.hard.forEach(function(w){ if(hard.indexOf(w)<0)hard.push(w); });
+      (RT_NOGO[n]||[]).forEach(function(w){ if(minus.indexOf(w)<0)minus.push(w); });
     });
     /* Ein Wort, das aus den Skills als Pluspunkt kommt und zugleich als No-Go abgewaehlt wurde,
        gilt als abgewaehlt - die ausdrueckliche Ansage schlaegt die Selbsteinschaetzung. */
     plus=plus.filter(function(w){ return minus.indexOf(w)<0 && hard.indexOf(w)<0; });
-    /* Senior- und Fuehrungstitel sind bei allen Profilen draussen (Quereinsteiger-Fokus). */
+    /* Senior- und Fuehrungstitel sind bei allen Profilen draussen (Quereinsteiger-Fokus).
+       Das ist der EINZIGE harte Ausschluss, den die Bruecke setzt - er kommt aus Pauls
+       Grundregel, nicht aus den Antworten des Kunden. */
     ['senior','architekt','head of'].forEach(function(w){ if(hard.indexOf(w)<0)hard.push(w); });
+
+    /* Sprachstufe aus dem Workbook (Selbsteinschaetzung Englisch, 1 bis 5).
+       Fehlt sie - alte Auswertung oder Feld nicht bewertet -, gilt weiter das feste Profil,
+       und ohne festes Profil die vorsichtige Annahme Deutsch plus sichtbares Englisch. */
+    var sprache;
+    if(typeof o.en==='number' && o.en>0){
+      if(o.en<=2)      sprache={langs:['de'], deonly:true};
+      else if(o.en===3) sprache={langs:['de'], deonly:false};
+      else              sprache={langs:['de','en'], deonly:false};
+    } else {
+      sprache={langs:basis.langs||['de'], deonly:basis.deonly===true};
+    }
 
     return {
       ber:ber, plus:plus, minus:minus, hard:hard,
       exempt:basis.exempt,
-      langs:basis.langs||['de'],
-      deonly:basis.deonly===true,
+      langs:sprache.langs,
+      deonly:sprache.deonly,
       reg:{world:3,eu:2,de:1},
       _rt:true
     };
