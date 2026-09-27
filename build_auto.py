@@ -920,7 +920,7 @@ def gather():
 # Wo die Quelle ein Veroeffentlichungsdatum liefert (Feeds ueber `posted`, manuelle Eintraege ueber
 # das Feld "posted"), wird alles Aeltere verworfen. Quellen OHNE Datum bleiben unberuehrt -
 # lieber eine undatierte Stelle drin als die halbe Datenbank blind wegwerfen.
-MAXAGE_DAYS = 21
+MAXAGE_DAYS = 25
 def _age_days(val):
     """ISO-Datum, RFC-Datum oder Unix-Timestamp -> Alter in Tagen. None = unbekannt."""
     if val is None or val == "": return None
