@@ -106,8 +106,18 @@
   .cnt{font-size:12px;color:var(--muted);font-weight:500;margin-left:8px;letter-spacing:.05em}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px}
   /* Sektionen auf gleiche Breite wie der Kopf begrenzen (sonst laufen die Karten an den Rand / rechts abgeschnitten) */
-  section[data-ber],#freelance,#toolbox,#favoriten,#beworben,#fuerdich,#neuheiten{max-width:1120px;margin-left:auto;margin-right:auto;padding-left:22px;padding-right:22px;box-sizing:border-box}
-  @media (max-width:640px){section[data-ber],#freelance,#toolbox,#favoriten,#beworben,#fuerdich,#neuheiten{padding-left:13px;padding-right:13px}}
+  section[data-ber],#freelance,#toolbox,#favoriten,#beworben,#fuerdich,#neuheiten,#richtung{max-width:1120px;margin-left:auto;margin-right:auto;padding-left:22px;padding-right:22px;box-sizing:border-box}
+  @media (max-width:640px){section[data-ber],#freelance,#toolbox,#favoriten,#beworben,#fuerdich,#neuheiten,#richtung{padding-left:13px;padding-right:13px}}
+  /* Lauf #137: Das Workbook "Finde deine Richtung" liegt als eigene Datei daneben und laeuft
+     in einem iframe. Bewusst so: eigenes Dokument heisst keine CSS- und keine Variablen-
+     Kollision mit dem Board, und das Workbook bleibt einzeln benutzbar. Gleiche Herkunft,
+     deshalb schreibt es sein Ergebnis direkt in denselben localStorage, den das Board liest.
+     #richtung ist ein div und keine section - so taucht es in keiner section-Schleife auf. */
+  #richtung .rtbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin:0 0 10px}
+  #richtung .rthint{color:#6b6257;font-size:13px;line-height:1.5;margin:2px 0 12px;max-width:70ch}
+  #richtung .rtok{color:#1f7a44;font-weight:700}
+  #richtung .rtframe{width:100%;height:78vh;min-height:520px;border:1px solid #e2ded6;border-radius:14px;background:#fff;display:block}
+  @media (max-width:640px){#richtung .rtframe{height:82vh;min-height:460px;border-radius:10px}}
   /* Lauf #107: Die ersten Sektionen liegen in einem Container, der die Innenabstaende schon mitbringt.
      Dadurch bekamen sie sie doppelt - ihre Karten standen 22px weiter rechts als in allen anderen
      Sektionen, und beim Umschalten der Filter sprang das Layout sichtbar. Hier einmal neutralisiert. */
@@ -239,6 +249,7 @@
     <span class="chip" data-f="neu">🆕 Neu für dich</span>
     <span class="chip" data-f="fav">⭐ Deine Favoriten</span>
     <span class="chip" data-f="bew">✅ Beworben</span>
+    <span class="chip" data-f="richtung">🧭 Finde deine Richtung</span>
   </div>
 </div>
 
@@ -4471,6 +4482,13 @@
   </div>
 </section>
 
+<div id="richtung" class="hidden">
+  <h2 style="border-left:4px solid #0d6b60;padding-left:12px">🧭 Finde deine Richtung</h2>
+  <p class="rthint">Zwölf Kapitel, in denen du sortierst, was dir liegt, was du kannst und was für dich nicht infrage kommt. Am Ende steht deine berufliche Richtung – und dein Dashboard stellt sich automatisch darauf ein: <b>⭐ Für dich</b> und <b>🆕 Neu für dich</b> rechnen danach mit deinen Antworten statt mit einer Voreinstellung. Du kannst jederzeit aufhören und später weitermachen, deine Antworten bleiben in diesem Browser gespeichert.</p>
+  <div class="rtbar"><span class="rthint" id="rtstatus" style="margin:0"></span></div>
+  <iframe class="rtframe" id="rtframe" title="Finde deine Richtung – Workbook" loading="lazy"></iframe>
+</div>
+
 <footer><b>Zugang &amp; Nutzung.</b> Dieser Mitglieder-Bereich und deine Zugangsdaten sind ausschließlich für dich persönlich bestimmt. Die Weitergabe von Link, Passwort oder Inhalten an Dritte ist nicht gestattet und kann zur sofortigen Sperrung des Zugangs führen. Die Zusammenstellung dieser Seite (Auswahl, Aufbereitung, Struktur) ist urheberrechtlich geschützt; eine Vervielfältigung oder Veröffentlichung – auch auszugsweise – bedarf unserer vorherigen Zustimmung.
 <br><br><b>Stellenangebote.</b> Alle gelisteten Positionen stammen von öffentlich zugänglichen Quellen bzw. den jeweiligen Anbietern und werden regelmäßig aktualisiert. Wir sind nicht der Anbieter dieser Stellen: Bewerbung, Vertragsschluss und alle Konditionen laufen ausschließlich zwischen dir und dem jeweiligen Unternehmen. Für Inhalte, Verfügbarkeit und Richtigkeit verlinkter Drittseiten übernehmen wir keine Gewähr; Angebote können jederzeit durch den Anbieter offline genommen werden. Diese Übersicht stellt keine Arbeitsvermittlung und keine Rechts- oder Steuerberatung dar; Erfolgs- oder Einstellungszusagen sind damit nicht verbunden.
 <br><br><b>Meldungen.</b> Ein Link funktioniert nicht oder eine Stelle ist vergeben? Sag uns kurz in deiner WhatsApp-Gruppe Bescheid – wir halten das Board für dich aktuell.
@@ -4619,6 +4637,15 @@
     var sects=document.querySelectorAll('section');
     fav.classList.add('hidden');
     bew.classList.add('hidden');
+    /* Lauf #137: Workbook-Tab. #richtung ist ein div, taucht also in sects gar nicht auf -
+       deshalb muss es hier von Hand aus- und eingeblendet werden. */
+    var rtS=document.getElementById('richtung'); if(rtS)rtS.classList.add('hidden');
+    if(active==='richtung'){
+      rtOpen();
+      sects.forEach(function(s2){s2.classList.add('hidden');});
+      if(rtS)rtS.classList.remove('hidden');
+      return;
+    }
     if(active==='fav'){
       buildFav();
       sects.forEach(function(s2){s2.classList.add('hidden');});
@@ -4672,6 +4699,55 @@
      Favoriten und Haken liegen deshalb im localStorage des jeweiligen Geraets. Echte automatische
      Synchronisierung braucht einen Server (siehe STATUS). Bis dahin: ein Code zum Kopieren.
      Wichtig: beim Uebernehmen wird ZUSAMMENGEFUEHRT, nie ersetzt - sonst verliert ein Geraet Daten. */
+  /* ---- Workbook "Finde deine Richtung" (Lauf #137) ----
+     Liegt als eigene Datei workbook.html daneben und laeuft in einem iframe: eigenes Dokument,
+     also keine CSS- und keine Variablen-Kollision mit dem Board, und die Datei bleibt einzeln
+     benutzbar. Das Passwort wandert als ?pw= mit, damit das Workbook pro Zugang speichert.
+     Der src wird erst beim ersten Oeffnen gesetzt - sonst laedt jeder Board-Aufruf 370 KB mit. */
+  function rtOpen(){
+    var f=document.getElementById('rtframe'); if(!f)return;
+    if(!f.getAttribute('src')){
+      f.setAttribute('src','workbook.html'+(CUR?('?pw='+encodeURIComponent(CUR)):''));
+    }
+    rtStatus();
+  }
+  function rtProfil(){
+    if(!CUR)return null;
+    try{
+      var raw=localStorage.getItem('fdr_prof_'+CUR); if(!raw)return null;
+      var o=JSON.parse(raw);
+      if(!o||!o.v||!o.cats)return null;
+      /* Dieselbe Schwelle wie im Scoring. Das Workbook speichert schon beim ersten Oeffnen,
+         und ein leeres Workbook sieht trotzdem nach Ergebnis aus: scores() gibt jeder Richtung
+         +2 dafuer, dass kein No-Go dagegen steht. Deshalb zaehlt nicht die Punktsumme, sondern
+         wie viele Felder wirklich beantwortet sind (sub). */
+      if(typeof o.sub==='number')return o.sub>=6?o:null;
+      var summe=0; for(var k in o.cats){ summe+=(+o.cats[k]||0); }
+      return summe>=24?o:null;
+    }catch(e){return null;}
+  }
+  function rtStatus(){
+    var el=document.getElementById('rtstatus'); if(!el)return;
+    var p=rtProfil();
+    if(!p){el.innerHTML='Noch nicht genug ausgefüllt. Sobald du die ersten Kapitel durch hast, rechnet dein Dashboard damit – bis dahin bleibt deine bisherige Auswahl stehen.';return;}
+    var namen={sales:'Sales',cs:'Customer Success',recruiting:'Recruiting',marketing:'Marketing',
+               admin:'Admin und Orga',content:'Content',data:'Daten',tech:'Tech'};
+    var top=(p.top||[]).map(function(id){return namen[id]||id;}).slice(0,3);
+    el.innerHTML='<span class="rtok">Dein Ergebnis ist aktiv.</span> Deine stärksten Richtungen: '+
+      (top.join(', ')||'noch offen')+
+      (p.nogos&&p.nogos.length?(' · '+p.nogos.length+' No-Gos werden aus deiner Liste herausgerechnet.'):'')+
+      ' Schau unter ⭐ Für dich.';
+  }
+  /* Das iframe ist ein eigenes Dokument gleicher Herkunft - Schreibvorgaenge daraus loesen im
+     Board ein storage-Ereignis aus. Damit aktualisiert sich das Dashboard, waehrend der Kunde
+     das Workbook ausfuellt, ohne dass er etwas kopieren oder neu laden muss. */
+  window.addEventListener('storage',function(e){
+    if(!e.key||!CUR)return;
+    if(e.key!=='fdr_prof_'+CUR)return;
+    rtStatus();
+    try{ if(active==='fd')buildFD(); else if(active==='neu')buildNEU(); }catch(_){}
+  });
+
   function syncSay(t,ok){var m=document.getElementById('syncmsg');if(!m)return;m.textContent=t;m.style.color=ok?'#1f7a44':'#a33';}
   function syncGen(){
     if(!CUR){syncSay('Bitte zuerst einloggen.',false);return;}

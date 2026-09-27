@@ -1168,6 +1168,144 @@ FD_JS = r'''
   };
   function fdRegion(c){var t=(c.querySelector('.meta')||c).textContent;if(/Weltweit|\u{1F30D}/u.test(t))return'world';if(/EU|\u{1F1EA}\u{1F1FA}|Europa/u.test(t))return'eu';return'de';}
   function fdText(c){return (((c.querySelector('h3')||{}).textContent||'')+' '+((c.querySelector('.info')||{}).textContent||'')+' '+((c.querySelector('.company')||{}).textContent||'')).toLowerCase();}
+
+  /* ================= Bruecke zum Workbook "Finde deine Richtung" (Lauf #137) =================
+     Das Workbook laeuft als eigene Datei im iframe und legt bei jedem Speichern eine kompakte
+     Auswertung unter fdr_prof_<passwort> ab: Punktzahl je Richtung (0-20), die drei staerksten,
+     die selbst gewaehlte Richtung, die No-Gos, die stark bewerteten Skills.
+     Hier wird daraus ein Profil in genau der Form gebaut, die fdScore ohnehin erwartet.
+     Wer das Workbook nicht gemacht hat, bekommt unveraendert das fest hinterlegte Profil.
+
+     Drei Dinge bleiben bewusst fest und kommen NICHT aus dem Workbook:
+     - reg ist bei allen gleich (weltweit 3, EU 2, Deutschland 1). Pauls Reichweiten-Regel.
+     - deonly wird nie aus dem Workbook gesetzt - es fragt keine Sprachkenntnisse ab.
+       Steht ein festes Profil daneben, werden dessen Sprachangaben uebernommen.
+     - Der Einsteiger- und der 100-Prozent-Filter laufen schon im Build, nicht hier. */
+
+  /* Die acht Richtungen des Workbooks auf die sieben Bereiche des Boards.
+     Gesundheit ist ein Funktions-Tab, kein Branchen-Tab: dort stehen Service- und
+     Buerorollen bei Gesundheitsfirmen, deshalb erbt er von cs und admin. */
+  var RT_BER={
+    sales:      {vertrieb:1},
+    cs:         {service:1, gesundheit:0.5},
+    recruiting: {buero:0.8, service:0.4},
+    marketing:  {marketing:1},
+    admin:      {buero:1, gesundheit:0.4},
+    content:    {marketing:0.9, sprache:0.7},
+    data:       {buero:0.7, it:0.5},
+    tech:       {it:1}
+  };
+  /* Skill-Schluessel des Workbooks -> Woerter, unter denen solche Stellen ausgeschrieben werden. */
+  var RT_SKILL={
+    k_reden:['telefon','beratung','kundenberater'],
+    k_zuhoeren:['kundenbetreuung','betreuung','support'],
+    k_ueberzeugen:['vertrieb','sales','akquise'],
+    k_praesentieren:['schulung','training','webinar'],
+    k_schreiben:['schriftlich','e-mail support','korrespondenz','texter'],
+    o_planen:['koordination','planung','projektassistenz'],
+    o_strukturieren:['backoffice','back office','sachbearbeit','verwaltung'],
+    o_termine:['terminplanung','kalender','disposition','reservier'],
+    o_priorisieren:['auftragsabwicklung','auftragsbearbeitung'],
+    o_prozesse:['prozess','operations','organisation'],
+    c_design:['grafik','design','canva','gestalter'],
+    c_video:['video','videobearbeitung','videoschnitt','cutter','reels'],
+    c_foto:['bildbearbeitung','foto'],
+    c_social:['social media','community management','instagram','tiktok'],
+    c_texte:['content','copywriting','copywriter','redaktion','newsletter'],
+    c_ideen:['kreativ','kampagne','creative'],
+    a_zahlen:['buchhaltung','abrechnung','rechnungspruefung','controlling'],
+    a_recherche:['recherche','datenerfassung','data entry'],
+    a_daten:['datenpflege','stammdaten','auswertung','reporting'],
+    a_problem:['fehleranalyse','problemloesung','ticket'],
+    a_logik:['qualitaetspruef','pruefung'],
+    t_software:['software','anwendersupport','application support'],
+    t_computer:['it-support','it support','helpdesk','service desk'],
+    t_websites:['website','shop','wordpress','shopify'],
+    t_automation:['automatisierung','automation'],
+    t_systeme:['systembetreuung','technischer support'],
+    m_kunden:['kundenservice','kundenkontakt','customer service'],
+    m_beratung:['kundenberatung','beratung'],
+    m_recruiting:['recruiting','personal','talent'],
+    m_support:['kundensupport','customer support','chat support','1st level'],
+    m_team:['teamassistenz','assistenz']
+  };
+  /* No-Gos -> was aus der Liste herausgerechnet (minus) bzw. ganz entfernt (hard) wird.
+     Ein No-Go ist eine klare Ansage des Kunden, deshalb landen die eindeutigen Faelle hart
+     im Ausschluss und nicht nur in der Abwertung. */
+  var RT_NOGO={
+    tel:    {minus:['telefonie','telefonisch','hotline','anrufe','inbound','outbound'],
+             hard:['call center','callcenter','call agent','telefonist','telefonakquise']},
+    kunden: {minus:['kundenservice','kundenkontakt','kundenbetreuung','customer service','customer care'],
+             hard:['call center','callcenter','kundenservice','customer support']},
+    verkauf:{minus:['vertrieb','sales','verkauf','akquise','provision','neukunden'],
+             hard:['vertrieb','sales manager','sales representative','account executive','closer','appointment setter','telesales','kaltakquise']},
+    praes:  {minus:['praesentation','schulung','webinar','moderation'],hard:[]},
+    zahlen: {minus:['buchhaltung','controlling','rechnungswesen','bilanz','lohn','datev'],
+             hard:['buchhalt','steuerber','steuerfach','bilanzbuch','lohnbuchhalt','accountant']},
+    schreiben:{minus:['texter','copywriter','redaktion','content creation','lektorat'],hard:[]},
+    social: {minus:['social media','community management','instagram','tiktok','influencer'],
+             hard:['social media manager','community manager']},
+    team:   {minus:['teamarbeit','teamassistenz'],hard:[]},
+    allein: {minus:['eigenverantwortlich allein'],hard:[]},
+    monoton:{minus:['datenerfassung','data entry','dateneingabe','transkription','annotation'],hard:[]},
+    unklar: {minus:['startup','aufbau','greenfield'],hard:[]},
+    fest:   {minus:['feste arbeitszeiten','schichtplan','servicezeiten'],hard:[]},
+    schicht:{minus:['schicht','wochenende','nachtschicht'],hard:['schichtdienst','wechselschicht']},
+    verantw:{minus:['verantwortung','budgetverantwortung','fuehrung'],hard:['teamleit','abteilungsleit']},
+    screen: {minus:[],hard:[]}
+  };
+  function rtProfile(){
+    if(!CUR)return null;
+    var o=null;
+    try{ var raw=localStorage.getItem('fdr_prof_'+CUR); if(!raw)return null; o=JSON.parse(raw); }catch(e){ return null; }
+    if(!o||!o.v||!o.cats)return null;
+    /* Zu wenig ausgefuellt: dann traegt das Ergebnis noch nicht. Lieber das feste Profil
+       weiterbenutzen, als dem Kunden eine Liste aus drei angeklickten Feldern zu bauen.
+       Gemessen wird die Zahl der beantworteten Felder, NICHT die Punktsumme: ein leeres
+       Workbook kommt allein ueber den No-Go-Bonus schon auf rund 16 Punkte. */
+    if(typeof o.sub==='number'){ if(o.sub<6)return null; }
+    else { var summe=0; for(var k0 in o.cats){ summe+=(+o.cats[k0]||0); } if(summe<24)return null; }
+
+    var basis=PROFILES[CUR]||{};
+    var ber={};
+    for(var cid in RT_BER){
+      var wert=(+o.cats[cid]||0)/20;              /* 0 bis 1 */
+      var m=RT_BER[cid];
+      for(var b in m){ ber[b]=Math.max(ber[b]||0, Math.round(wert*m[b]*35)/10); }   /* 0 bis 3.5 */
+    }
+    /* Die selbst gewaehlte Richtung im Abschlusskapitel schlaegt die Rechnung:
+       wer sich entschieden hat, will diese Stellen zuerst sehen. */
+    if(o.choice&&RT_BER[o.choice]){
+      var mc=RT_BER[o.choice];
+      for(var b2 in mc){ ber[b2]=Math.max(ber[b2]||0, mc[b2]*3.5); }
+    }
+    var plus=[];
+    (o.jobs||[]).forEach(function(j){ var t=(j||'').toLowerCase(); if(t&&plus.indexOf(t)<0)plus.push(t); });
+    (o.skills||[]).forEach(function(s){ (RT_SKILL[s]||[]).forEach(function(w){ if(plus.indexOf(w)<0)plus.push(w); }); });
+    var minus=[],hard=[];
+    (o.nogos||[]).forEach(function(n){
+      var r=RT_NOGO[n]; if(!r)return;
+      r.minus.forEach(function(w){ if(minus.indexOf(w)<0)minus.push(w); });
+      r.hard.forEach(function(w){ if(hard.indexOf(w)<0)hard.push(w); });
+    });
+    /* Ein Wort, das aus den Skills als Pluspunkt kommt und zugleich als No-Go abgewaehlt wurde,
+       gilt als abgewaehlt - die ausdrueckliche Ansage schlaegt die Selbsteinschaetzung. */
+    plus=plus.filter(function(w){ return minus.indexOf(w)<0 && hard.indexOf(w)<0; });
+    /* Senior- und Fuehrungstitel sind bei allen Profilen draussen (Quereinsteiger-Fokus). */
+    ['senior','architekt','head of'].forEach(function(w){ if(hard.indexOf(w)<0)hard.push(w); });
+
+    return {
+      ber:ber, plus:plus, minus:minus, hard:hard,
+      exempt:basis.exempt,
+      langs:basis.langs||['de'],
+      deonly:basis.deonly===true,
+      reg:{world:3,eu:2,de:1},
+      _rt:true
+    };
+  }
+  /* Ueberall dort, wo bisher PROFILES[CUR] stand, steht jetzt fdP(): Workbook zuerst,
+     festes Profil als Rueckfall. */
+  function fdP(){ try{ return rtProfile()||PROFILES[CUR]; }catch(e){ return PROFILES[CUR]; } }
   function fdScore(c,p){
     var title=((c.querySelector('h3')||{}).textContent||'').toLowerCase();
     for(var i=0;i<p.hard.length;i++){if(title.indexOf(p.hard[i])>-1)return -999;}
@@ -1193,7 +1331,7 @@ FD_JS = r'''
   function buildFD(){
     var sec=document.getElementById('fuerdich');if(!sec)return;
     var grid=sec.querySelector('.grid');var empty=sec.querySelector('.fdempty');var cnt=sec.querySelector('h2 .cnt');
-    grid.innerHTML='';var p=PROFILES[CUR];
+    grid.innerHTML='';var p=fdP();
     if(!p){if(empty)empty.style.display='block';if(cnt)cnt.textContent='';return;}
     var arr=[];var gesehen={};
     document.querySelectorAll('.card').forEach(function(c){
@@ -1231,7 +1369,7 @@ FD_JS = r'''
     var grid=sec.querySelector('.grid');var empty=sec.querySelector('.fdempty');
     var cnt=sec.querySelector('h2 .cnt');var hint=sec.querySelector('.fdhint');
     grid.innerHTML='';
-    var p=PROFILES[CUR];
+    var p=fdP();
     var frisch=[];var gesehenN={};
     document.querySelectorAll('.card').forEach(function(c){
       if(c.closest('#favoriten')||c.closest('#toolbox')||c.closest('#freelance')||c.closest('#fuerdich')||c.closest('#beworben')||c.closest('#neuheiten'))return;
@@ -1272,7 +1410,7 @@ FD_JS = r'''
   }
   function activateFDForUser(){
     var chip=document.querySelector('.chip[data-f="fd"]');if(!chip)return;
-    if(PROFILES[CUR]){
+    if(fdP()){
       chip.style.display='';
       try{
         document.querySelectorAll('.chip:not(.lv):not(.langf):not(.directf)').forEach(function(x){x.classList.remove('active');});
