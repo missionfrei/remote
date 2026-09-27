@@ -106,8 +106,18 @@
   .cnt{font-size:12px;color:var(--muted);font-weight:500;margin-left:8px;letter-spacing:.05em}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px}
   /* Sektionen auf gleiche Breite wie der Kopf begrenzen (sonst laufen die Karten an den Rand / rechts abgeschnitten) */
-  section[data-ber],#freelance,#toolbox,#favoriten,#beworben,#fuerdich,#neuheiten{max-width:1120px;margin-left:auto;margin-right:auto;padding-left:22px;padding-right:22px;box-sizing:border-box}
-  @media (max-width:640px){section[data-ber],#freelance,#toolbox,#favoriten,#beworben,#fuerdich,#neuheiten{padding-left:13px;padding-right:13px}}
+  section[data-ber],#freelance,#toolbox,#favoriten,#beworben,#fuerdich,#neuheiten,#richtung{max-width:1120px;margin-left:auto;margin-right:auto;padding-left:22px;padding-right:22px;box-sizing:border-box}
+  @media (max-width:640px){section[data-ber],#freelance,#toolbox,#favoriten,#beworben,#fuerdich,#neuheiten,#richtung{padding-left:13px;padding-right:13px}}
+  /* Lauf #137: Das Workbook "Finde deine Richtung" liegt als eigene Datei daneben und laeuft
+     in einem iframe. Bewusst so: eigenes Dokument heisst keine CSS- und keine Variablen-
+     Kollision mit dem Board, und das Workbook bleibt einzeln benutzbar. Gleiche Herkunft,
+     deshalb schreibt es sein Ergebnis direkt in denselben localStorage, den das Board liest.
+     #richtung ist ein div und keine section - so taucht es in keiner section-Schleife auf. */
+  #richtung .rtbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin:0 0 10px}
+  #richtung .rthint{color:#6b6257;font-size:13px;line-height:1.5;margin:2px 0 12px;max-width:70ch}
+  #richtung .rtok{color:#1f7a44;font-weight:700}
+  #richtung .rtframe{width:100%;height:78vh;min-height:520px;border:1px solid #e2ded6;border-radius:14px;background:#fff;display:block}
+  @media (max-width:640px){#richtung .rtframe{height:82vh;min-height:460px;border-radius:10px}}
   /* Lauf #107: Die ersten Sektionen liegen in einem Container, der die Innenabstaende schon mitbringt.
      Dadurch bekamen sie sie doppelt - ihre Karten standen 22px weiter rechts als in allen anderen
      Sektionen, und beim Umschalten der Filter sprang das Layout sichtbar. Hier einmal neutralisiert. */
@@ -217,10 +227,10 @@
 </div>
 
 <div class="stats">
-  <div class="stat"><b>422</b><span>Positionen aktuell</span></div>
-  <div class="stat"><b>96</b><span>weltweit machbar</span></div>
+  <div class="stat"><b>426</b><span>Positionen aktuell</span></div>
+  <div class="stat"><b>97</b><span>weltweit machbar</span></div>
   <div class="stat"><b>205</b><span>Einsteiger-geeignet</span></div>
-  <div class="stat"><b>338</b><span>auf Deutsch</span></div>
+  <div class="stat"><b>341</b><span>auf Deutsch</span></div>
 </div>
 
 <div class="toolbar">
@@ -241,10 +251,11 @@
     <span class="chip" data-f="neu">🆕 Neu für dich</span>
     <span class="chip" data-f="fav">⭐ Deine Favoriten</span>
     <span class="chip" data-f="bew">✅ Beworben</span>
+    <span class="chip" data-f="richtung">🧭 Finde deine Richtung</span>
   </div>
 </div>
 
-<section data-ber="service"><h2 style="border-left:4px solid #0e7a52;padding-left:12px">🟢 Service <span class="cnt">103 Stellen</span></h2>
+<section data-ber="service"><h2 style="border-left:4px solid #0e7a52;padding-left:12px">🟢 Service <span class="cnt">104 Stellen</span></h2>
 <div class="grid">
 <div class="card" data-bereich="service" data-level="einsteiger" data-lang="de" data-direct="1" data-posted="2026-09-17" data-age="10">
   <h3>Player Support Agent (m/w/d) Deutsch, weltweit remote</h3>
@@ -967,10 +978,17 @@
   <div class="meta"><span class="tag world">🌍 Weltweit</span><span class="tag">📈 Mit Erfahrung</span><span class="tag">Englisch</span><span class="tag direct">→ Direkt zur Stelle</span><span class="tag neu">🆕 NEU</span><span class="tag date">📅 27.09.2026</span></div>
   <div class="go"><a href="https://weworkremotely.com/remote-jobs/kobie-marketing-remote-customer-service-representative" target="_blank" rel="noopener">Zur Stelle →</a></div>
 </div>
+<div class="card" data-bereich="service" data-level="erfahren" data-lang="en" data-direct="1" data-posted="2026-09-27" data-age="0">
+  <h3>US Remote Technical Support Advisor</h3>
+  <div class="company">VXI Global Solutions</div>
+  <p class="info">Headquarters: Los Angeles, CA URL: https://vxi.com/ Location: Remote Join Us as a Technical Support Advisor! &amp;nbsp; Are you passionate about delivering exceptional…</p>
+  <div class="meta"><span class="tag world">🌍 Weltweit</span><span class="tag">📈 Mit Erfahrung</span><span class="tag">Englisch</span><span class="tag direct">→ Direkt zur Stelle</span><span class="tag neu">🆕 NEU</span><span class="tag date">📅 27.09.2026</span></div>
+  <div class="go"><a href="https://weworkremotely.com/remote-jobs/vxi-global-solutions-us-remote-technical-support-advisor" target="_blank" rel="noopener">Zur Stelle →</a></div>
+</div>
 </div>
 </div></section>
 
-<section data-ber="buero"><h2 style="border-left:4px solid #b07d10;padding-left:12px">🟡 Büro & Orga <span class="cnt">79 Stellen</span></h2>
+<section data-ber="buero"><h2 style="border-left:4px solid #b07d10;padding-left:12px">🟡 Büro & Orga <span class="cnt">80 Stellen</span></h2>
 <div class="grid">
 <div class="card" data-bereich="buero" data-level="einsteiger" data-lang="de" data-direct="1" data-posted="2026-09-10" data-age="17">
   <h3>Back Office Professional (f/m/x) - geringfügig, 8,5 h/Woche</h3>
@@ -1435,6 +1453,13 @@
   <div class="go"><a href="https://envelio.jobs.personio.de/job/1167057" target="_blank" rel="noopener">Zur Stelle →</a></div>
 </div>
 <div class="card" data-bereich="buero" data-level="erfahren" data-lang="de" data-direct="1" data-posted="2026-09-27" data-age="0">
+  <h3>Kubernetes Administrator/Private Cloud Engineer (m/w/d)</h3>
+  <div class="company">virtual7 GmbH</div>
+  <p class="info">Als IT-Dienstleister treiben wir die Digitalisierung des öffentlichen Sektors voran und schaffen echten Mehrwert für Millionen Menschen in Deutschland. Wir können vieles…</p>
+  <div class="meta"><span class="tag de">🇩🇪 DE</span><span class="tag">📈 Mit Erfahrung</span><span class="tag delang">Deutsch</span><span class="tag direct">→ Direkt zur Stelle</span><span class="tag neu">🆕 NEU</span><span class="tag date">📅 27.09.2026</span></div>
+  <div class="go"><a href="https://www.arbeitnow.com/jobs/companies/virtual7-gmbh/remote-kubernetes-administrator-private-cloud-engineer-karlsruhe-169377" target="_blank" rel="noopener">Zur Stelle →</a></div>
+</div>
+<div class="card" data-bereich="buero" data-level="erfahren" data-lang="de" data-direct="1" data-posted="2026-09-27" data-age="0">
   <h3>Payroll Specialist</h3>
   <div class="company">Alimentiv</div>
   <p class="info">The Payroll Specialist exists to ensure the accurate, complaint, and timely delivery of global payroll across all countries in which Alimentiv operates, maintaining a…</p>
@@ -1692,7 +1717,7 @@
 </div>
 </div></section>
 
-<section data-ber="marketing"><h2 style="border-left:4px solid #1e57b0;padding-left:12px">🔵 Marketing & Kreativ <span class="cnt">100 Stellen</span></h2>
+<section data-ber="marketing"><h2 style="border-left:4px solid #1e57b0;padding-left:12px">🔵 Marketing & Kreativ <span class="cnt">101 Stellen</span></h2>
 <div class="grid">
 <div class="card" data-bereich="marketing" data-level="einsteiger" data-lang="de" data-direct="1" data-posted="2026-09-15" data-age="12">
   <h3>Marketing and Sales Executive</h3>
@@ -1756,6 +1781,13 @@
   <p class="info">Diese Rolle ist zu 100 Prozent remote und offen fuer Kandidaten mit Wohnsitz in Deutschland, Spanien, Portugal oder Grossbritannien, so steht es woertlich in der Anzeige. Link am 27.09.2026 geprueft. Strategische B2B-Partnerschaften und Influencer-Kooperationen aufbauen und skalieren, den ganzen Weg von der Ansprache ueber die Verhandlung bis zur Auswertung begleiten. Mindestens zwei Jahre Erfahrung im Partnermanagement und Kenntnis des DACH-Marktes werden erwartet. Fliessend Deutsch und Englisch verlangt.</p>
   <div class="meta"><span class="tag eu">🇪🇺 EU</span><span class="tag">📈 Mit Erfahrung</span><span class="tag delang">Deutsch</span><span class="tag direct">→ Direkt zur Stelle</span><span class="tag neu">🆕 NEU</span><span class="tag date">📅 23.09.2026</span></div>
   <div class="go"><a href="https://www.arbeitnow.com/jobs/companies/yazio/b2b-partnerships-influencer-marketing-manager-berlin-41621" target="_blank" rel="noopener">Zur Stelle →</a></div>
+</div>
+<div class="card" data-bereich="marketing" data-level="erfahren" data-lang="de" data-direct="1" data-posted="2026-09-27" data-age="0">
+  <h3>Design Engineer - EU</h3>
+  <div class="company">Ashby</div>
+  <p class="info">Hi I’m Abhik, Ashby's Co-Founder and VP of Engineering. This role is close to my heart because, as someone who can both design and code, it’s where I’ve always done my…</p>
+  <div class="meta"><span class="tag eu">🇪🇺 EU</span><span class="tag">📈 Mit Erfahrung</span><span class="tag delang">Deutsch</span><span class="tag direct">→ Direkt zur Stelle</span><span class="tag neu">🆕 NEU</span><span class="tag date">📅 27.09.2026</span></div>
+  <div class="go"><a href="https://jobicy.com/jobs/154021-design-engineer-eu" target="_blank" rel="noopener">Zur Stelle →</a></div>
 </div>
 <div class="card" data-bereich="marketing" data-level="einsteiger" data-lang="de" data-direct="1" data-posted="2026-09-12" data-age="15">
   <h3>YouTube Producer - Social Media (m/w/d) - 100% Homeoffice - 100% Homeoffice</h3>
@@ -2381,23 +2413,23 @@
   <div class="go"><a href="https://weworkremotely.com/remote-jobs/veeam-software-campaign-marketing-intern-summer-2027" target="_blank" rel="noopener">Zur Stelle →</a></div>
 </div>
 <div class="card" data-bereich="marketing" data-level="erfahren" data-lang="en" data-direct="1" data-posted="2026-09-27" data-age="0">
-  <h3>Sales Development Representative (Intake Pod)</h3>
-  <div class="company">Belkins</div>
-  <p class="info">Headquarters: Macedonia / Georgia / Moldova / Romania / Greece / Croatia / Kosovo / Serbia URL: http://belkins.io In 2017, Belkins started as an appointment-setting…</p>
-  <div class="meta"><span class="tag world">🌍 Weltweit</span><span class="tag">📈 Mit Erfahrung</span><span class="tag">Englisch</span><span class="tag direct">→ Direkt zur Stelle</span><span class="tag neu">🆕 NEU</span><span class="tag date">📅 27.09.2026</span></div>
-  <div class="go"><a href="https://weworkremotely.com/remote-jobs/belkins-sales-development-representative-intake-pod" target="_blank" rel="noopener">Zur Stelle →</a></div>
-</div>
-<div class="card" data-bereich="marketing" data-level="erfahren" data-lang="en" data-direct="1" data-posted="2026-09-27" data-age="0">
   <h3>Recorder - Videos for Data Collection Project, AI training</h3>
   <div class="company">Toptal</div>
   <p class="info">Headquarters: About the Client Our client is involved in an innovative data-collection project, which focuses on creating video datasets for training AI models. These AI…</p>
   <div class="meta"><span class="tag world">🌍 Weltweit</span><span class="tag">📈 Mit Erfahrung</span><span class="tag">Englisch</span><span class="tag direct">→ Direkt zur Stelle</span><span class="tag neu">🆕 NEU</span><span class="tag date">📅 27.09.2026</span></div>
   <div class="go"><a href="https://weworkremotely.com/remote-jobs/toptal-recorder-videos-for-data-collection-project-ai-training" target="_blank" rel="noopener">Zur Stelle →</a></div>
 </div>
+<div class="card" data-bereich="marketing" data-level="erfahren" data-lang="en" data-direct="1" data-posted="2026-09-27" data-age="0">
+  <h3>Narrator - Videos for Data Collection Project, AI training</h3>
+  <div class="company">Toptal</div>
+  <p class="info">Headquarters: About the Client Our client is involved in an innovative data-collection project, which focuses on creating video datasets for training AI models. These AI…</p>
+  <div class="meta"><span class="tag world">🌍 Weltweit</span><span class="tag">📈 Mit Erfahrung</span><span class="tag">Englisch</span><span class="tag direct">→ Direkt zur Stelle</span><span class="tag neu">🆕 NEU</span><span class="tag date">📅 27.09.2026</span></div>
+  <div class="go"><a href="https://weworkremotely.com/remote-jobs/toptal-narrator-videos-for-data-collection-project-ai-training" target="_blank" rel="noopener">Zur Stelle →</a></div>
+</div>
 </div>
 </div></section>
 
-<section data-ber="vertrieb"><h2 style="border-left:4px solid #b3261e;padding-left:12px">🔴 Vertrieb & Sales <span class="cnt">51 Stellen</span></h2>
+<section data-ber="vertrieb"><h2 style="border-left:4px solid #b3261e;padding-left:12px">🔴 Vertrieb & Sales <span class="cnt">49 Stellen</span></h2>
 <div class="grid">
 <div class="card" data-bereich="vertrieb" data-level="erfahren" data-lang="de" data-direct="1" data-posted="2026-09-16" data-age="11">
   <h3>Cold Caller / Vertriebsmitarbeiter (m/w/d), weltweit remote</h3>
@@ -2412,13 +2444,6 @@
   <p class="info">100 Prozent remote im Anzeigentext belegt (nomado24-Index, Originaltext geprueft). Vertrieb an Pflegeheime im DACH-Raum, deutschsprachig. Telefonlastig.</p>
   <div class="meta"><span class="tag eu">🇪🇺 EU</span><span class="tag lvl">🌱 Einsteiger</span><span class="tag delang">Deutsch</span><span class="tag direct">→ Direkt zur Stelle</span><span class="tag date">📅 17.09.2026</span></div>
   <div class="go"><a href="https://www.nomado24.de/en/remote-jobs/job/care-homepflegeheim-sales-specialists-german-speaking-dach-b804cadd4b" target="_blank" rel="noopener">Zur Stelle →</a></div>
-</div>
-<div class="card" data-bereich="vertrieb" data-level="erfahren" data-lang="de" data-direct="1" data-posted="2026-09-27" data-age="0">
-  <h3>Account Executive, DACH</h3>
-  <div class="company">Omilia Natural Language Solutions Ua Ltd</div>
-  <p class="info">About the company Omilia is a leader in Conversational AI. Our cloud platform powers natural, human like customer conversations over voice and chat for some of the…</p>
-  <div class="meta"><span class="tag eu">🇪🇺 EU</span><span class="tag">📈 Mit Erfahrung</span><span class="tag delang">Deutsch</span><span class="tag direct">→ Direkt zur Stelle</span><span class="tag neu">🆕 NEU</span><span class="tag date">📅 27.09.2026</span></div>
-  <div class="go"><a href="https://www.arbeitnow.ch/jobs/companies/omilia-natural-language-solutions-ua-ltd/remote-account-executive-dach-switzerland-456356" target="_blank" rel="noopener">Zur Stelle →</a></div>
 </div>
 <div class="card" data-bereich="vertrieb" data-level="erfahren" data-lang="de" data-direct="1" data-posted="2026-09-27" data-age="0">
   <h3>Business Development Representative</h3>
@@ -2617,13 +2642,6 @@
   <div class="go"><a href="https://chrono24.jobs.personio.de/job/2782313" target="_blank" rel="noopener">Zur Stelle →</a></div>
 </div>
 <div class="card" data-bereich="vertrieb" data-level="erfahren" data-lang="de" data-direct="1" data-posted="2026-09-27" data-age="0">
-  <h3>Sales Executive - Germany (Remote)</h3>
-  <div class="company">AnyVan</div>
-  <p class="info">Got Drive? Join AnyVan as we make moving anything, anywhere miles better and build a career that moves just as fast. Back in 2009, our Chairman Angus saw half-empty vans…</p>
-  <div class="meta"><span class="tag de">🇩🇪 DE</span><span class="tag">📈 Mit Erfahrung</span><span class="tag delang">Deutsch</span><span class="tag direct">→ Direkt zur Stelle</span><span class="tag neu">🆕 NEU</span><span class="tag date">📅 27.09.2026</span></div>
-  <div class="go"><a href="https://www.arbeitnow.ch/jobs/companies/anyvan/sales-executive-germany-remote-371989" target="_blank" rel="noopener">Zur Stelle →</a></div>
-</div>
-<div class="card" data-bereich="vertrieb" data-level="erfahren" data-lang="de" data-direct="1" data-posted="2026-09-27" data-age="0">
   <h3>Expansion Manager - (German speaking, Hamburg based, m/f/x)</h3>
   <div class="company">Lightspeed Commerce</div>
   <p class="info">Lightspeed hat eine klare Mission: Wir bauen die Restaurant-Plattform, mit der Gastronom:innen sich anpassen, die Kontrolle zurückgewinnen und sich wieder auf das…</p>
@@ -2759,7 +2777,7 @@
 </div>
 </div></section>
 
-<section data-ber="it"><h2 style="border-left:4px solid #33333b;padding-left:12px">⚫ IT & Tech <span class="cnt">67 Stellen</span></h2>
+<section data-ber="it"><h2 style="border-left:4px solid #33333b;padding-left:12px">⚫ IT & Tech <span class="cnt">70 Stellen</span></h2>
 <div class="grid">
 <div class="card" data-bereich="it" data-level="erfahren" data-lang="de" data-direct="1" data-posted="2026-09-27" data-age="0">
   <h3>Software Engineer (Computer Use &amp; Integrations) (m/w/d)</h3>
@@ -2935,6 +2953,27 @@
   <p class="info">Über die Customs Support Group Die Customs Support Group (CSG) ist der europäische Marktführer für Zolldienstleistungen und in 15 Ländern aktiv. CSG befindet sich im…</p>
   <div class="meta"><span class="tag de">🇩🇪 DE</span><span class="tag">📈 Mit Erfahrung</span><span class="tag delang">Deutsch</span><span class="tag direct">→ Direkt zur Stelle</span><span class="tag neu">🆕 NEU</span><span class="tag date">📅 27.09.2026</span></div>
   <div class="go"><a href="https://www.arbeitnow.com/jobs/companies/customs-support-group/remote-ai-integration-automation-engineer-ger-32348" target="_blank" rel="noopener">Zur Stelle →</a></div>
+</div>
+<div class="card" data-bereich="it" data-level="erfahren" data-lang="de" data-direct="1" data-posted="2026-09-27" data-age="0">
+  <h3>Software Engineer, Agent</h3>
+  <div class="company">Sierra</div>
+  <p class="info">About us At Sierra, we’re building a platform to enable every company in the world to build better, more human customer experiences with AI. We partner with industry…</p>
+  <div class="meta"><span class="tag de">🇩🇪 DE</span><span class="tag">📈 Mit Erfahrung</span><span class="tag delang">Deutsch</span><span class="tag direct">→ Direkt zur Stelle</span><span class="tag neu">🆕 NEU</span><span class="tag date">📅 27.09.2026</span></div>
+  <div class="go"><a href="https://jobicy.com/jobs/151671-software-engineer-agent" target="_blank" rel="noopener">Zur Stelle →</a></div>
+</div>
+<div class="card" data-bereich="it" data-level="erfahren" data-lang="de" data-direct="1" data-posted="2026-09-27" data-age="0">
+  <h3>Contract Software Engineer - DOM Core Firefox/Gecko</h3>
+  <div class="company">Mozilla</div>
+  <p class="info">The role You will help the Firefox DOM Core team improve the health of the Session History area. You will write tests to improve the coverage; you will fix tests and/or…</p>
+  <div class="meta"><span class="tag de">🇩🇪 DE</span><span class="tag">📈 Mit Erfahrung</span><span class="tag delang">Deutsch</span><span class="tag direct">→ Direkt zur Stelle</span><span class="tag neu">🆕 NEU</span><span class="tag date">📅 27.09.2026</span></div>
+  <div class="go"><a href="https://jobicy.com/jobs/154028-contract-software-engineer-dom-core-firefox-gecko" target="_blank" rel="noopener">Zur Stelle →</a></div>
+</div>
+<div class="card" data-bereich="it" data-level="erfahren" data-lang="de" data-direct="1" data-posted="2026-09-27" data-age="0">
+  <h3>Contract Software Engineer - WebCompat Tooling (Dashboards and Reporting), Firefox</h3>
+  <div class="company">Mozilla</div>
+  <p class="info">The role You will build and improve the WebCompat team’s internal tooling, the dashboards and the broken-site-report screenshot pipeline the team relies on to triage and…</p>
+  <div class="meta"><span class="tag de">🇩🇪 DE</span><span class="tag">📈 Mit Erfahrung</span><span class="tag delang">Deutsch</span><span class="tag direct">→ Direkt zur Stelle</span><span class="tag neu">🆕 NEU</span><span class="tag date">📅 27.09.2026</span></div>
+  <div class="go"><a href="https://jobicy.com/jobs/154032-contract-software-engineer-webcompat-tooling-dashboards-and-reporting-firefox" target="_blank" rel="noopener">Zur Stelle →</a></div>
 </div>
 <div class="card" data-bereich="it" data-level="erfahren" data-lang="en" data-direct="1" data-posted="2026-09-27" data-age="0">
   <h3>Software Engineer, Infrastructure - Self Managed Experience (SMX)</h3>
@@ -3407,6 +3446,13 @@
   </div>
 </section>
 
+<div id="richtung" class="hidden">
+  <h2 style="border-left:4px solid #0d6b60;padding-left:12px">🧭 Finde deine Richtung</h2>
+  <p class="rthint">Zwölf Kapitel, in denen du sortierst, was dir liegt, was du kannst und was für dich nicht infrage kommt. Am Ende steht deine berufliche Richtung – und dein Dashboard stellt sich automatisch darauf ein: <b>⭐ Für dich</b> und <b>🆕 Neu für dich</b> rechnen danach mit deinen Antworten statt mit einer Voreinstellung. Du kannst jederzeit aufhören und später weitermachen, deine Antworten bleiben in diesem Browser gespeichert.</p>
+  <div class="rtbar"><span class="rthint" id="rtstatus" style="margin:0"></span></div>
+  <iframe class="rtframe" id="rtframe" title="Finde deine Richtung – Workbook" loading="lazy"></iframe>
+</div>
+
 <footer><b>Zugang &amp; Nutzung.</b> Dieser Mitglieder-Bereich und deine Zugangsdaten sind ausschließlich für dich persönlich bestimmt. Die Weitergabe von Link, Passwort oder Inhalten an Dritte ist nicht gestattet und kann zur sofortigen Sperrung des Zugangs führen. Die Zusammenstellung dieser Seite (Auswahl, Aufbereitung, Struktur) ist urheberrechtlich geschützt; eine Vervielfältigung oder Veröffentlichung – auch auszugsweise – bedarf unserer vorherigen Zustimmung.
 <br><br><b>Stellenangebote.</b> Alle gelisteten Positionen stammen von öffentlich zugänglichen Quellen bzw. den jeweiligen Anbietern und werden regelmäßig aktualisiert. Wir sind nicht der Anbieter dieser Stellen: Bewerbung, Vertragsschluss und alle Konditionen laufen ausschließlich zwischen dir und dem jeweiligen Unternehmen. Für Inhalte, Verfügbarkeit und Richtigkeit verlinkter Drittseiten übernehmen wir keine Gewähr; Angebote können jederzeit durch den Anbieter offline genommen werden. Diese Übersicht stellt keine Arbeitsvermittlung und keine Rechts- oder Steuerberatung dar; Erfolgs- oder Einstellungszusagen sind damit nicht verbunden.
 <br><br><b>Meldungen.</b> Ein Link funktioniert nicht oder eine Stelle ist vergeben? Sag uns kurz in deiner WhatsApp-Gruppe Bescheid – wir halten das Board für dich aktuell.
@@ -3478,6 +3524,144 @@
   };
   function fdRegion(c){var t=(c.querySelector('.meta')||c).textContent;if(/Weltweit|\u{1F30D}/u.test(t))return'world';if(/EU|\u{1F1EA}\u{1F1FA}|Europa/u.test(t))return'eu';return'de';}
   function fdText(c){return (((c.querySelector('h3')||{}).textContent||'')+' '+((c.querySelector('.info')||{}).textContent||'')+' '+((c.querySelector('.company')||{}).textContent||'')).toLowerCase();}
+
+  /* ================= Bruecke zum Workbook "Finde deine Richtung" (Lauf #137) =================
+     Das Workbook laeuft als eigene Datei im iframe und legt bei jedem Speichern eine kompakte
+     Auswertung unter fdr_prof_<passwort> ab: Punktzahl je Richtung (0-20), die drei staerksten,
+     die selbst gewaehlte Richtung, die No-Gos, die stark bewerteten Skills.
+     Hier wird daraus ein Profil in genau der Form gebaut, die fdScore ohnehin erwartet.
+     Wer das Workbook nicht gemacht hat, bekommt unveraendert das fest hinterlegte Profil.
+
+     Drei Dinge bleiben bewusst fest und kommen NICHT aus dem Workbook:
+     - reg ist bei allen gleich (weltweit 3, EU 2, Deutschland 1). Pauls Reichweiten-Regel.
+     - deonly wird nie aus dem Workbook gesetzt - es fragt keine Sprachkenntnisse ab.
+       Steht ein festes Profil daneben, werden dessen Sprachangaben uebernommen.
+     - Der Einsteiger- und der 100-Prozent-Filter laufen schon im Build, nicht hier. */
+
+  /* Die acht Richtungen des Workbooks auf die sieben Bereiche des Boards.
+     Gesundheit ist ein Funktions-Tab, kein Branchen-Tab: dort stehen Service- und
+     Buerorollen bei Gesundheitsfirmen, deshalb erbt er von cs und admin. */
+  var RT_BER={
+    sales:      {vertrieb:1},
+    cs:         {service:1, gesundheit:0.5},
+    recruiting: {buero:0.8, service:0.4},
+    marketing:  {marketing:1},
+    admin:      {buero:1, gesundheit:0.4},
+    content:    {marketing:0.9, sprache:0.7},
+    data:       {buero:0.7, it:0.5},
+    tech:       {it:1}
+  };
+  /* Skill-Schluessel des Workbooks -> Woerter, unter denen solche Stellen ausgeschrieben werden. */
+  var RT_SKILL={
+    k_reden:['telefon','beratung','kundenberater'],
+    k_zuhoeren:['kundenbetreuung','betreuung','support'],
+    k_ueberzeugen:['vertrieb','sales','akquise'],
+    k_praesentieren:['schulung','training','webinar'],
+    k_schreiben:['schriftlich','e-mail support','korrespondenz','texter'],
+    o_planen:['koordination','planung','projektassistenz'],
+    o_strukturieren:['backoffice','back office','sachbearbeit','verwaltung'],
+    o_termine:['terminplanung','kalender','disposition','reservier'],
+    o_priorisieren:['auftragsabwicklung','auftragsbearbeitung'],
+    o_prozesse:['prozess','operations','organisation'],
+    c_design:['grafik','design','canva','gestalter'],
+    c_video:['video','videobearbeitung','videoschnitt','cutter','reels'],
+    c_foto:['bildbearbeitung','foto'],
+    c_social:['social media','community management','instagram','tiktok'],
+    c_texte:['content','copywriting','copywriter','redaktion','newsletter'],
+    c_ideen:['kreativ','kampagne','creative'],
+    a_zahlen:['buchhaltung','abrechnung','rechnungspruefung','controlling'],
+    a_recherche:['recherche','datenerfassung','data entry'],
+    a_daten:['datenpflege','stammdaten','auswertung','reporting'],
+    a_problem:['fehleranalyse','problemloesung','ticket'],
+    a_logik:['qualitaetspruef','pruefung'],
+    t_software:['software','anwendersupport','application support'],
+    t_computer:['it-support','it support','helpdesk','service desk'],
+    t_websites:['website','shop','wordpress','shopify'],
+    t_automation:['automatisierung','automation'],
+    t_systeme:['systembetreuung','technischer support'],
+    m_kunden:['kundenservice','kundenkontakt','customer service'],
+    m_beratung:['kundenberatung','beratung'],
+    m_recruiting:['recruiting','personal','talent'],
+    m_support:['kundensupport','customer support','chat support','1st level'],
+    m_team:['teamassistenz','assistenz']
+  };
+  /* No-Gos -> was aus der Liste herausgerechnet (minus) bzw. ganz entfernt (hard) wird.
+     Ein No-Go ist eine klare Ansage des Kunden, deshalb landen die eindeutigen Faelle hart
+     im Ausschluss und nicht nur in der Abwertung. */
+  var RT_NOGO={
+    tel:    {minus:['telefonie','telefonisch','hotline','anrufe','inbound','outbound'],
+             hard:['call center','callcenter','call agent','telefonist','telefonakquise']},
+    kunden: {minus:['kundenservice','kundenkontakt','kundenbetreuung','customer service','customer care'],
+             hard:['call center','callcenter','kundenservice','customer support']},
+    verkauf:{minus:['vertrieb','sales','verkauf','akquise','provision','neukunden'],
+             hard:['vertrieb','sales manager','sales representative','account executive','closer','appointment setter','telesales','kaltakquise']},
+    praes:  {minus:['praesentation','schulung','webinar','moderation'],hard:[]},
+    zahlen: {minus:['buchhaltung','controlling','rechnungswesen','bilanz','lohn','datev'],
+             hard:['buchhalt','steuerber','steuerfach','bilanzbuch','lohnbuchhalt','accountant']},
+    schreiben:{minus:['texter','copywriter','redaktion','content creation','lektorat'],hard:[]},
+    social: {minus:['social media','community management','instagram','tiktok','influencer'],
+             hard:['social media manager','community manager']},
+    team:   {minus:['teamarbeit','teamassistenz'],hard:[]},
+    allein: {minus:['eigenverantwortlich allein'],hard:[]},
+    monoton:{minus:['datenerfassung','data entry','dateneingabe','transkription','annotation'],hard:[]},
+    unklar: {minus:['startup','aufbau','greenfield'],hard:[]},
+    fest:   {minus:['feste arbeitszeiten','schichtplan','servicezeiten'],hard:[]},
+    schicht:{minus:['schicht','wochenende','nachtschicht'],hard:['schichtdienst','wechselschicht']},
+    verantw:{minus:['verantwortung','budgetverantwortung','fuehrung'],hard:['teamleit','abteilungsleit']},
+    screen: {minus:[],hard:[]}
+  };
+  function rtProfile(){
+    if(!CUR)return null;
+    var o=null;
+    try{ var raw=localStorage.getItem('fdr_prof_'+CUR); if(!raw)return null; o=JSON.parse(raw); }catch(e){ return null; }
+    if(!o||!o.v||!o.cats)return null;
+    /* Zu wenig ausgefuellt: dann traegt das Ergebnis noch nicht. Lieber das feste Profil
+       weiterbenutzen, als dem Kunden eine Liste aus drei angeklickten Feldern zu bauen.
+       Gemessen wird die Zahl der beantworteten Felder, NICHT die Punktsumme: ein leeres
+       Workbook kommt allein ueber den No-Go-Bonus schon auf rund 16 Punkte. */
+    if(typeof o.sub==='number'){ if(o.sub<6)return null; }
+    else { var summe=0; for(var k0 in o.cats){ summe+=(+o.cats[k0]||0); } if(summe<24)return null; }
+
+    var basis=PROFILES[CUR]||{};
+    var ber={};
+    for(var cid in RT_BER){
+      var wert=(+o.cats[cid]||0)/20;              /* 0 bis 1 */
+      var m=RT_BER[cid];
+      for(var b in m){ ber[b]=Math.max(ber[b]||0, Math.round(wert*m[b]*35)/10); }   /* 0 bis 3.5 */
+    }
+    /* Die selbst gewaehlte Richtung im Abschlusskapitel schlaegt die Rechnung:
+       wer sich entschieden hat, will diese Stellen zuerst sehen. */
+    if(o.choice&&RT_BER[o.choice]){
+      var mc=RT_BER[o.choice];
+      for(var b2 in mc){ ber[b2]=Math.max(ber[b2]||0, mc[b2]*3.5); }
+    }
+    var plus=[];
+    (o.jobs||[]).forEach(function(j){ var t=(j||'').toLowerCase(); if(t&&plus.indexOf(t)<0)plus.push(t); });
+    (o.skills||[]).forEach(function(s){ (RT_SKILL[s]||[]).forEach(function(w){ if(plus.indexOf(w)<0)plus.push(w); }); });
+    var minus=[],hard=[];
+    (o.nogos||[]).forEach(function(n){
+      var r=RT_NOGO[n]; if(!r)return;
+      r.minus.forEach(function(w){ if(minus.indexOf(w)<0)minus.push(w); });
+      r.hard.forEach(function(w){ if(hard.indexOf(w)<0)hard.push(w); });
+    });
+    /* Ein Wort, das aus den Skills als Pluspunkt kommt und zugleich als No-Go abgewaehlt wurde,
+       gilt als abgewaehlt - die ausdrueckliche Ansage schlaegt die Selbsteinschaetzung. */
+    plus=plus.filter(function(w){ return minus.indexOf(w)<0 && hard.indexOf(w)<0; });
+    /* Senior- und Fuehrungstitel sind bei allen Profilen draussen (Quereinsteiger-Fokus). */
+    ['senior','architekt','head of'].forEach(function(w){ if(hard.indexOf(w)<0)hard.push(w); });
+
+    return {
+      ber:ber, plus:plus, minus:minus, hard:hard,
+      exempt:basis.exempt,
+      langs:basis.langs||['de'],
+      deonly:basis.deonly===true,
+      reg:{world:3,eu:2,de:1},
+      _rt:true
+    };
+  }
+  /* Ueberall dort, wo bisher PROFILES[CUR] stand, steht jetzt fdP(): Workbook zuerst,
+     festes Profil als Rueckfall. */
+  function fdP(){ try{ return rtProfile()||PROFILES[CUR]; }catch(e){ return PROFILES[CUR]; } }
   function fdScore(c,p){
     var title=((c.querySelector('h3')||{}).textContent||'').toLowerCase();
     for(var i=0;i<p.hard.length;i++){if(title.indexOf(p.hard[i])>-1)return -999;}
@@ -3503,7 +3687,7 @@
   function buildFD(){
     var sec=document.getElementById('fuerdich');if(!sec)return;
     var grid=sec.querySelector('.grid');var empty=sec.querySelector('.fdempty');var cnt=sec.querySelector('h2 .cnt');
-    grid.innerHTML='';var p=PROFILES[CUR];
+    grid.innerHTML='';var p=fdP();
     if(!p){if(empty)empty.style.display='block';if(cnt)cnt.textContent='';return;}
     var arr=[];var gesehen={};
     document.querySelectorAll('.card').forEach(function(c){
@@ -3541,7 +3725,7 @@
     var grid=sec.querySelector('.grid');var empty=sec.querySelector('.fdempty');
     var cnt=sec.querySelector('h2 .cnt');var hint=sec.querySelector('.fdhint');
     grid.innerHTML='';
-    var p=PROFILES[CUR];
+    var p=fdP();
     var frisch=[];var gesehenN={};
     document.querySelectorAll('.card').forEach(function(c){
       if(c.closest('#favoriten')||c.closest('#toolbox')||c.closest('#freelance')||c.closest('#fuerdich')||c.closest('#beworben')||c.closest('#neuheiten'))return;
@@ -3582,7 +3766,7 @@
   }
   function activateFDForUser(){
     var chip=document.querySelector('.chip[data-f="fd"]');if(!chip)return;
-    if(PROFILES[CUR]){
+    if(fdP()){
       chip.style.display='';
       try{
         document.querySelectorAll('.chip:not(.lv):not(.langf):not(.directf)').forEach(function(x){x.classList.remove('active');});
@@ -3731,6 +3915,15 @@
     var sects=document.querySelectorAll('section');
     fav.classList.add('hidden');
     bew.classList.add('hidden');
+    /* Lauf #137: Workbook-Tab. #richtung ist ein div, taucht also in sects gar nicht auf -
+       deshalb muss es hier von Hand aus- und eingeblendet werden. */
+    var rtS=document.getElementById('richtung'); if(rtS)rtS.classList.add('hidden');
+    if(active==='richtung'){
+      rtOpen();
+      sects.forEach(function(s2){s2.classList.add('hidden');});
+      if(rtS)rtS.classList.remove('hidden');
+      return;
+    }
     var fdS=document.getElementById('fuerdich'); if(fdS)fdS.classList.add('hidden');
     var nuS=document.getElementById('neuheiten'); if(nuS)nuS.classList.add('hidden');
     if(active==='fd'){ buildFD(); sects.forEach(function(s2){s2.classList.add('hidden');}); if(fdS)fdS.classList.remove('hidden'); return; }
@@ -3788,6 +3981,55 @@
      Favoriten und Haken liegen deshalb im localStorage des jeweiligen Geraets. Echte automatische
      Synchronisierung braucht einen Server (siehe STATUS). Bis dahin: ein Code zum Kopieren.
      Wichtig: beim Uebernehmen wird ZUSAMMENGEFUEHRT, nie ersetzt - sonst verliert ein Geraet Daten. */
+  /* ---- Workbook "Finde deine Richtung" (Lauf #137) ----
+     Liegt als eigene Datei workbook.html daneben und laeuft in einem iframe: eigenes Dokument,
+     also keine CSS- und keine Variablen-Kollision mit dem Board, und die Datei bleibt einzeln
+     benutzbar. Das Passwort wandert als ?pw= mit, damit das Workbook pro Zugang speichert.
+     Der src wird erst beim ersten Oeffnen gesetzt - sonst laedt jeder Board-Aufruf 370 KB mit. */
+  function rtOpen(){
+    var f=document.getElementById('rtframe'); if(!f)return;
+    if(!f.getAttribute('src')){
+      f.setAttribute('src','workbook.html'+(CUR?('?pw='+encodeURIComponent(CUR)):''));
+    }
+    rtStatus();
+  }
+  function rtProfil(){
+    if(!CUR)return null;
+    try{
+      var raw=localStorage.getItem('fdr_prof_'+CUR); if(!raw)return null;
+      var o=JSON.parse(raw);
+      if(!o||!o.v||!o.cats)return null;
+      /* Dieselbe Schwelle wie im Scoring. Das Workbook speichert schon beim ersten Oeffnen,
+         und ein leeres Workbook sieht trotzdem nach Ergebnis aus: scores() gibt jeder Richtung
+         +2 dafuer, dass kein No-Go dagegen steht. Deshalb zaehlt nicht die Punktsumme, sondern
+         wie viele Felder wirklich beantwortet sind (sub). */
+      if(typeof o.sub==='number')return o.sub>=6?o:null;
+      var summe=0; for(var k in o.cats){ summe+=(+o.cats[k]||0); }
+      return summe>=24?o:null;
+    }catch(e){return null;}
+  }
+  function rtStatus(){
+    var el=document.getElementById('rtstatus'); if(!el)return;
+    var p=rtProfil();
+    if(!p){el.innerHTML='Noch nicht genug ausgefüllt. Sobald du die ersten Kapitel durch hast, rechnet dein Dashboard damit – bis dahin bleibt deine bisherige Auswahl stehen.';return;}
+    var namen={sales:'Sales',cs:'Customer Success',recruiting:'Recruiting',marketing:'Marketing',
+               admin:'Admin und Orga',content:'Content',data:'Daten',tech:'Tech'};
+    var top=(p.top||[]).map(function(id){return namen[id]||id;}).slice(0,3);
+    el.innerHTML='<span class="rtok">Dein Ergebnis ist aktiv.</span> Deine stärksten Richtungen: '+
+      (top.join(', ')||'noch offen')+
+      (p.nogos&&p.nogos.length?(' · '+p.nogos.length+' No-Gos werden aus deiner Liste herausgerechnet.'):'')+
+      ' Schau unter ⭐ Für dich.';
+  }
+  /* Das iframe ist ein eigenes Dokument gleicher Herkunft - Schreibvorgaenge daraus loesen im
+     Board ein storage-Ereignis aus. Damit aktualisiert sich das Dashboard, waehrend der Kunde
+     das Workbook ausfuellt, ohne dass er etwas kopieren oder neu laden muss. */
+  window.addEventListener('storage',function(e){
+    if(!e.key||!CUR)return;
+    if(e.key!=='fdr_prof_'+CUR)return;
+    rtStatus();
+    try{ if(active==='fd')buildFD(); else if(active==='neu')buildNEU(); }catch(_){}
+  });
+
   function syncSay(t,ok){var m=document.getElementById('syncmsg');if(!m)return;m.textContent=t;m.style.color=ok?'#1f7a44':'#a33';}
   function syncGen(){
     if(!CUR){syncSay('Bitte zuerst einloggen.',false);return;}
