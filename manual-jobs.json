@@ -238,19 +238,6 @@
   "src": "import"
  },
  {
-  "title": "Inbound Customer Service Freelancer (EU)",
-  "company": "hey contact heroes",
-  "url": "https://dailyremote.com/remote-job/inbound-customer-service-eu-freelancer-innen-100-remote-5223137",
-  "info": "Als Freelancer eingehende Kundenanfragen telefonisch und schriftlich auf Deutsch (C1/C2) beantworten - 100 Prozent remote aus dem EU-Ausland, deutschsprachig, Quereinsteiger mit gutem Deutsch willkommen.",
-  "lang": "de",
-  "region": "eu",
-  "level": "einsteiger",
-  "bereich": "service",
-  "date": "02.09.2026",
-  "fd": false,
-  "src": "import"
- },
- {
   "title": "Customer Support Agent (German-speaking)",
   "company": "Your job abroad",
   "url": "https://remotive.com/remote/jobs/customer-service/customer-support-agent-german-speaking-3927425",
@@ -2305,19 +2292,6 @@
   "src": "import"
  },
  {
-  "title": "Senior UI/UX & Graphic Designer",
-  "company": "Lemon.io",
-  "url": "https://www.workingnomads.com/job/go/1750002/",
-  "info": "EU · Amerika · APAC, Freelance-Modell.",
-  "lang": "en",
-  "region": "world",
-  "level": "einsteiger",
-  "bereich": "it",
-  "date": "15.08.2026",
-  "fd": false,
-  "src": "import"
- },
- {
   "title": "Python Developer (FastAPI) – CET ±3h",
   "company": "Proxify",
   "url": "https://www.workingnomads.com/job/go/1773218/",
@@ -2409,19 +2383,6 @@
   "src": "import"
  },
  {
-  "title": "Kundenberater - Finanzprodukte (d/m/w) im Homeoffice",
-  "company": "TAS",
-  "url": "https://zuhausejobs.com/job/3651675-homeoffice-kundenberater-finanzprodukte",
-  "info": "Voll-/Teilzeit · 16,5€ – 18€ / Stunde · Betreue telefonisch zu Finanzprodukten, bearbeite Serviceanfragen abschließend und führe passende Transaktionen durch. Ausgeschrieben als 100% Homeoffice in Deutschland - ob EU oder weltweit geht, im Gespraech klaeren.",
-  "lang": "de",
-  "region": "de",
-  "level": "einsteiger",
-  "bereich": "service",
-  "date": "12.09.2026",
-  "fd": false,
-  "src": "import"
- },
- {
   "title": "Technischer Support Innendienst - Kassensysteme (m/w/d) - 100% Homeoffice - 100% Homeoffice",
   "company": "Gastro-MIS",
   "url": "https://zuhausejobs.com/job/2383396-remote-technischer-support-innendienst-kassensysteme",
@@ -2482,19 +2443,6 @@
   "region": "de",
   "level": "erfahren",
   "bereich": "it",
-  "date": "12.09.2026",
-  "fd": false,
-  "src": "import"
- },
- {
-  "title": "Customer Support & Success Specialist (m/w/d) im Homeoffice",
-  "company": "OpenProject",
-  "url": "https://zuhausejobs.com/job/6171623-remote-customer-support-success-specialist",
-  "info": "Vollzeit · 45.000€ – 60.000€ / Jahr · Bearbeite Anfragen von Nutzenden zu Funktionen, technischen Problemen und Abrechnung und unterstütze sie bei der Einführung und Nutzung der Software. Ausgeschrieben als 100% Homeoffice in Deutschland - ob EU oder weltweit geht, im Gespraech klaeren.",
-  "lang": "de",
-  "region": "de",
-  "level": "einsteiger",
-  "bereich": "service",
   "date": "12.09.2026",
   "fd": false,
   "src": "import"
@@ -2780,7 +2728,7 @@
   "lang": "de",
   "region": "de",
   "level": "einsteiger",
-  "bereich": "buero",
+  "bereich": "gesundheit",
   "date": "12.09.2026",
   "fd": false,
   "src": "import"
@@ -3664,20 +3612,6 @@
   "posted": "2026-09-13"
  },
  {
-  "title": "Kundenberater (m/w/d) Telekommunikation & E-Mobility Remote",
-  "company": "XPRON Systems GmbH",
-  "url": "https://www.remotely.de/job/xpron-systems-gmbh-kundenberater-mwd-telekommunikation-e-mobility-remote-callcenteragentin",
-  "info": "Vollständig remote, ausgeschrieben für Deutschland. Ob EU oder weltweit geht, im Gespräch klären.",
-  "lang": "de",
-  "region": "de",
-  "level": "einsteiger",
-  "bereich": "service",
-  "date": "05.09.2026",
-  "fd": false,
-  "src": "import",
-  "posted": "2026-09-05"
- },
- {
   "title": "Mitarbeiter Kundenservice (m/w/d) Schwerpunkt Marktkommunikation",
   "company": "kraftwerk",
   "url": "https://www.remotely.de/job/kraftwerk-mitarbeiter-kundenservice-mwd-schwerpunkt-marktkommunikation",
@@ -4012,20 +3946,6 @@
   "fd": false,
   "src": "import",
   "posted": "2026-09-01"
- },
- {
-  "title": "Digital Marketing Manager (m/w/d)",
-  "company": "Taxy.io",
-  "url": "https://www.remotely.de/job/taxyio-digital-marketing-manager-mwd",
-  "info": "Vollständig remote, ausgeschrieben für Deutschland. Ob EU oder weltweit geht, im Gespräch klären.",
-  "lang": "de",
-  "region": "de",
-  "level": "erfahren",
-  "bereich": "marketing",
-  "date": "31.08.2026",
-  "fd": false,
-  "src": "import",
-  "posted": "2026-08-31"
  },
  {
   "title": "UI/UX Designer:in 100% Remote (m/w/d)",
@@ -4728,20 +4648,6 @@
   "src": "import"
  },
  {
-  "title": "Steuerfachkraft (m/w/d) - 100% Remote möglich",
-  "company": "Taxtalente.de",
-  "url": "https://www.remotely.de/job/taxtalentede-steuerfachkraft-mwd-in-nussdorf-mindestens-52000-100-remote-moglich",
-  "info": "Vollständig remote, ausgeschrieben für Deutschland. Ob EU oder weltweit geht, im Gespräch klären.",
-  "lang": "de",
-  "region": "de",
-  "level": "erfahren",
-  "bereich": "buero",
-  "date": "10.09.2026",
-  "posted": "2026-09-10",
-  "fd": false,
-  "src": "import"
- },
- {
   "title": "Steuerfachkraft (m/w/d) Stefansfeld - 100% Remote möglich",
   "company": "Taxtalente.de",
   "url": "https://www.remotely.de/job/taxtalentede-steuerfachkraft-mwd-in-stefansfeld-mindestens-52000-100-remote-moglich",
@@ -5221,7 +5127,7 @@
   "title": "Social Media & KI-Automation Manager (m/w/d) - 100% Remote",
   "company": "Endo Health GmbH",
   "url": "https://www.arbeitnow.com/jobs/companies/endo-health-gmbh/social-media-ki-automation-manager-100-remote-vollzeit-start-ab-sofort-chemnitz-238743",
-  "info": "Vollständig remote laut Anzeigentext geprüft. Ausgeschrieben für Deutschland; ob EU oder weltweit geht, im Gespräch klären.",
+  "info": "100 Prozent Remote-Arbeit im Anzeigentext belegt, nur gelegentliche Teamtreffen. Link am 21.09.2026 geprueft. Social Media plus einfache KI-Automatisierungen, Vollzeit, Start sofort. Gesundheitsunternehmen.",
   "lang": "de",
   "region": "de",
   "level": "einsteiger",
@@ -5512,20 +5418,6 @@
   "src": "import"
  },
  {
-  "title": "Kundenberater (m/w/d) Homeoffice",
-  "company": "timecon GmbH & Co. KG",
-  "url": "https://www.remotely.de/job/timecon-gmbh-co-kg-kundenberater-mwd-homeoffice",
-  "info": "Vollständig remote laut Anzeige geprüft. Ausgeschrieben für Deutschland; ob EU oder weltweit geht, im Gespräch klären.",
-  "lang": "de",
-  "region": "de",
-  "level": "einsteiger",
-  "bereich": "service",
-  "date": "16.09.2026",
-  "posted": "2026-09-16",
-  "fd": false,
-  "src": "import"
- },
- {
   "title": "Callcenteragent (m/w/d)",
   "company": "Unique",
   "url": "https://www.remotely.de/job/unique-callcenteragent-mwd",
@@ -5655,20 +5547,6 @@
   "title": "Kundenberater (m/w/d) im Homeoffice - 100% Remote",
   "company": "timecon GmbH & Co. KG",
   "url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/14407-43935-S",
-  "info": "Vollständig remote laut Anzeigentext geprüft. Ausgeschrieben für Deutschland; ob EU oder weltweit geht, im Gespräch klären.",
-  "lang": "de",
-  "region": "de",
-  "level": "einsteiger",
-  "bereich": "service",
-  "date": "16.09.2026",
-  "fd": false,
-  "src": "import",
-  "posted": "2026-09-16"
- },
- {
-  "title": "Kundenberater (m/w/d) Homeoffice - 100% Remote",
-  "company": "timecon GmbH & Co. KG",
-  "url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/14407-43937-S",
   "info": "Vollständig remote laut Anzeigentext geprüft. Ausgeschrieben für Deutschland; ob EU oder weltweit geht, im Gespräch klären.",
   "lang": "de",
   "region": "de",
@@ -6797,20 +6675,6 @@
   "src": "remotely"
  },
  {
-  "title": "Marketing & Brand Manager / Digital Content (m/w/d)",
-  "company": "Colosol Coatings GmbH",
-  "url": "https://www.remotely.de/job/colosol-coatings-gmbh-marketing-brand-manager-digital-content-mwd",
-  "info": "100 Prozent remote im Anzeigentext belegt (remotely.de, Originaltext geprueft). Weltweit ausgeschrieben, Marke und Content in einer Rolle.",
-  "lang": "de",
-  "region": "world",
-  "level": "einsteiger",
-  "bereich": "marketing",
-  "date": "13.09.2026",
-  "posted": "2026-09-13",
-  "fd": false,
-  "src": "remotely"
- },
- {
   "title": "D2C Creative Strategist (Google Ads)",
   "company": "Instaffo",
   "url": "https://www.remotely.de/job/instaffo-d2c-creative-strategist-google-ads",
@@ -7007,20 +6871,6 @@
   "src": "nomado24"
  },
  {
-  "title": "Schadensachbearbeiter Kfz-Versicherung (m/w/d), 100 % Homeoffice",
-  "company": "Innovation Group Services",
-  "url": "https://www.remotely.de/job/innovation-group-services-gmb-h-remote-schadensachbearbeiter-im-bereich-kfz-versicherung-mwd",
-  "info": "100 Prozent Homeoffice im Anzeigentext belegt, nicht standortgebunden, Link am 21.09.2026 geprueft. Schadenmeldungen aufnehmen und bearbeiten, 30 Tage Urlaub, betriebliche Altersvorsorge. Quereinstieg ueber Kundenorientierung.",
-  "lang": "de",
-  "region": "de",
-  "level": "einsteiger",
-  "bereich": "buero",
-  "date": "14.09.2026",
-  "posted": "2026-09-14",
-  "fd": false,
-  "src": "remotely"
- },
- {
   "title": "(Junior) B2B & Retail Sales Manager (m/w/d) - Remote",
   "company": "ZENKOH",
   "url": "https://www.remotely.de/job/zenkoh-gmbh-junior-b2b-retail-sales-manager-mwd-remote",
@@ -7035,20 +6885,6 @@
   "src": "remotely"
  },
  {
-  "title": "Social Media & KI-Automation Manager (m/w/d), 100 % Remote",
-  "company": "Endo Health",
-  "url": "https://www.remotely.de/job/endo-health-gmbh-social-media-ki-automation-manager-mwd-100-remote-vollzeit-start-ab-sofort",
-  "info": "100 Prozent Remote-Arbeit im Anzeigentext belegt, nur gelegentliche Teamtreffen, Link am 21.09.2026 geprueft. Social Media plus einfache KI-Automatisierungen, Vollzeit, Start sofort. Gesundheitsunternehmen.",
-  "lang": "de",
-  "region": "de",
-  "level": "einsteiger",
-  "bereich": "marketing",
-  "date": "16.09.2026",
-  "posted": "2026-09-16",
-  "fd": false,
-  "src": "remotely"
- },
- {
   "title": "Junior Technischer Projektmanager Software (m/w/d), 100 % Homeoffice",
   "company": "dexter health",
   "url": "https://www.arbeitnow.com/jobs/companies/dexter-health/junior-technischer-projektmanager-software-100-homeoffice-cologne-326195",
@@ -7056,7 +6892,7 @@
   "lang": "de",
   "region": "de",
   "level": "einsteiger",
-  "bereich": "it",
+  "bereich": "gesundheit",
   "date": "14.09.2026",
   "posted": "2026-09-14",
   "fd": false,
@@ -7336,7 +7172,7 @@
   "lang": "de",
   "region": "eu",
   "level": "erfahren",
-  "bereich": "service",
+  "bereich": "gesundheit",
   "date": "08.09.2026",
   "posted": "2026-09-08",
   "fd": false,
@@ -7826,7 +7662,7 @@
   "lang": "de",
   "region": "de",
   "level": "einsteiger",
-  "bereich": "buero",
+  "bereich": "gesundheit",
   "date": "24.09.2026",
   "posted": "2026-09-24",
   "fd": false,
@@ -7885,6 +7721,62 @@
   "bereich": "vertrieb",
   "date": "07.09.2026",
   "posted": "2026-09-07",
+  "fd": false,
+  "src": "import"
+ },
+ {
+  "title": "Junior Software Supporter (m/w/d), komplett von zu Hause, Minijob",
+  "company": "nintech",
+  "url": "https://www.nomado24.de/de/remote-jobs/job/junior-software-supporter-homeoffice-mwd-5a41ce2248",
+  "info": "Du arbeitest komplett von zu Hause steht woertlich in der Anzeige, Arbeitszeit frei einteilbar. Link am 28.09.2026 geprueft. Unterstuetzung des Entwicklungs- und Projektteams bei Vorbereitung und Pflege, Einstieg in die digitale Arbeitswelt ohne starre Schichtplaene. Minijob auf 603-Euro-Basis. Vorerfahrung wird ausdruecklich nicht verlangt.",
+  "lang": "de",
+  "region": "de",
+  "level": "einsteiger",
+  "bereich": "it",
+  "date": "20.09.2026",
+  "posted": "2026-09-20",
+  "fd": false,
+  "src": "import"
+ },
+ {
+  "title": "(Junior) Marketplace Advertising Manager (m/w/d)",
+  "company": "Snocks",
+  "url": "https://www.nomado24.de/de/remote-jobs/job/junior-marketplace-advertising-managerin-mwd-4e1fcdbce2",
+  "info": "Remote ist Standard steht woertlich in der Anzeige, Bueros in Mannheim, Hamburg und Berlin sind freiwillig und werden bezuschusst. Link am 28.09.2026 geprueft. Anzeigen auf Amazon, OTTO und Zalando steuern, Budgets und Auswertungen, Junior-Einstieg im E-Commerce.",
+  "lang": "de",
+  "region": "de",
+  "level": "einsteiger",
+  "bereich": "marketing",
+  "date": "24.09.2026",
+  "posted": "2026-09-24",
+  "fd": false,
+  "src": "import"
+ },
+ {
+  "title": "(Junior) AI Visual Creator E-Commerce (m/w/d)",
+  "company": "Snocks",
+  "url": "https://www.nomado24.de/de/remote-jobs/job/junior-ai-visual-creatorin-e-commerce-mwd-50b0d3ded6",
+  "info": "Remote ist Standard steht woertlich in der Anzeige, Buerobesuche sind freiwillig. Link am 28.09.2026 geprueft. Produkt- und Werbebilder mit KI-Tools erstellen, Bildbearbeitung und visuelles Marketing fuer den eigenen Shop und die Marktplaetze.",
+  "lang": "de",
+  "region": "de",
+  "level": "einsteiger",
+  "bereich": "marketing",
+  "date": "16.09.2026",
+  "posted": "2026-09-16",
+  "fd": false,
+  "src": "import"
+ },
+ {
+  "title": "(Junior) Group Marketplace Account Manager (m/w/d)",
+  "company": "Snocks",
+  "url": "https://www.nomado24.de/de/remote-jobs/job/junior-group-marketplace-account-managerin-mwd-04fa17126e",
+  "info": "Remote ist Standard steht woertlich in der Anzeige. Link am 28.09.2026 geprueft. Marktplaetze wie OTTO, Zalando und About You betreuen. Ein bis drei Jahre Erfahrung im Marktplatzgeschaeft werden erwartet, Studium oder Ausbildung ausdruecklich kein Muss.",
+  "lang": "de",
+  "region": "de",
+  "level": "erfahren",
+  "bereich": "marketing",
+  "date": "16.09.2026",
+  "posted": "2026-09-16",
   "fd": false,
   "src": "import"
  }
