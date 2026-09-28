@@ -1578,6 +1578,42 @@ def main():
         if _bf-len(alljobs):
             print(f"[dublette] {_bf-len(alljobs)} Karte(n) raus, weil sie schon in der Freelance-Liste stehen")
 
+        # Lauf #141: Die Freelance-Liste steht fest im Template und lief deshalb NIE durch den
+        # Link-Check - anders als jede Pipeline-Karte. Aufträge auf Auftragsbörsen laufen aber
+        # nach wenigen Wochen ab ("Offen bis: ..."), und niemand hat es gemerkt.
+        # Jetzt wird jede Freelance-Karte mit demselben resolve_link geprüft wie alle anderen
+        # und bei zweifachem Durchfallen aus dem HTML entfernt. Die Karte ist ein flacher Block
+        # <div class="card"> ... </a></div></div>, deshalb ist das Herausschneiden eindeutig.
+        if not MOCK:
+            import concurrent.futures as _cf, time as _t2
+            _seg=tail[_fl0:_fl1]
+            _karten=re.findall(r'<div class="card">.*?</a></div></div>', _seg, re.S)
+            _ku=[(k, (re.search(r'<div class="go"><a href="([^"]+)"', k) or [None,""])[1]) for k in _karten]
+            _urls=[u for _,u in _ku if u]
+            _lebt={}
+            with _cf.ThreadPoolExecutor(max_workers=8) as _ex:
+                _f={_ex.submit(resolve_link,u):u for u in _urls}
+                for _fu in _cf.as_completed(_f):
+                    _u=_f[_fu]
+                    try: _lebt[_u]=_fu.result()[1]
+                    except Exception: _lebt[_u]=True
+            _verdacht=[u for u,a in _lebt.items() if not a]
+            for _u in _verdacht:          # Zweitpruefung wie in resolve_and_prune (Lauf #102)
+                _t2.sleep(0.4)
+                try:
+                    if resolve_link(_u)[1]: _lebt[_u]=True
+                except Exception: _lebt[_u]=True
+            _tot=[u for u,a in _lebt.items() if not a]
+            if _tot:
+                _neu=_seg
+                for _k,_u in _ku:
+                    if _u in _tot: _neu=_neu.replace(_k,"",1)
+                tail=tail[:_fl0]+_neu+tail[_fl1:]
+                print(f"[freelance] {len(_tot)} abgelaufene Auftraege aus dem Freelance-Tab entfernt "
+                      f"({len(_karten)-len(_tot)} von {len(_karten)} bleiben)")
+            else:
+                print(f"[freelance] alle {len(_karten)} Auftraege im Freelance-Tab leben")
+
     _before=len(alljobs)
     _dropped=[j for j in alljobs if not is_direct(j["url"])]
     alljobs=[j for j in alljobs if is_direct(j["url"])]
