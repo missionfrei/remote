@@ -72,6 +72,12 @@ BLOCK = ["werkstud","working student",   # Paul: keine Werkstudenten
     # Paul, 25.09.: reine Provision ist kein Gehalt. Provisionsmodelle ohne Fixum fliegen raus.
     "provision basierend auf","rein auf provisionsbasis","ausschliesslich provision","ausschlie\u00dflich provision"]
 
+# Lauf 144: Firmen, die nicht aufs Board gehoeren - unabhaengig vom Anzeigentext.
+# recime: Verguetung ist reine Provision auf das Werbebudget, kein Fixum.
+# talentspring: Bildungstraeger, verkauft Weiterbildungen als Stellenanzeigen.
+# hochberg performance: gefoerdertes Trainingsprogramm als Pflegejob getarnt (September).
+FIRMEN_BLOCK = ["recime", "talentspring"]
+
 def esc(s):
     return (s or "").replace("&","&amp;").replace("<","&lt;").replace(">","&gt;").strip()
 
@@ -952,6 +958,7 @@ def process(raw_jobs):
         if not j.get("url") or not j.get("title"): continue
         blob=(j["title"]+" "+j.get("raw_tags","")+" "+j.get("info","")).lower()
         if any(b in blob for b in BLOCK): continue
+        if any(f in (j.get("company","") or "").lower() for f in FIRMEN_BLOCK): continue
         ber=detect_bereich(j["title"]+" "+j.get("raw_tags",""))
         if not ber: continue
         lang,region,level=detect(j)
