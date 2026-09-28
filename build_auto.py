@@ -65,7 +65,12 @@ BLOCK = ["werkstud","working student",   # Paul: keine Werkstudenten
     "data annotation","datenannotation","annotator","data labeling","data labelling","daten labeln"," rater","quality rater","search evaluator","search engine evaluator","ads rating",
     "transcription","transkription","transkribent","untertitel erstellen",
     "ki-training","ki-daten","ki-sprachdaten","ki-trainer","ki-reviewer","ki-community","ai trainer","ai reviewer","audio evaluation","data evaluation",
-    "get-paid","get paid to","paid to click","faucet","cashback","nebenverdienst","praemien sammeln","belohnungen verdienen"]
+    "get-paid","get paid to","paid to click","faucet","cashback","nebenverdienst","praemien sammeln","belohnungen verdienen",
+    # Lauf 144: Bildungstraeger, die Weiterbildungen als Stellenanzeigen ausschreiben. Gleiches Muster
+    # wie Hochberg im September: klingt nach Job, ist ein Kurs. Gehoert nicht auf ein Job-Board.
+    "talentspring","bildungstraeger","bildungstr\u00e4ger","bildungsgutschein","umschulung","weiterbildungsangebot",
+    # Paul, 25.09.: reine Provision ist kein Gehalt. Provisionsmodelle ohne Fixum fliegen raus.
+    "provision basierend auf","rein auf provisionsbasis","ausschliesslich provision","ausschlie\u00dflich provision"]
 
 def esc(s):
     return (s or "").replace("&","&amp;").replace("<","&lt;").replace(">","&gt;").strip()
