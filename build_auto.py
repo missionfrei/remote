@@ -1182,7 +1182,7 @@ FD_JS = r'''
      minus:["reine provision","nur provision","provisionsbasis","kaltakquise","closer","high ticket","callcenter","call center","telefonist","kundenservice","kundensupport","customer support","datenerfassung","dateneingabe","data entry","transkription","annotation","pflege","pflegefach","medizinisch","arzt","apotheke","buchhaltung","steuer","datev","lohnbuchhalt","personalberat","recruiting consultant","lehrer","dozent","trainer","nachhilfe","handwerk","montage","lager","fahrer","aussendienst","au\u00dfendienst","versicherung","finanzberat"],
      hard:["r\u00fcstung","defence","defense","verteidigungsindustrie","waffen","munition","bundeswehr","pflegefach","examinierte","arzt","\u00e4rztin","apotheker","rechtsanwalt","jurist","steuerberater","buchhalter","kaltakquise","high ticket closer","au\u00dfendienst","call center agent"],
      exempt:/senior|lead|engineer|entwickler|developer|architek|fullstack|full stack|consultant|expert/i,
-     langs:["de","en"],reg:{world:3,eu:2,de:1}},
+     langs:["de"],deonly:true,reg:{world:3,eu:2,de:1}},
   };
   function fdRegion(c){var t=(c.querySelector('.meta')||c).textContent;if(/Weltweit|\u{1F30D}/u.test(t))return'world';if(/EU|\u{1F1EA}\u{1F1FA}|Europa/u.test(t))return'eu';return'de';}
   function fdText(c){return (((c.querySelector('h3')||{}).textContent||'')+' '+((c.querySelector('.info')||{}).textContent||'')+' '+((c.querySelector('.company')||{}).textContent||'')).toLowerCase();}
