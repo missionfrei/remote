@@ -909,10 +909,21 @@ def _js(query, country="us", page=1):
 # Paul-Ziel: 100% remote WELTWEIT. Suchen bewusst auf "work from anywhere" gebogen (country=us =
 # groesster Pool globaler Remote-Anzeigen); from_jsearch labelt world nur bei echtem Weltweit-Signal
 # und wirft US-/laendergebundene raus. 1 de-Query fuer deutschen EU-Nachschub.
+# Lauf 153: Wieder aktiv, aber als kontrollierter Test. Der alte Befund (nur Portal-Links, die ins
+# Leere laufen) stammt aus Lauf #29 und wurde nie mit deutschen Suchbegriffen gegengeprueft - damals
+# lief alles ueber country=us. Jetzt: deutsche Queries mit country=de, das liefert Firmen-Karriereseiten
+# statt Aggregator-Uebersichten. Basic-Tarif hat 200 Anfragen im Monat als harte Grenze, der taegliche
+# Build darf also hoechstens 6 verbrauchen -> genau 5 Queries, num_pages=1.
+# Wenn die Links wieder auf Portale zeigen, fliegt die Quelle endgueltig raus.
 if JSEARCH_KEY:
     SOURCES += [
+        ("jsearch-de-service",   _js("Kundenservice remote Homeoffice", "de"), from_jsearch, "json"),
+        ("jsearch-de-marketing", _js("Social Media Manager remote", "de"),     from_jsearch, "json"),
+        ("jsearch-de-buero",     _js("Sachbearbeitung Homeoffice remote", "de"), from_jsearch, "json"),
+        ("jsearch-de-it",        _js("Softwareentwickler remote Deutschland", "de"), from_jsearch, "json"),
+        ("jsearch-de-quer",      _js("Quereinsteiger remote Homeoffice", "de"), from_jsearch, "json"),
     ]
-    print("[jsearch] deaktiviert: lieferte nur Portal-Links (glassdoor/indeed/jobrapido), die ins Leere laufen")
+    print("[jsearch] TESTLAUF aktiv: 5 deutsche Queries, country=de (Basic-Tarif: 200 Anfragen/Monat)")
 else:
     print("[jsearch] kein JSEARCH_KEY -> JSearch uebersprungen (Key als GitHub-Secret setzen, dann aktiv)")
 
