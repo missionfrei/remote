@@ -906,7 +906,7 @@ def _ba_hol(beruf, page):
             return http_json(_ba(beruf, size=50, page=page))
         except Exception as e:
             if versuch==2: raise
-            _t.sleep(3.0)
+            _t.sleep(1.5)
     return {}
 def _ba_filtertest():
     # Gibt es einen serverseitigen Homeoffice-Filter? Vergleicht maxErgebnisse mit und ohne.
@@ -918,13 +918,21 @@ def _ba_filtertest():
             d=http_json(base+zusatz); DIAG.append(f"bafilt:{name}={d.get('maxErgebnisse')}")
         except Exception as e: DIAG.append(f"bafilt:{name}=ERR:{str(e)[:30]}")
         _t.sleep(2.0)
+# Lauf 158: Lauf 157 ist nach 36 Minuten abgebrochen - die Ernte hatte kein Zeitlimit und die
+# BA-Schnittstelle antwortet manchmal minutenlang nicht. Jetzt: hartes Zeitbudget. Was in der
+# Zeit nicht geschafft wird, faellt weg; der Build laeuft in jedem Fall zu Ende.
+BA_BUDGET_SEK = 300
 def _ba_ernte():
     import time as _t
+    start=_t.time()
     try: _ba_filtertest()
     except Exception: pass
-    roh=0; raus=0; fehler=0
+    roh=0; raus=0; fehler=0; abbruch=""
     for beruf in BA_BERUFE:
-        for page in (1,2,3,4):
+        if _t.time()-start > BA_BUDGET_SEK:
+            abbruch=f" zeit-aus-nach={beruf[:12]}"
+            break
+        for page in (1,2,3):
             try:
                 data=_ba_hol(beruf, page)
                 lst=data.get("ergebnisliste") or []
@@ -936,9 +944,11 @@ def _ba_ernte():
             except Exception:
                 fehler+=1
                 break
-            _t.sleep(1.5)
+            if _t.time()-start > BA_BUDGET_SEK: break
+            _t.sleep(0.8)
     typen=",".join(f"{k or 'leer'}:{v}" for k,v in sorted(BA_TYPEN.items(), key=lambda x:-x[1])[:6])
-    DIAG.append(f"ba-gesamt roh={roh} 100prozent={raus} abbrueche={fehler} typen[{typen}]")
+    DIAG.append(f"ba-gesamt roh={roh} 100prozent={raus} abbrueche={fehler}"
+                f" sek={int(_t.time()-start)}{abbruch} typen[{typen}]")
 BA_TREFFER=[]
 print("[ba] Arbeitsagentur: Ernte aktiv, Filter homeofficeprozent=100 aus der amtlichen Datenbank")
 
