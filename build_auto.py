@@ -167,6 +167,18 @@ def from_remotive(raw):
 # Qualitaet (Paul: jede Stelle muss passen): nur ECHT voll-remote; Vor-Ort/Relocation/Hybrid raus.
 ADZ_REMOTE = re.compile(r"100\s*%?\s*remote|fully remote|full[- ]?remote|voll(?:staendig|ständig)?\s*remote|komplett remote|remote[- ]?first|ortsunabh|standortunabh|work from anywhere|home\s?office|homeoffice|remote\s*\(?(?:eu|europe|europa)|eu[- ]?remote|remote in europa|von ueberall|von überall", re.I)
 ADZ_ONSITE = re.compile(r"vor[- ]?ort|on[- ]?site|pr[äae]senz|relocat|umzug|umziehen|move to|nach (?:griechenland|zypern|portugal|spanien|bulgarien|malta|polen|rum[äa]nien|serbien|albanien|kroatien|t[üu]rkei)|ziehen nach|relocation package|based in (?:greece|cyprus|portugal|spain|bulgaria|poland)|hybrid|teilweise remote|tage (?:im )?b[üu]ro|b[üu]ro[- ]?pflicht", re.I)
+# Lauf 153: ADZ_REMOTE akzeptiert ein blankes "Homeoffice" - viel zu schwach. Damit rutschte
+# "Kundenberater:in Banking Basel und Homeoffice 60 - 80%" durch, also eine Hybridstelle mit Buero.
+# Fuer Adzuna gilt deshalb ein eigener, harter Beleg: die Anzeige muss vollstaendige Ortsfreiheit
+# ausdruecklich sagen. Zusaetzlich ein Veto gegen Prozentangaben und gegen "<Stadt> und Homeoffice".
+ADZ_BELEG = re.compile(r"100\s*%?\s*(?:remote|home\s?-?office)|vollst(?:ae|ä)ndig\s+(?:remote|im\s+home)|"
+                       r"komplett\s+remote|full[- ]?remote|fully[- ]?remote|remote[- ]?first|"
+                       r"ortsunabh(?:ae|ä)ngig|standortunabh(?:ae|ä)ngig|work from anywhere|"
+                       r"von (?:ue|ü)berall|deutschlandweit\s+im\s+homeoffice", re.I)
+ADZ_TEIL  = re.compile(r"\d{1,3}\s*[-–bis ]{1,4}\s*\d{1,3}\s*%|"        # 60 - 80 %
+                       r"\b[1-9]?\d\s*%\s*(?:remote|home\s?-?office)|"   # 80 % Homeoffice
+                       r"\bund\s+homeoffice\b|homeoffice\s+und\s+b(?:ue|ü)ro|"
+                       r"teilweise|anteilig|(?:ein|zwei|drei|vier)\s+tage", re.I)
 def from_adzuna(raw):
     out=[]
     for j in (raw.get("results") or []):
@@ -174,10 +186,15 @@ def from_adzuna(raw):
         desc=clean_text(j.get("description",""))
         loc=((j.get("location") or {}).get("display_name","")) or ""
         blob=title+" "+desc+" "+loc
-        if not ADZ_REMOTE.search(blob): continue     # nur ECHT voll-remote
+        m=ADZ_BELEG.search(blob)
+        if not m: continue                          # harter Beleg noetig, kein blankes "Homeoffice"
+        if ADZ_TEIL.search(blob):      continue     # Teilremote / Prozentangaben / Stadt+Homeoffice raus
         if ADZ_ONSITE.search(blob):    continue     # Vor-Ort / Relocation / Hybrid raus (Qualitaet)
+        beleg=m.group(0).strip()
+        info=(f"{beleg} steht woertlich in der Anzeige (ueber die Adzuna-Schnittstelle gelesen). "
+              f"{desc[:170]}").strip()
         out.append(dict(title=title, company=((j.get("company") or {}).get("display_name","")) or "",
-            url=(j.get("redirect_url") or ""), info=desc,
+            url=(j.get("redirect_url") or ""), info=info,
             raw_tags=((j.get("category") or {}).get("label","")),
             raw_desc=clean_text(j.get("description",""),1000),
             raw_loc=loc+" remote", region_hint="eu", no_world=True))   # Adzuna = DE/EU-Markt: NIE als weltweit labeln
@@ -875,10 +892,6 @@ if ADZUNA_AN and ADZUNA_ID and ADZUNA_KEY:
         ("adzuna-de-vertrieb",     _adz("de","remote vertrieb"),        from_adzuna, "json"),
         ("adzuna-de-reise",        _adz("de","remote reise"),           from_adzuna, "json"),
         # AT / CH - ebenfalls deutschsprachig
-        ("adzuna-at-remote",       _adz("at","remote"),                 from_adzuna, "json"),
-        ("adzuna-at-homeoffice",   _adz("at","homeoffice"),             from_adzuna, "json"),
-        ("adzuna-ch-homeoffice",   _adz("ch","homeoffice"),             from_adzuna, "json"),
-        ("adzuna-ch-remote",       _adz("ch","100% remote"),            from_adzuna, "json"),
         # Weitere EU-Maerkte (englisch, EU-remote)
         # GB / US (englisch, kundennah/Assistenz)
         # Seite 2 der ergiebigen Suchen + weitere EU-Maerkte (mehr Tiefe fuer die 1000)
@@ -887,7 +900,6 @@ if ADZUNA_AN and ADZUNA_ID and ADZUNA_KEY:
         ("adzuna-de-marketing2",   _adz("de","remote marketing",2),       from_adzuna, "json"),
         ("adzuna-de-buchhaltung2", _adz("de","remote buchhaltung",2),     from_adzuna, "json"),
         ("adzuna-de-vertrieb2",    _adz("de","remote vertrieb",2),        from_adzuna, "json"),
-        ("adzuna-at-remote2",      _adz("at","remote",2),                 from_adzuna, "json"),
         # Kundenservice / aus-dem-Ausland gezielt (Paul-Wunsch: mehr wie das StudySmarter-Beispiel fuer Annette)
         ("adzuna-de-tech-cs",      _adz("de","technischer kundenservice remote"), from_adzuna, "json"),
         ("adzuna-de-kundenberater",_adz("de","kundenberater remote"),            from_adzuna, "json"),
@@ -896,8 +908,6 @@ if ADZUNA_AN and ADZUNA_ID and ADZUNA_KEY:
         # Seite 3 der ergiebigen Suchen -> ECHT neue (tiefere) Stellen, keine Dubletten (Volumen ehrlich Richtung 1000)
         ("adzuna-de-remote3",      _adz("de","remote",3),                 from_adzuna, "json"),
         ("adzuna-de-homeoffice3",  _adz("de","homeoffice",3),             from_adzuna, "json"),
-        ("adzuna-at-remote3",      _adz("at","remote",3),                 from_adzuna, "json"),
-        ("adzuna-ch-homeoffice3",  _adz("ch","homeoffice",3),             from_adzuna, "json"),
     ]
     print("[adzuna] Key gefunden -> Adzuna aktiv (51 Suchen, Tiefe + Kundenservice-Fokus)")
 else:
