@@ -927,6 +927,7 @@ def _ba_filtertest():
 # Datensaetze. Ausserdem belegt: einen serverseitigen Homeoffice-Filter gibt es nicht
 # (homeofficemoeglich=true und mobilesArbeiten=true liefern exakt die unveraenderte Trefferzahl).
 BA_BUDGET_SEK = 420
+BA_TREFFER = []
 def _ba_ernte():
     import time as _t
     from concurrent.futures import ThreadPoolExecutor, as_completed
