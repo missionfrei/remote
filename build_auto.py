@@ -730,8 +730,10 @@ def gather_ats():
             emitted=emitted[:12]                                                      # Deckel pro Firma gegen Flut
             out+=emitted
             print(f"[ats] {company} ({ats}/{slug}): {len(rows)} -> {len(emitted)} passend (deutsch|weltweit-englisch kundennah)")
+            DIAG.append(f"ats:{slug}={len(rows)}/{len(emitted)}")
         except Exception as ex:
             print(f"[ats] {company} ({ats}/{slug}) FEHLER: {ex}")
+            DIAG.append(f"ats:{slug}=ERR:{str(ex)[:50]}")
     return out
 
 # (name, url, normalizer, kind) - kind "json"|"text"
@@ -942,6 +944,11 @@ if JSEARCH_KEY:
 else:
     print("[jsearch] kein JSEARCH_KEY -> JSearch uebersprungen (Key als GitHub-Secret setzen, dann aktiv)")
 
+# Lauf 154: Die Build-Protokolle auf dem Runner sind von hier aus nicht lesbar (403 ohne Admin-Rechte,
+# und die Web-Oberflaeche rendert das Log nicht ins DOM). Dadurch war bei jeder neuen Quelle unklar,
+# ob sie nichts liefert oder ob sie gar nicht laeuft. DIAG sammelt pro Quelle das Ergebnis und wird
+# als HTML-Kommentar in die fertige index.html geschrieben - damit ist jeder Lauf von aussen pruefbar.
+DIAG=[]
 def gather():
     jobs=[]
     if MOCK:
@@ -957,8 +964,10 @@ def gather():
             raw = http_text(url) if kind=="text" else http_json(url)
             got=fn(raw); jobs+=got
             print(f"[feed] {name}: {len(got)}")
+            DIAG.append(f"{name}={len(got)}")
         except Exception as e:
             print(f"[feed] {name} FEHLER (uebersprungen): {e}")
+            DIAG.append(f"{name}=ERR:{str(e)[:70]}")
     return jobs
 
 # ---------- Aufbereiten ----------
@@ -1898,7 +1907,8 @@ def main():
     _kl=len(re.findall(r'\(\s*,|,\s*\)', _fertig))
     if _kl: print(f"[text] WARN {_kl} kaputte Klammerstelle(n) im Text - pruefen")
 
-    open(OUT,"w",encoding="utf-8").write(_fertig)
+    _diag="<!-- QUELLEN-DIAGNOSE "+dt.datetime.now().strftime("%Y-%m-%d %H:%M")+" | "+" | ".join(DIAG)+" -->\n"
+    open(OUT,"w",encoding="utf-8").write(_diag+_fertig)
     pct = round(100*de/total) if total else 0
     n_c=sum(1 for j in alljobs if j.get("src")=="customer")
     n_i=sum(1 for j in alljobs if j.get("src")=="import")
