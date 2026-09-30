@@ -877,34 +877,62 @@ def _ba(beruf, size=100, page=1):
 # Eigene Erntefunktion (nicht ueber SOURCES), weil die BA-Schnittstelle bei schnellen Anfragen
 # hintereinander die Verbindung abbricht - hier wird deshalb bewusst pausiert.
 BA_BERUFE = [
-    "Kundenberater", "Kundenbetreuer", "Kundenservice", "Call-Center-Agent",
-    "Sachbearbeiter", "Buerokaufmann", "Assistenz", "Backoffice",
+    "Kundenberater", "Kundenbetreuer", "Kundenservice", "Call-Center-Agent", "Kundenbetreuung",
+    "Sachbearbeiter", "Buerokaufmann", "Assistenz", "Backoffice", "Datenerfassung",
     "Online-Marketing-Manager", "Social-Media-Manager", "Marketing-Assistent", "Content-Manager",
-    "Vertriebsmitarbeiter", "Vertriebsinnendienst", "Account-Manager",
-    "Softwareentwickler", "Webentwickler", "Fachinformatiker", "IT-Support",
-    "Buchhalter", "Personalsachbearbeiter", "Projektassistenz",
-    "Medizinische Dokumentation", "Gesundheitsberater", "Uebersetzer",
-    "Homeoffice",
+    "Grafikdesigner", "Mediengestalter", "Redakteur", "Texter",
+    "Vertriebsmitarbeiter", "Vertriebsinnendienst", "Account-Manager", "Telefonverkaeufer",
+    "Softwareentwickler", "Webentwickler", "Fachinformatiker", "IT-Support", "Systemadministrator",
+    "Webdesigner", "Datenanalyst", "Projektmanager",
+    "Buchhalter", "Lohnbuchhalter", "Personalsachbearbeiter", "Projektassistenz", "Disponent",
+    "Medizinische Dokumentation", "Gesundheitsberater", "Uebersetzer", "Dolmetscher",
+    "Versicherungskaufmann", "Bankkaufmann", "Immobilienkaufmann", "Rechtsanwaltsfachangestellter",
+    "Homeoffice", "Remote", "Telearbeit",
 ]
+# Lauf 157: Messung aus 156 - size=100 reisst die Verbindung ab (Connection reset, IncompleteRead),
+# Seite 1 kam meist durch, Seite 2 fast nie. Deshalb kleinere Portionen und ein zweiter Versuch.
+# Ausbeute 156: 1695 Rohtreffer -> 15 mit 100 Prozent Homeoffice -> 20 Karten auf dem Board.
+# Nur der Typ ANGABE_IN_PROZENT traegt eine Zahl; NACH_VEREINBARUNG ist kein Beleg und fliegt raus.
+def _ba_hol(beruf, page):
+    import time as _t
+    for versuch in (1,2):
+        try:
+            return http_json(_ba(beruf, size=50, page=page))
+        except Exception as e:
+            if versuch==2: raise
+            _t.sleep(3.0)
+    return {}
+def _ba_filtertest():
+    # Gibt es einen serverseitigen Homeoffice-Filter? Vergleicht maxErgebnisse mit und ohne.
+    import time as _t
+    base="https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v6/jobs?was=Kundenberater&size=5"
+    for name,zusatz in (("ohne",""),("hom","&homeofficemoeglich=true"),
+                        ("hof","&homeoffice=true"),("mob","&mobilesArbeiten=true")):
+        try:
+            d=http_json(base+zusatz); DIAG.append(f"bafilt:{name}={d.get('maxErgebnisse')}")
+        except Exception as e: DIAG.append(f"bafilt:{name}=ERR:{str(e)[:30]}")
+        _t.sleep(2.0)
 def _ba_ernte():
     import time as _t
-    roh=0; raus=0
+    try: _ba_filtertest()
+    except Exception: pass
+    roh=0; raus=0; fehler=0
     for beruf in BA_BERUFE:
-        for page in (1,2):
+        for page in (1,2,3,4):
             try:
-                data=http_json(_ba(beruf, size=100, page=page))
+                data=_ba_hol(beruf, page)
                 lst=data.get("ergebnisliste") or []
                 roh+=len(lst)
                 got=from_arbeitsagentur(data)
                 raus+=len(got)
                 BA_TREFFER.extend(got)
-                if not lst: break
-            except Exception as e:
-                DIAG.append(f"ba:{beruf[:14]}=ERR:{str(e)[:40]}")
+                if len(lst)<50: break
+            except Exception:
+                fehler+=1
                 break
-            _t.sleep(1.2)
+            _t.sleep(1.5)
     typen=",".join(f"{k or 'leer'}:{v}" for k,v in sorted(BA_TYPEN.items(), key=lambda x:-x[1])[:6])
-    DIAG.append(f"ba-gesamt roh={roh} 100prozent={raus} typen[{typen}]")
+    DIAG.append(f"ba-gesamt roh={roh} 100prozent={raus} abbrueche={fehler} typen[{typen}]")
 BA_TREFFER=[]
 print("[ba] Arbeitsagentur: Ernte aktiv, Filter homeofficeprozent=100 aus der amtlichen Datenbank")
 
