@@ -840,25 +840,29 @@ SOURCES += [
 
 # --- Arbeitsagentur (Lauf #27): groesste dt. Jobdatenbank, oeffentliche API, KEIN Key noetig.
 #     Nur ortsunabhaengige/weltweit-machbare Treffer (Suche entsprechend gebogen). ---
-def _ba(kw, size=100, page=1, ver="v6"):
-    # Lauf 151: Der Grund fuer das Parken war falsch. Die BA-API braucht KEINE OAuth-Anmeldung,
-    # sie nutzt eine feste oeffentliche clientId im Header X-API-Key (siehe Zeile 133, ist gesetzt).
-    # Die Null-Treffer kamen vom veralteten v4-Pfad. Aktueller Pfad laut bundesAPI ist v6.
-    # Vom Container aus nicht testbar (Egress-Proxy sperrt arbeitsagentur.de) - der Runner zeigt es.
-    return (f"https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/{ver}/jobs"
-            f"?was={urllib.parse.quote(kw)}&size={size}&page={page}")
+def _ba(beruf, size=100, page=1):
+    # Lauf 154, echter Fehler gefunden. Die v6-Abfragen lieferten 0 OHNE Fehlermeldung, v4 gab
+    # 403 "No match found" - der v4-Pfad existiert nicht mehr.
+    # Die 0 bei v6 kam nicht von der Technik, sondern von den Suchbegriffen: das Feld "was" der
+    # BA-API sucht nach BERUF und Stellentitel. Begriffe wie ortsunabhaengig oder 100% remote sind
+    # keine Berufe, also null Treffer. Richtig ist: echter Beruf im was-Feld, und die Ortsfreiheit
+    # ueber den offiziellen Filter arbeitszeit=ho (Heimarbeit/Telearbeit) einschraenken.
+    return (f"https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v6/jobs"
+            f"?was={urllib.parse.quote(beruf)}&arbeitszeit=ho&angebotsart=1"
+            f"&size={size}&page={page}&veroeffentlichtseit=30")
 SOURCES += [
-    ("ba-ortsunabh",       _ba("ortsunabh\u00e4ngig"),        from_arbeitsagentur, "json"),
-    ("ba-standortunabh",   _ba("standortunabh\u00e4ngig"),    from_arbeitsagentur, "json"),
-    ("ba-vonueberall",     _ba("von \u00fcberall arbeiten"),  from_arbeitsagentur, "json"),
-    ("ba-100remote",       _ba("100% remote"),                 from_arbeitsagentur, "json"),
-    ("ba-vollremote",      _ba("vollst\u00e4ndig remote"),     from_arbeitsagentur, "json"),
-    ("ba-homeoffice-voll", _ba("100% Homeoffice"),             from_arbeitsagentur, "json"),
-    ("ba-deutschlandweit", _ba("deutschlandweit Homeoffice"),  from_arbeitsagentur, "json"),
-    # v4 als Rueckfall, falls v6 auf dem Runner nichts liefert
-    ("ba-v4-ortsunabh",    _ba("ortsunabh\u00e4ngig", 100, 1, "v4"), from_arbeitsagentur, "json"),
+    ("ba-kundenberater",  _ba("Kundenberater"),        from_arbeitsagentur, "json"),
+    ("ba-kundenservice",  _ba("Kundenservice"),        from_arbeitsagentur, "json"),
+    ("ba-sachbearbeiter", _ba("Sachbearbeiter"),       from_arbeitsagentur, "json"),
+    ("ba-assistenz",      _ba("Assistenz"),            from_arbeitsagentur, "json"),
+    ("ba-marketing",      _ba("Marketing"),            from_arbeitsagentur, "json"),
+    ("ba-socialmedia",    _ba("Social Media Manager"), from_arbeitsagentur, "json"),
+    ("ba-softwareentw",   _ba("Softwareentwickler"),   from_arbeitsagentur, "json"),
+    ("ba-buchhaltung",    _ba("Buchhalter"),           from_arbeitsagentur, "json"),
+    ("ba-vertriebsinnen", _ba("Vertriebsinnendienst"), from_arbeitsagentur, "json"),
+    ("ba-datenerfassung", _ba("Sachbearbeitung"),      from_arbeitsagentur, "json"),
 ]
-print("[ba] Arbeitsagentur AKTIV (oeffentliche clientId, v6 + v4-Rueckfall)")
+print("[ba] Arbeitsagentur AKTIV: v6, echte Berufe im was-Feld, Filter arbeitszeit=ho")
 
 # --- Adzuna (Boersen-Aggregator, Deutschland-nativ). Nur aktiv, wenn ADZUNA_APP_ID/KEY als
 #     GitHub-Secret gesetzt sind. Ohne Key: Quelle wird sauber uebersprungen (Board baut normal). ---
