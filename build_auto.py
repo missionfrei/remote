@@ -59,6 +59,9 @@ DE_ONLY_MARKERS = ["deutschlandweit","bundesweit","nur in deutschland","innerhal
 EU_MARKERS = ["europe","eu ","emea","cet","european","europaweit","eu-weit","euweit","innerhalb europas","remote in europa","eu remote","europe remote","remote europe","remote (europe)","eu-remote"]
 EINSTEIGER_MARKERS = ["junior","entry","einsteiger","quereinstieg","quereinsteiger","no experience","keine erfahrung","berufseinsteiger","trainee","aushilfe","praktik"]
 BLOCK = ["werkstud","working student",   # Paul: keine Werkstudenten
+    # Lauf 150: ein Praktikum ist ueber eine Auto-Quelle aufs Board gerutscht. Das Board ist fuer
+    # Leute, die Einkommen brauchen, nicht fuer unbezahlte oder Mini-Verguetung auf Zeit.
+    "praktikum","praktikant","internship"," intern ","pflichtpraktikum","volontariat","volontaer",
     # Paul: KEINE kleinen Nebenverdienst-/Mikrojobs (Umfragen, Klick-Tasks, Tests, KI-Datenlabeling, Transkription-Gigs)
     "umfrage","survey","paid survey","mikrojob","mikro-job","microtask","micro-task","clickwork","crowdwork","crowdsurf",
     "usability test","usability-test","website test","websites testen","produkttest","playtester","beta-test",
