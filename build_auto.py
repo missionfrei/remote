@@ -218,6 +218,9 @@ def _ba_field(j, *names):
 # deshalb hier: nur Stellen, die der Arbeitgeber selbst mit 100 Prozent Homeoffice meldet.
 # Das ist ein staerkerer Beleg als ein Textschnipsel - es ist die Angabe des Arbeitgebers
 # in der amtlichen Datenbank, kein Portal-Label.
+BA_VETO = re.compile(r"au(?:ss|\u00df)endienst|vor\s?ort|monteur|servicetechniker|techniker\s+im\s+"
+                     r"|fahrer|kurier|auslieferung|reisebereitschaft|gebietsleiter|regionalleiter"
+                     r"|filial|niederlassung|pflegekraft|pflegefachkraft|handwerk|lager|produktion", re.I)
 BA_TYP_OK = {"VOLLSTAENDIG","VOLLSTAENDIG_HOMEOFFICE","NUR_HOMEOFFICE","IMMER","AUSSCHLIESSLICH"}
 BA_TYPEN  = {}   # nur zum Mitzaehlen fuer die Diagnose
 def from_arbeitsagentur(raw):
@@ -232,6 +235,9 @@ def from_arbeitsagentur(raw):
         title=_ba_field(j,"stellenangebotsTitel","titel","beruf","stellenbezeichnung")
         refnr=_ba_field(j,"referenznummer","refnr","hashId")
         if not title or not refnr: continue
+        # Der Arbeitgeber kreuzt "100 Prozent Homeoffice" auch bei Aussendienst an, weil kein
+        # Buero vorhanden ist. Das ist kein ortsunabhaengiges Arbeiten - raus damit.
+        if BA_VETO.search(title): continue
         comp=_ba_field(j,"firma","arbeitgeber","arbeitgeberName") or "Arbeitgeber (ueber Arbeitsagentur)"
         lok=(j.get("stellenlokationen") or [{}])
         adr=(lok[0].get("adresse") if isinstance(lok,list) and lok and isinstance(lok[0],dict) else {}) or {}
