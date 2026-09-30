@@ -903,7 +903,7 @@ def _ba_hol(beruf, page):
     import time as _t
     for versuch in (1,2):
         try:
-            return http_json(_ba(beruf, size=50, page=page))
+            return http_json(_ba(beruf, size=100, page=page))
         except Exception as e:
             if versuch==2: raise
             _t.sleep(1.5)
@@ -921,35 +921,38 @@ def _ba_filtertest():
 # Lauf 158: Lauf 157 ist nach 36 Minuten abgebrochen - die Ernte hatte kein Zeitlimit und die
 # BA-Schnittstelle antwortet manchmal minutenlang nicht. Jetzt: hartes Zeitbudget. Was in der
 # Zeit nicht geschafft wird, faellt weg; der Build laeuft in jedem Fall zu Ende.
-BA_BUDGET_SEK = 300
+# Lauf 159: Messung aus 158 - die BA-Schnittstelle ist langsam (700 Datensaetze in 300 Sekunden,
+# rund 20 Sekunden je Anfrage). Serienabfrage schafft damit nur ein Zehntel der Datenbank.
+# Loesung: 6 Anfragen parallel. Damit passen in dasselbe Zeitfenster rund sechsmal so viele
+# Datensaetze. Ausserdem belegt: einen serverseitigen Homeoffice-Filter gibt es nicht
+# (homeofficemoeglich=true und mobilesArbeiten=true liefern exakt die unveraenderte Trefferzahl).
+BA_BUDGET_SEK = 420
 def _ba_ernte():
     import time as _t
+    from concurrent.futures import ThreadPoolExecutor, as_completed
     start=_t.time()
     try: _ba_filtertest()
     except Exception: pass
-    roh=0; raus=0; fehler=0; abbruch=""
-    for beruf in BA_BERUFE:
-        if _t.time()-start > BA_BUDGET_SEK:
-            abbruch=f" zeit-aus-nach={beruf[:12]}"
-            break
-        for page in (1,2,3):
-            try:
-                data=_ba_hol(beruf, page)
-                lst=data.get("ergebnisliste") or []
-                roh+=len(lst)
-                got=from_arbeitsagentur(data)
-                raus+=len(got)
-                BA_TREFFER.extend(got)
-                if len(lst)<50: break
-            except Exception:
-                fehler+=1
-                break
-            if _t.time()-start > BA_BUDGET_SEK: break
-            _t.sleep(0.8)
+    auftraege=[(b,p) for b in BA_BERUFE for p in (1,2,3)]
+    roh=0; raus=0; fehler=0
+    def hol(x):
+        beruf,page=x
+        if _t.time()-start > BA_BUDGET_SEK: return None
+        try: return _ba_hol(beruf, page)
+        except Exception: return "ERR"
+    with ThreadPoolExecutor(max_workers=6) as ex:
+        futs={ex.submit(hol,x):x for x in auftraege}
+        for f in as_completed(futs):
+            d=f.result()
+            if d is None: continue
+            if d=="ERR": fehler+=1; continue
+            lst=d.get("ergebnisliste") or []
+            roh+=len(lst)
+            got=from_arbeitsagentur(d)
+            raus+=len(got); BA_TREFFER.extend(got)
     typen=",".join(f"{k or 'leer'}:{v}" for k,v in sorted(BA_TYPEN.items(), key=lambda x:-x[1])[:6])
     DIAG.append(f"ba-gesamt roh={roh} 100prozent={raus} abbrueche={fehler}"
-                f" sek={int(_t.time()-start)}{abbruch} typen[{typen}]")
-BA_TREFFER=[]
+                f" sek={int(_t.time()-start)} typen[{typen}]")
 print("[ba] Arbeitsagentur: Ernte aktiv, Filter homeofficeprozent=100 aus der amtlichen Datenbank")
 
 # --- Adzuna (Boersen-Aggregator, Deutschland-nativ). Nur aktiv, wenn ADZUNA_APP_ID/KEY als
