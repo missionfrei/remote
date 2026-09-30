@@ -841,28 +841,36 @@ SOURCES += [
 # --- Arbeitsagentur (Lauf #27): groesste dt. Jobdatenbank, oeffentliche API, KEIN Key noetig.
 #     Nur ortsunabhaengige/weltweit-machbare Treffer (Suche entsprechend gebogen). ---
 def _ba(beruf, size=100, page=1):
-    # Lauf 154, echter Fehler gefunden. Die v6-Abfragen lieferten 0 OHNE Fehlermeldung, v4 gab
-    # 403 "No match found" - der v4-Pfad existiert nicht mehr.
-    # Die 0 bei v6 kam nicht von der Technik, sondern von den Suchbegriffen: das Feld "was" der
-    # BA-API sucht nach BERUF und Stellentitel. Begriffe wie ortsunabhaengig oder 100% remote sind
-    # keine Berufe, also null Treffer. Richtig ist: echter Beruf im was-Feld, und die Ortsfreiheit
-    # ueber den offiziellen Filter arbeitszeit=ho (Heimarbeit/Telearbeit) einschraenken.
     return (f"https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v6/jobs"
             f"?was={urllib.parse.quote(beruf)}&arbeitszeit=ho&angebotsart=1"
-            f"&size={size}&page={page}&veroeffentlichtseit=30")
-SOURCES += [
-    ("ba-kundenberater",  _ba("Kundenberater"),        from_arbeitsagentur, "json"),
-    ("ba-kundenservice",  _ba("Kundenservice"),        from_arbeitsagentur, "json"),
-    ("ba-sachbearbeiter", _ba("Sachbearbeiter"),       from_arbeitsagentur, "json"),
-    ("ba-assistenz",      _ba("Assistenz"),            from_arbeitsagentur, "json"),
-    ("ba-marketing",      _ba("Marketing"),            from_arbeitsagentur, "json"),
-    ("ba-socialmedia",    _ba("Social Media Manager"), from_arbeitsagentur, "json"),
-    ("ba-softwareentw",   _ba("Softwareentwickler"),   from_arbeitsagentur, "json"),
-    ("ba-buchhaltung",    _ba("Buchhalter"),           from_arbeitsagentur, "json"),
-    ("ba-vertriebsinnen", _ba("Vertriebsinnendienst"), from_arbeitsagentur, "json"),
-    ("ba-datenerfassung", _ba("Sachbearbeitung"),      from_arbeitsagentur, "json"),
-]
-print("[ba] Arbeitsagentur AKTIV: v6, echte Berufe im was-Feld, Filter arbeitszeit=ho")
+            f"&size={size}&page={page}&veroeffentlichtseit=28")
+
+# Lauf 155 - Messsonde. Die BA-API gab 200 zurueck, aber 0 Treffer, und jede zweite Anfrage endete
+# mit Connection reset. Zwei moegliche Ursachen: falsche Parameter oder zu viele Anfragen zu schnell.
+# Statt zu raten wird jetzt EINE Sonde gefahren, die mehrere Varianten testet und die ROHANTWORT
+# meldet: welche Schluessel kommen zurueck, wie viele Ergebnisse meldet die API selbst.
+# Ergebnis landet ueber DIAG in der index.html und ist damit von aussen lesbar.
+def _ba_sonde():
+    import time as _t
+    varianten=[
+      ("A-voll",      "?was=Kundenberater&arbeitszeit=ho&angebotsart=1&size=25&page=1&veroeffentlichtseit=28"),
+      ("B-nurwas",    "?was=Kundenberater&size=25&page=1"),
+      ("C-nurho",     "?arbeitszeit=ho&size=25&page=1"),
+      ("D-ohnezeit",  "?was=Kundenberater&angebotsart=1&size=25&page=1"),
+      ("E-homeoffice","?was=Homeoffice&size=25&page=1"),
+    ]
+    for name,q in varianten:
+        url="https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v6/jobs"+q
+        try:
+            raw=http_json(url)
+            keys=",".join(list(raw.keys())[:6]) if isinstance(raw,dict) else type(raw).__name__
+            n=len(raw.get("stellenangebote") or []) if isinstance(raw,dict) else -1
+            mx=raw.get("maxErgebnisse") if isinstance(raw,dict) else "?"
+            DIAG.append(f"BAsonde:{name} keys[{keys}] stellen={n} max={mx}")
+        except Exception as e:
+            DIAG.append(f"BAsonde:{name} ERR:{str(e)[:60]}")
+        _t.sleep(2.0)   # Abstand gegen die Verbindungsabbrueche
+print("[ba] Arbeitsagentur: Messsonde statt Feeds (BA_SOURCES geparkt bis die Antwort klar ist)")
 
 # --- Adzuna (Boersen-Aggregator, Deutschland-nativ). Nur aktiv, wenn ADZUNA_APP_ID/KEY als
 #     GitHub-Secret gesetzt sind. Ohne Key: Quelle wird sauber uebersprungen (Board baut normal). ---
@@ -955,6 +963,9 @@ else:
 DIAG=[]
 def gather():
     jobs=[]
+    if not MOCK:
+        try: _ba_sonde()
+        except Exception as e: DIAG.append("BAsonde=ERR:"+str(e)[:50])
     if MOCK:
         for name in ("arbeitnow","remotive"):
             p=os.path.join(HERE,"mock",f"{name}.json")
