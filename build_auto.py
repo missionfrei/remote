@@ -850,9 +850,14 @@ def _adz(country, what, page=1):
     return (f"https://api.adzuna.com/v1/api/jobs/{country}/search/{page}"
             f"?app_id={ADZUNA_ID}&app_key={ADZUNA_KEY}&results_per_page=50&max_days_old=40"
             f"&what={urllib.parse.quote(what)}&content-type=application/json")
-# Adzuna ab Lauf #60 AUS: liefert DE/AT/CH-Markt (Wohnsitz-gebunden, nie weltweit) und nur
-# Interstitial-Links statt Direktlinks zur Anzeige. Beides verstoesst gegen Pauls Kriterien.
-ADZUNA_AN = False
+# Lauf #60 AUS wegen zwei Gruenden. Lauf 153 neu bewertet:
+# 1. "DE/AT/CH-Markt, Wohnsitz-gebunden, nie weltweit" - dieser Einwand gilt nicht mehr. Paul hat
+#    daniel26 und marcus26 inzwischen auf nur-Deutsch gestellt, deutschsprachige Stellen mit Wohnsitz
+#    Deutschland sind genau das, was gesucht wird. Weltweit bleibt Wunsch, nicht Bedingung.
+# 2. "Interstitial-Links statt Direktlinks" - der Einwand steht und ist der eigentliche Pruefpunkt
+#    dieses Testlaufs. from_adzuna + is_direct() filtern Sammelseiten bereits. Wenn die Links trotzdem
+#    auf Zwischenseiten zeigen, fliegt die Quelle endgueltig raus - dann aber mit Beleg statt Vermutung.
+ADZUNA_AN = True
 if ADZUNA_AN and ADZUNA_ID and ADZUNA_KEY:
     SOURCES += [
         # DE-Markt breit (deutschsprachig -> hebt Volumen UND die Deutsch-Quote). from_adzuna filtert hart auf ECHT voll-remote.
