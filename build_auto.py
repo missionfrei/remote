@@ -210,21 +210,43 @@ def _ba_field(j, *names):
         v=j.get(n)
         if isinstance(v,str) and v.strip(): return v.strip()
     return ""
+# Lauf 156, gemessen statt geraten. Die v6-Antwort sieht so aus:
+#   ergebnisliste[] -> stellenangebotsTitel, firma, referenznummer, hauptberuf, alleBerufe,
+#                      stellenlokationen[].adresse.ort, datumErsteVeroeffentlichung,
+#                      homeofficemoeglich (bool), homeofficetyp, homeofficeprozent (Zahl)
+# Der Parameter arbeitszeit=ho gibt es in v6 NICHT (liefert stumm 0 Treffer). Gefiltert wird
+# deshalb hier: nur Stellen, die der Arbeitgeber selbst mit 100 Prozent Homeoffice meldet.
+# Das ist ein staerkerer Beleg als ein Textschnipsel - es ist die Angabe des Arbeitgebers
+# in der amtlichen Datenbank, kein Portal-Label.
+BA_TYP_OK = {"VOLLSTAENDIG","VOLLSTAENDIG_HOMEOFFICE","NUR_HOMEOFFICE","IMMER","AUSSCHLIESSLICH"}
+BA_TYPEN  = {}   # nur zum Mitzaehlen fuer die Diagnose
 def from_arbeitsagentur(raw):
     out=[]
-    # Lauf 156: die v6-API nennt die Trefferliste "ergebnisliste" (nicht "stellenangebote").
     for j in (raw.get("ergebnisliste") or raw.get("stellenangebote") or []):
-        title=_ba_field(j,"titel","beruf","stellenangebotsTitel","stellenbezeichnung")
-        refnr=_ba_field(j,"refnr","referenznummer","hashId")
+        typ=(j.get("homeofficetyp") or "").upper()
+        pro=j.get("homeofficeprozent")
+        BA_TYPEN[typ]=BA_TYPEN.get(typ,0)+1
+        if not j.get("homeofficemoeglich"): continue
+        voll = (isinstance(pro,(int,float)) and pro>=100) or (typ in BA_TYP_OK)
+        if not voll: continue
+        title=_ba_field(j,"stellenangebotsTitel","titel","beruf","stellenbezeichnung")
+        refnr=_ba_field(j,"referenznummer","refnr","hashId")
         if not title or not refnr: continue
-        comp=_ba_field(j,"arbeitgeber","arbeitgeberName") or "Arbeitgeber (ueber Arbeitsagentur)"
-        ao=j.get("arbeitsort") or {}
-        ort=(ao.get("ort") if isinstance(ao,dict) else "") or _ba_field(j,"ort") or ""
+        comp=_ba_field(j,"firma","arbeitgeber","arbeitgeberName") or "Arbeitgeber (ueber Arbeitsagentur)"
+        lok=(j.get("stellenlokationen") or [{}])
+        adr=(lok[0].get("adresse") if isinstance(lok,list) and lok and isinstance(lok[0],dict) else {}) or {}
+        ort=adr.get("ort") or ""
+        ber=_ba_field(j,"hauptberuf")
+        alle=j.get("alleBerufe") or []
+        tags=(ber+" "+" ".join(str(a) for a in alle if isinstance(a,str))).strip()
         url=f"https://www.arbeitsagentur.de/jobsuche/jobdetail/{urllib.parse.quote(refnr, safe='')}"
+        beleg=(f"{int(pro)} Prozent Homeoffice" if isinstance(pro,(int,float)) else typ.lower())
         out.append(dict(title=title, company=comp, url=url,
-            info="Ortsunabhaengige Remote-Stelle (deutschsprachig, weltweit machbar) - Details und Bewerbung ueber den Link.",
-            raw_tags=_ba_field(j,"beruf"), raw_loc=(ort+" ortsunabhaengig remote weltweit").strip(),
-            raw_desc="", region_hint="world"))
+            info=("Der Arbeitgeber meldet diese Stelle in der amtlichen Jobdatenbank der Bundesagentur "
+                  f"fuer Arbeit mit {beleg}. Anzeigentext und Bewerbung ueber den Link."),
+            raw_tags=tags, raw_loc=(ort+" homeoffice remote").strip(),
+            posted=_ba_field(j,"datumErsteVeroeffentlichung"),
+            raw_desc="", region_hint="de"))
     return out
 
 def _j(x):  # list-oder-string -> string
@@ -842,56 +864,49 @@ SOURCES += [
 # --- Arbeitsagentur (Lauf #27): groesste dt. Jobdatenbank, oeffentliche API, KEIN Key noetig.
 #     Nur ortsunabhaengige/weltweit-machbare Treffer (Suche entsprechend gebogen). ---
 def _ba(beruf, size=100, page=1):
+    # KEIN arbeitszeit=ho - den Wert kennt v6 nicht, er liefert stumm 0 Treffer (gemessen, Lauf 156).
+    # Die Homeoffice-Auswahl passiert in from_arbeitsagentur ueber homeofficeprozent.
     return (f"https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v6/jobs"
-            f"?was={urllib.parse.quote(beruf)}&arbeitszeit=ho&angebotsart=1"
+            f"?was={urllib.parse.quote(beruf)}&angebotsart=1"
             f"&size={size}&page={page}&veroeffentlichtseit=28")
 
-# Lauf 155 - Messsonde. Die BA-API gab 200 zurueck, aber 0 Treffer, und jede zweite Anfrage endete
-# mit Connection reset. Zwei moegliche Ursachen: falsche Parameter oder zu viele Anfragen zu schnell.
-# Statt zu raten wird jetzt EINE Sonde gefahren, die mehrere Varianten testet und die ROHANTWORT
-# meldet: welche Schluessel kommen zurueck, wie viele Ergebnisse meldet die API selbst.
-# Ergebnis landet ueber DIAG in der index.html und ist damit von aussen lesbar.
-def _ba_sonde():
-    # Sonde 2 (Lauf 156). Befund aus Sonde 1: die API antwortet sauber, die Trefferliste heisst
-    # "ergebnisliste". arbeitszeit=ho liefert jedoch max=0 -> Wert vermutlich ungueltig.
-    # Diese Sonde klaert: welcher arbeitszeit-Wert funktioniert, wie heissen die Felder eines
-    # Treffers, und liefert die Detail-Schnittstelle den Anzeigentext (den wir als Beleg brauchen).
+# Lauf 156 - Ernte statt Sonde. Gemessen wurde: die API antwortet sauber, die Liste heisst
+# ergebnisliste, arbeitszeit=ho existiert in v6 nicht, und jeder Treffer traegt die Felder
+# homeofficemoeglich / homeofficetyp / homeofficeprozent. Damit ist der 100-Prozent-Filter
+# eine Zahl aus der amtlichen Datenbank statt einer Textsuche.
+# Eigene Erntefunktion (nicht ueber SOURCES), weil die BA-Schnittstelle bei schnellen Anfragen
+# hintereinander die Verbindung abbricht - hier wird deshalb bewusst pausiert.
+BA_BERUFE = [
+    "Kundenberater", "Kundenbetreuer", "Kundenservice", "Call-Center-Agent",
+    "Sachbearbeiter", "Buerokaufmann", "Assistenz", "Backoffice",
+    "Online-Marketing-Manager", "Social-Media-Manager", "Marketing-Assistent", "Content-Manager",
+    "Vertriebsmitarbeiter", "Vertriebsinnendienst", "Account-Manager",
+    "Softwareentwickler", "Webentwickler", "Fachinformatiker", "IT-Support",
+    "Buchhalter", "Personalsachbearbeiter", "Projektassistenz",
+    "Medizinische Dokumentation", "Gesundheitsberater", "Uebersetzer",
+    "Homeoffice",
+]
+def _ba_ernte():
     import time as _t
-    base="https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v6/jobs"
-    def probe(name,q):
-        try:
-            raw=http_json(base+q)
-            lst=raw.get("ergebnisliste") or raw.get("stellenangebote") or []
-            DIAG.append(f"BA2:{name} n={len(lst)} max={raw.get('maxErgebnisse')}")
-            return lst
-        except Exception as e:
-            DIAG.append(f"BA2:{name} ERR:{str(e)[:60]}")
-            return []
-    lst=probe("vz",  "?was=Kundenberater&arbeitszeit=vz&size=5&page=1"); _t.sleep(1.5)
-    probe("ho",      "?was=Kundenberater&arbeitszeit=ho&size=5&page=1"); _t.sleep(1.5)
-    probe("hovz",    "?was=Kundenberater&arbeitszeit=ho%2Cvz&size=5&page=1"); _t.sleep(1.5)
-    probe("HOgross", "?was=Kundenberater&arbeitszeit=HO&size=5&page=1"); _t.sleep(1.5)
-    probe("frisch7", "?was=Kundenberater&veroeffentlichtseit=7&size=5&page=1"); _t.sleep(1.5)
-    hl=probe("home", "?was=Homeoffice&size=5&page=1"); _t.sleep(1.5)
-    src=hl or lst
-    if src:
-        r=src[0]
-        try:    DIAG.append("BA2:reckeys["+",".join(list(r.keys())[:25])+"]")
-        except Exception: pass
-        try:    DIAG.append("BA2:rec0 "+json.dumps(r,ensure_ascii=True)[:700].replace("--",". "))
-        except Exception: pass
-        hid=r.get("hashId") or r.get("refnr") or ""
-        for v in ("v4","v5"):
+    roh=0; raus=0
+    for beruf in BA_BERUFE:
+        for page in (1,2):
             try:
-                d=http_json(f"https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/{v}/jobs/"
-                            f"{urllib.parse.quote(str(hid),safe='')}")
-                ks=",".join(list(d.keys())[:22]) if isinstance(d,dict) else type(d).__name__
-                txt=(d.get("stellenbeschreibung") or "") if isinstance(d,dict) else ""
-                DIAG.append(f"BA2:det{v} keys[{ks}] textlen={len(txt)}")
+                data=http_json(_ba(beruf, size=100, page=page))
+                lst=data.get("ergebnisliste") or []
+                roh+=len(lst)
+                got=from_arbeitsagentur(data)
+                raus+=len(got)
+                BA_TREFFER.extend(got)
+                if not lst: break
             except Exception as e:
-                DIAG.append(f"BA2:det{v} ERR:{str(e)[:50]}")
-            _t.sleep(1.5)
-print("[ba] Arbeitsagentur: Sonde 2 (Feldnamen + Home-Office-Filter), BA_SOURCES weiter geparkt")
+                DIAG.append(f"ba:{beruf[:14]}=ERR:{str(e)[:40]}")
+                break
+            _t.sleep(1.2)
+    typen=",".join(f"{k or 'leer'}:{v}" for k,v in sorted(BA_TYPEN.items(), key=lambda x:-x[1])[:6])
+    DIAG.append(f"ba-gesamt roh={roh} 100prozent={raus} typen[{typen}]")
+BA_TREFFER=[]
+print("[ba] Arbeitsagentur: Ernte aktiv, Filter homeofficeprozent=100 aus der amtlichen Datenbank")
 
 # --- Adzuna (Boersen-Aggregator, Deutschland-nativ). Nur aktiv, wenn ADZUNA_APP_ID/KEY als
 #     GitHub-Secret gesetzt sind. Ohne Key: Quelle wird sauber uebersprungen (Board baut normal). ---
@@ -985,8 +1000,9 @@ DIAG=[]
 def gather():
     jobs=[]
     if not MOCK:
-        try: _ba_sonde()
-        except Exception as e: DIAG.append("BAsonde=ERR:"+str(e)[:50])
+        try:
+            _ba_ernte(); jobs+=BA_TREFFER
+        except Exception as e: DIAG.append("ba=ERR:"+str(e)[:50])
     if MOCK:
         for name in ("arbeitnow","remotive"):
             p=os.path.join(HERE,"mock",f"{name}.json")
@@ -1943,6 +1959,7 @@ def main():
     _kl=len(re.findall(r'\(\s*,|,\s*\)', _fertig))
     if _kl: print(f"[text] WARN {_kl} kaputte Klammerstelle(n) im Text - pruefen")
 
+    DIAG.append(f"ba-auf-dem-board={sum(1 for u in _urls if 'arbeitsagentur.de' in u)}")
     _diag="<!-- QUELLEN-DIAGNOSE "+dt.datetime.now().strftime("%Y-%m-%d %H:%M")+" | "+" | ".join(DIAG)+" -->\n"
     open(OUT,"w",encoding="utf-8").write(_diag+_fertig)
     pct = round(100*de/total) if total else 0
