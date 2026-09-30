@@ -1009,7 +1009,8 @@ def load_manual():
             info=j.get("info",""), lang=j.get("lang","de"), region=j.get("region","de"),
             level=j.get("level","einsteiger"), bereich=j.get("bereich","service"),
             date=j.get("date",TODAY), posted=(j.get("posted") or _manual_fallback_posted(j)), fd=fd,
-            src=j.get("src") or ("customer" if fd else "import")))
+            src=j.get("src") or ("customer" if fd else "import"),
+            direkt=(j.get("direkt") is True)))
     return out
 
 # ---------- Render ----------
@@ -1642,8 +1643,13 @@ def main():
                 print(f"[freelance] alle {len(_karten)} Auftraege im Freelance-Tab leben")
 
     _before=len(alljobs)
-    _dropped=[j for j in alljobs if not is_direct(j["url"])]
-    alljobs=[j for j in alljobs if is_direct(j["url"])]
+    # Lauf 152: Handgepruefte Arbeitgeber-Links duerfen eine eigene Bewerbungsseite sein, auch wenn
+    # is_direct() sie als Sammelseite liest. Voraussetzung: Eintrag traegt "direkt": true und wurde
+    # von Hand im Anzeigentext geprueft. Gilt NICHT fuer Auto-Quellen.
+    def _ok_direkt(j):
+        return j.get("direkt") is True or is_direct(j["url"])
+    _dropped=[j for j in alljobs if not _ok_direkt(j)]
+    alljobs=[j for j in alljobs if _ok_direkt(j)]
     print(f"[direkt] Karriere-/Boersenseiten entfernt: {_before-len(alljobs)} -> {len(alljobs)} bleiben (NUR Direkt-Einzelstellen)")
     _dfd=sum(1 for j in _dropped if j.get("fd"))
     print(f"[direkt] davon {_dfd} entfernte ⭐-Kundenpicks (Karriereseiten) - Deckung via ATS-Engine + Direkt-Picks")
