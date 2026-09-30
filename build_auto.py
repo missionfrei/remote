@@ -212,7 +212,8 @@ def _ba_field(j, *names):
     return ""
 def from_arbeitsagentur(raw):
     out=[]
-    for j in (raw.get("stellenangebote") or []):
+    # Lauf 156: die v6-API nennt die Trefferliste "ergebnisliste" (nicht "stellenangebote").
+    for j in (raw.get("ergebnisliste") or raw.get("stellenangebote") or []):
         title=_ba_field(j,"titel","beruf","stellenangebotsTitel","stellenbezeichnung")
         refnr=_ba_field(j,"refnr","referenznummer","hashId")
         if not title or not refnr: continue
@@ -851,26 +852,46 @@ def _ba(beruf, size=100, page=1):
 # meldet: welche Schluessel kommen zurueck, wie viele Ergebnisse meldet die API selbst.
 # Ergebnis landet ueber DIAG in der index.html und ist damit von aussen lesbar.
 def _ba_sonde():
+    # Sonde 2 (Lauf 156). Befund aus Sonde 1: die API antwortet sauber, die Trefferliste heisst
+    # "ergebnisliste". arbeitszeit=ho liefert jedoch max=0 -> Wert vermutlich ungueltig.
+    # Diese Sonde klaert: welcher arbeitszeit-Wert funktioniert, wie heissen die Felder eines
+    # Treffers, und liefert die Detail-Schnittstelle den Anzeigentext (den wir als Beleg brauchen).
     import time as _t
-    varianten=[
-      ("A-voll",      "?was=Kundenberater&arbeitszeit=ho&angebotsart=1&size=25&page=1&veroeffentlichtseit=28"),
-      ("B-nurwas",    "?was=Kundenberater&size=25&page=1"),
-      ("C-nurho",     "?arbeitszeit=ho&size=25&page=1"),
-      ("D-ohnezeit",  "?was=Kundenberater&angebotsart=1&size=25&page=1"),
-      ("E-homeoffice","?was=Homeoffice&size=25&page=1"),
-    ]
-    for name,q in varianten:
-        url="https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v6/jobs"+q
+    base="https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v6/jobs"
+    def probe(name,q):
         try:
-            raw=http_json(url)
-            keys=",".join(list(raw.keys())[:6]) if isinstance(raw,dict) else type(raw).__name__
-            n=len(raw.get("stellenangebote") or []) if isinstance(raw,dict) else -1
-            mx=raw.get("maxErgebnisse") if isinstance(raw,dict) else "?"
-            DIAG.append(f"BAsonde:{name} keys[{keys}] stellen={n} max={mx}")
+            raw=http_json(base+q)
+            lst=raw.get("ergebnisliste") or raw.get("stellenangebote") or []
+            DIAG.append(f"BA2:{name} n={len(lst)} max={raw.get('maxErgebnisse')}")
+            return lst
         except Exception as e:
-            DIAG.append(f"BAsonde:{name} ERR:{str(e)[:60]}")
-        _t.sleep(2.0)   # Abstand gegen die Verbindungsabbrueche
-print("[ba] Arbeitsagentur: Messsonde statt Feeds (BA_SOURCES geparkt bis die Antwort klar ist)")
+            DIAG.append(f"BA2:{name} ERR:{str(e)[:60]}")
+            return []
+    lst=probe("vz",  "?was=Kundenberater&arbeitszeit=vz&size=5&page=1"); _t.sleep(1.5)
+    probe("ho",      "?was=Kundenberater&arbeitszeit=ho&size=5&page=1"); _t.sleep(1.5)
+    probe("hovz",    "?was=Kundenberater&arbeitszeit=ho%2Cvz&size=5&page=1"); _t.sleep(1.5)
+    probe("HOgross", "?was=Kundenberater&arbeitszeit=HO&size=5&page=1"); _t.sleep(1.5)
+    probe("frisch7", "?was=Kundenberater&veroeffentlichtseit=7&size=5&page=1"); _t.sleep(1.5)
+    hl=probe("home", "?was=Homeoffice&size=5&page=1"); _t.sleep(1.5)
+    src=hl or lst
+    if src:
+        r=src[0]
+        try:    DIAG.append("BA2:reckeys["+",".join(list(r.keys())[:25])+"]")
+        except Exception: pass
+        try:    DIAG.append("BA2:rec0 "+json.dumps(r,ensure_ascii=True)[:700].replace("--",". "))
+        except Exception: pass
+        hid=r.get("hashId") or r.get("refnr") or ""
+        for v in ("v4","v5"):
+            try:
+                d=http_json(f"https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/{v}/jobs/"
+                            f"{urllib.parse.quote(str(hid),safe='')}")
+                ks=",".join(list(d.keys())[:22]) if isinstance(d,dict) else type(d).__name__
+                txt=(d.get("stellenbeschreibung") or "") if isinstance(d,dict) else ""
+                DIAG.append(f"BA2:det{v} keys[{ks}] textlen={len(txt)}")
+            except Exception as e:
+                DIAG.append(f"BA2:det{v} ERR:{str(e)[:50]}")
+            _t.sleep(1.5)
+print("[ba] Arbeitsagentur: Sonde 2 (Feldnamen + Home-Office-Filter), BA_SOURCES weiter geparkt")
 
 # --- Adzuna (Boersen-Aggregator, Deutschland-nativ). Nur aktiv, wenn ADZUNA_APP_ID/KEY als
 #     GitHub-Secret gesetzt sind. Ohne Key: Quelle wird sauber uebersprungen (Board baut normal). ---
