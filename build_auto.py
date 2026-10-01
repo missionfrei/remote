@@ -1692,6 +1692,13 @@ def _inject_fd(head, tail):
                         "if(c.closest('#toolbox')||c.closest('#favoriten')||c.closest('#beworben')||c.closest('#fuerdich')||c.closest('#neuheiten'))return;")
     return head, tail
 
+
+# Lauf 176 - Trichter-Diagnose. Von 318 gefundenen 100-Prozent-Stellen der Bundesagentur
+# landen nur 65 auf dem Board. Diese Zaehlung zeigt, welcher Filter sie wegnimmt.
+def _baz(stufe, liste):
+    try: DIAG.append(f"bz:{stufe}={sum(1 for j in liste if 'arbeitsagentur.de' in (j.get('url') or ''))}")
+    except Exception: pass
+
 def build_sections(jobs):
     by={b:[] for b in BEREICH_ORDER}
     for j in jobs: by[j["bereich"]].append(j)
@@ -1808,6 +1815,7 @@ def main():
         return j.get("direkt") is True or is_direct(j["url"])
     _dropped=[j for j in alljobs if not _ok_direkt(j)]
     alljobs=[j for j in alljobs if _ok_direkt(j)]
+    _baz("direkt", alljobs)
     print(f"[direkt] Karriere-/Boersenseiten entfernt: {_before-len(alljobs)} -> {len(alljobs)} bleiben (NUR Direkt-Einzelstellen)")
     _dfd=sum(1 for j in _dropped if j.get("fd"))
     print(f"[direkt] davon {_dfd} entfernte ⭐-Kundenpicks (Karriereseiten) - Deckung via ATS-Engine + Direkt-Picks")
@@ -1854,14 +1862,17 @@ def main():
     alljobs=[j for j in alljobs
              if (j.get("src") not in ("import","customer") and _age_days(j.get("posted")) is None)
              or (_age_days(j.get("posted")) is not None and _age_days(j.get("posted")) <= MAXAGE_DAYS)]
+    _baz("frisch", alljobs)
     print(f"[frisch] Aelter als {MAXAGE_DAYS} Tage entfernt: {_ba-len(alljobs)} -> {len(alljobs)} bleiben")
 
     _bh=len(alljobs)
     alljobs=[j for j in alljobs if not _HYBRID.search(j.get("title","")+" "+j.get("info",""))]
+    _baz("100remote", alljobs)
     print(f"[100remote] Hybrid-/Teil-Homeoffice entfernt: {_bh-len(alljobs)} -> {len(alljobs)} bleiben")
 
     _bn=len(alljobs)
     alljobs=[j for j in alljobs if not _NOFIT.search(j.get("title",""))]
+    _baz("passung", alljobs)
     print(f"[passung] Beratungs-/Spezialistenrollen entfernt: {_bn-len(alljobs)} -> {len(alljobs)} bleiben")
 
     # Paul (21.09.): "Brauchen keine Stellen bei denen man im Ausland sitzen muss, und unsere Kunden
@@ -1925,6 +1936,7 @@ def main():
         print(f"[pii] {_nm} Eintraege bereinigt - Kundennamen gehoeren NIE ins Board")
     else:
         print("[pii] keine Kundennamen in den Texten - ok")
+    _baz("ortsfrei", alljobs)
     print(f"[ortsfrei] Wohnsitzpflicht im Ausland / dritte Pflichtsprache entfernt: "
           f"{_br-len(alljobs)} -> {len(alljobs)} bleiben")
 
@@ -1936,6 +1948,7 @@ def main():
     # Markt weggeschnitten (Senior/Lead/Engineer im Titel). IT-Stellen sind deshalb ausgenommen -
     # fuer alle anderen Profile blockt deren eigene hard-Liste "senior" ohnehin weg.
     alljobs=[j for j in alljobs if j.get("bereich")=="it" or not _SEN.search(j.get("title",""))]
+    _baz("einstieg", alljobs)
     print(f"[einstieg] Senior-/Fuehrungsstellen entfernt: {_bs-len(alljobs)} -> {len(alljobs)} bleiben (Quereinsteiger-Fokus)")
 
     _bw=len(alljobs)
@@ -1956,6 +1969,7 @@ def main():
     _encut=len(_en)-min(len(_en),_cap)
     _en=_en[:_cap]
     alljobs=_de+_en
+    _baz("sprache", alljobs)
     print(f"[sprache] Deutsch {len(_de)} + Englisch {len(_en)} (davon {_encut} englische gedeckelt) "
           f"-> {len(alljobs)} von {_bw}; Deutsch-Anteil {round(100*len(_de)/max(1,len(alljobs)))}%")
 
@@ -1982,6 +1996,7 @@ def main():
         else:
             _best[k]=i
     _dd=[j for j,kp in zip(alljobs,_keep) if kp]
+    _baz("dedup", _dd)
     print(f"[dedup] Titel+Firma-Dubletten entfernt: {len(alljobs)-len(_dd)} -> {len(_dd)} bleiben (Weltweit-Version bevorzugt)")
     alljobs=_dd
 
@@ -2003,6 +2018,7 @@ def main():
     print(f"[sprache-final] Deutsch {len(_de2)} / Englisch {min(len(_en2),_cap2)} "
           f"({_cut2} englische gedeckelt) -> Deutsch-Anteil "
           f"{round(100*len(_de2)/max(1,len(alljobs)))}%")
+    _baz("links", alljobs)
     print(f"[links] {resolved} Portal-Links direkt aufgeloest, {dead} tote (404/410) raus -> {len(alljobs)} echte, lebende Direkt-Stellen")
 
     sections, by = build_sections(alljobs)
