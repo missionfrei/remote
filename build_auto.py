@@ -889,7 +889,9 @@ def _ba(beruf, size=100, page=1):
 # und die klassischen Homeoffice-Berufe tragen fast alles. Deshalb jetzt zweistufig:
 # erst die ergiebigen Begriffe tief durchblaettern, danach die Berufe flach.
 BA_TIEF = ["Homeoffice", "Home Office", "Remote", "Telearbeit", "Mobiles Arbeiten",
-           "ortsunabhaengig", "remote work", "Homeoffice Vollzeit", "Homeoffice Teilzeit"]
+           "ortsunabhaengig", "remote work", "Homeoffice Vollzeit", "Homeoffice Teilzeit",
+           "100 Prozent Homeoffice", "Homeoffice deutschlandweit", "Full Remote",
+           "Homeoffice Quereinsteiger", "Homeoffice Berufserfahrung"]
 BA_BERUFE = [
     "Kundenberater", "Kundenbetreuer", "Kundenservice", "Call-Center-Agent", "Kundenbetreuung",
     "Telefonist", "Servicemitarbeiter", "Customer Success Manager", "Helpdesk", "First Level Support",
@@ -946,7 +948,7 @@ def _ba_filtertest():
 # Loesung: 6 Anfragen parallel. Damit passen in dasselbe Zeitfenster rund sechsmal so viele
 # Datensaetze. Ausserdem belegt: einen serverseitigen Homeoffice-Filter gibt es nicht
 # (homeofficemoeglich=true und mobilesArbeiten=true liefern exakt die unveraenderte Trefferzahl).
-BA_BUDGET_SEK = 900
+BA_BUDGET_SEK = 1200
 BA_TREFFER = []
 def _ba_ernte():
     import time as _t
@@ -954,7 +956,7 @@ def _ba_ernte():
     start=_t.time()
     try: _ba_filtertest()
     except Exception: pass
-    auftraege=([(b,p) for b in BA_TIEF   for p in range(1,16)] +
+    auftraege=([(b,p) for b in BA_TIEF   for p in range(1,31)] +
                [(b,p) for b in BA_BERUFE for p in (1,2)])
     roh=0; raus=0; fehler=0
     def hol(x):
