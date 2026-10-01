@@ -927,12 +927,15 @@ BA_BERUFE = [
 # Nur der Typ ANGABE_IN_PROZENT traegt eine Zahl; NACH_VEREINBARUNG ist kein Beleg und fliegt raus.
 def _ba_hol(beruf, page):
     import time as _t
-    for versuch in (1,2):
+    # Lauf 161: bei 8 gleichzeitigen Anfragen bricht die BA-Schnittstelle 94 mal ab
+    # (bei 6 nur 14 mal). Sie drosselt also. Jetzt 5 gleichzeitig und drei Versuche
+    # mit wachsender Wartezeit.
+    for versuch in (1,2,3):
         try:
             return http_json(_ba(beruf, size=100, page=page))
-        except Exception as e:
-            if versuch==2: raise
-            _t.sleep(1.5)
+        except Exception:
+            if versuch==3: raise
+            _t.sleep(2.0*versuch)
     return {}
 def _ba_filtertest():
     # Gibt es einen serverseitigen Homeoffice-Filter? Vergleicht maxErgebnisse mit und ohne.
@@ -967,7 +970,7 @@ def _ba_ernte():
         if _t.time()-start > BA_BUDGET_SEK: return None
         try: return _ba_hol(beruf, page)
         except Exception: return "ERR"
-    with ThreadPoolExecutor(max_workers=8) as ex:
+    with ThreadPoolExecutor(max_workers=5) as ex:
         futs={ex.submit(hol,x):x for x in auftraege}
         for f in as_completed(futs):
             d=f.result()
