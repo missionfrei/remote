@@ -888,10 +888,13 @@ def _ba(beruf, size=100, page=1):
 # Mehr Berufe heisst mehr Rohdaten, aber duennere Ausbeute: die generischen Remote-Begriffe
 # und die klassischen Homeoffice-Berufe tragen fast alles. Deshalb jetzt zweistufig:
 # erst die ergiebigen Begriffe tief durchblaettern, danach die Berufe flach.
-BA_TIEF = ["Homeoffice", "Home Office", "Remote", "Telearbeit", "Mobiles Arbeiten",
-           "ortsunabhaengig", "remote work", "Homeoffice Vollzeit", "Homeoffice Teilzeit",
-           "100 Prozent Homeoffice", "Homeoffice deutschlandweit", "Full Remote",
-           "Homeoffice Quereinsteiger", "Homeoffice Berufserfahrung"]
+# Lauf 177 - Trichter gemessen: von 490 gefundenen Volltreffern kommen nur 124 EINDEUTIGE
+# an. Die 14 Suchbegriffe ueberschneiden sich stark - dieselbe Anzeige steht unter
+# "Homeoffice", "Remote" und "Home Office". Danach ist der Trichter sauber: 124 -> 93 Karten.
+# Der Hebel ist also nicht der Filter, sondern EINDEUTIGE Treffer. Deshalb: wenige, wirklich
+# verschiedene Begriffe, dafuer sehr tief. "Homeoffice" allein meldet 37.729 Anzeigen -
+# davon haben wir bisher nur rund 3.000 gelesen.
+BA_TIEF = ["Homeoffice", "Remote", "Telearbeit"]
 BA_BERUFE = [
     "Kundenberater", "Kundenbetreuer", "Kundenservice", "Call-Center-Agent", "Kundenbetreuung",
     "Telefonist", "Servicemitarbeiter", "Customer Success Manager", "Helpdesk", "First Level Support",
@@ -948,7 +951,7 @@ def _ba_filtertest():
 # Loesung: 6 Anfragen parallel. Damit passen in dasselbe Zeitfenster rund sechsmal so viele
 # Datensaetze. Ausserdem belegt: einen serverseitigen Homeoffice-Filter gibt es nicht
 # (homeofficemoeglich=true und mobilesArbeiten=true liefern exakt die unveraenderte Trefferzahl).
-BA_BUDGET_SEK = 1200
+BA_BUDGET_SEK = 1500
 BA_TREFFER = []
 def _ba_ernte():
     import time as _t
@@ -956,7 +959,7 @@ def _ba_ernte():
     start=_t.time()
     try: _ba_filtertest()
     except Exception: pass
-    auftraege=([(b,p) for b in BA_TIEF   for p in range(1,31)] +
+    auftraege=([(b,p) for b in BA_TIEF   for p in range(1,121)] +
                [(b,p) for b in BA_BERUFE for p in (1,2)])
     roh=0; raus=0; fehler=0
     def hol(x):
