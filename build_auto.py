@@ -882,44 +882,35 @@ def _ba(beruf, size=100, page=1):
 # eine Zahl aus der amtlichen Datenbank statt einer Textsuche.
 # Eigene Erntefunktion (nicht ueber SOURCES), weil die BA-Schnittstelle bei schnellen Anfragen
 # hintereinander die Verbindung abbricht - hier wird deshalb bewusst pausiert.
+# Lauf 174 - Messung: Tiefe schlaegt Breite.
+#   Lauf 171: 46 Berufe x 3 Seiten ->  9.494 Rohtreffer -> 65 Volltreffer (0,68 Prozent)
+#   Lauf 173: 124 Berufe x 3 Seiten -> 15.028 Rohtreffer -> 36 Volltreffer (0,24 Prozent)
+# Mehr Berufe heisst mehr Rohdaten, aber duennere Ausbeute: die generischen Remote-Begriffe
+# und die klassischen Homeoffice-Berufe tragen fast alles. Deshalb jetzt zweistufig:
+# erst die ergiebigen Begriffe tief durchblaettern, danach die Berufe flach.
+BA_TIEF = ["Homeoffice", "Home Office", "Remote", "Telearbeit", "Mobiles Arbeiten",
+           "ortsunabhaengig", "remote work", "Homeoffice Vollzeit", "Homeoffice Teilzeit"]
 BA_BERUFE = [
-    # Service und Kundenkontakt
     "Kundenberater", "Kundenbetreuer", "Kundenservice", "Call-Center-Agent", "Kundenbetreuung",
-    "Telefonist", "Servicemitarbeiter", "Beschwerdemanagement", "Reklamationsbearbeitung",
-    "Customer Success Manager", "Helpdesk", "First Level Support", "Second Level Support",
-    "Reisebuerokaufmann", "Reiseverkehrskaufmann", "Hotelfachmann",
-    # Buero, Verwaltung, Finanzen
+    "Telefonist", "Servicemitarbeiter", "Customer Success Manager", "Helpdesk", "First Level Support",
     "Sachbearbeiter", "Buerokaufmann", "Assistenz", "Backoffice", "Datenerfassung",
-    "Datentypist", "Sekretaer", "Teamassistenz", "Vorstandsassistenz", "Office Manager",
+    "Sekretaer", "Teamassistenz", "Office Manager", "Auftragsabwicklung",
     "Buchhalter", "Lohnbuchhalter", "Finanzbuchhalter", "Bilanzbuchhalter", "Steuerfachangestellter",
     "Steuerfachwirt", "Controller", "Personalsachbearbeiter", "Personalreferent", "Recruiter",
     "Projektassistenz", "Projektmanager", "Projektkoordinator", "Disponent",
-    "Versicherungskaufmann", "Bankkaufmann", "Immobilienkaufmann", "Rechtsanwaltsfachangestellter",
-    "Notarfachangestellter", "Sachbearbeiter Energiewirtschaft", "Auftragsabwicklung",
-    # Marketing, Kreativ, Text
+    "Versicherungskaufmann", "Bankkaufmann", "Sachbearbeiter Energiewirtschaft",
     "Online-Marketing-Manager", "Social-Media-Manager", "Marketing-Assistent", "Content-Manager",
-    "Marketing Manager", "Performance Marketing Manager", "SEO-Manager", "SEA-Manager",
-    "E-Mail-Marketing-Manager", "Kampagnenmanager", "Produktmanager Marketing",
-    "Grafikdesigner", "Mediengestalter", "Webdesigner", "UX-Designer", "Motion Designer",
-    "Videoeditor", "Fotograf Bildbearbeitung", "Redakteur", "Texter", "Lektor", "Copywriter",
-    "Content Creator", "Community Manager", "PR-Referent", "Kommunikationsmanager",
-    # Vertrieb
+    "Marketing Manager", "Performance Marketing Manager", "SEO-Manager",
+    "Grafikdesigner", "Mediengestalter", "Webdesigner", "UX-Designer", "Videoeditor",
+    "Redakteur", "Texter", "Lektor", "Content Creator", "Community Manager", "PR-Referent",
     "Vertriebsmitarbeiter", "Vertriebsinnendienst", "Account-Manager", "Telefonverkaeufer",
-    "Key-Account-Manager", "Sales Manager", "Business Development Manager", "Verkaufsberater",
-    "Vertriebsassistenz", "Inside Sales",
-    # IT und Technik
+    "Key-Account-Manager", "Sales Manager", "Vertriebsassistenz", "Inside Sales",
     "Softwareentwickler", "Webentwickler", "Fachinformatiker", "IT-Support", "Systemadministrator",
     "Frontend-Entwickler", "Backend-Entwickler", "Fullstack-Entwickler", "Anwendungsentwickler",
-    "DevOps Engineer", "Cloud Engineer", "Datenanalyst", "Data Engineer", "Data Scientist",
-    "Softwaretester", "IT-Consultant", "IT-Projektleiter", "SAP-Berater", "Netzwerkadministrator",
-    "IT-Sicherheit", "Datenbankadministrator", "Produktmanager Software", "Scrum Master",
-    "Business Analyst", "Technischer Redakteur", "CAD-Konstrukteur",
-    # Sprache, Gesundheit, Bildung
+    "DevOps Engineer", "Datenanalyst", "Softwaretester", "IT-Consultant", "IT-Projektleiter",
+    "SAP-Berater", "IT-Sicherheit", "Business Analyst", "Technischer Redakteur",
     "Uebersetzer", "Dolmetscher", "Medizinische Dokumentation", "Gesundheitsberater",
-    "Medizinischer Schreibdienst", "Pflegeberater", "Ernaehrungsberater", "Online-Dozent",
-    "Nachhilfelehrer", "E-Learning-Autor", "Transkription",
-    # Generische Remote-Begriffe
-    "Homeoffice", "Remote", "Telearbeit", "Mobiles Arbeiten",
+    "Online-Dozent", "E-Learning-Autor", "Transkription",
 ]
 # Lauf 157: Messung aus 156 - size=100 reisst die Verbindung ab (Connection reset, IncompleteRead),
 # Seite 1 kam meist durch, Seite 2 fast nie. Deshalb kleinere Portionen und ein zweiter Versuch.
@@ -955,7 +946,7 @@ def _ba_filtertest():
 # Loesung: 6 Anfragen parallel. Damit passen in dasselbe Zeitfenster rund sechsmal so viele
 # Datensaetze. Ausserdem belegt: einen serverseitigen Homeoffice-Filter gibt es nicht
 # (homeofficemoeglich=true und mobilesArbeiten=true liefern exakt die unveraenderte Trefferzahl).
-BA_BUDGET_SEK = 600
+BA_BUDGET_SEK = 900
 BA_TREFFER = []
 def _ba_ernte():
     import time as _t
@@ -963,7 +954,8 @@ def _ba_ernte():
     start=_t.time()
     try: _ba_filtertest()
     except Exception: pass
-    auftraege=[(b,p) for b in BA_BERUFE for p in (1,2,3)]
+    auftraege=([(b,p) for b in BA_TIEF   for p in range(1,16)] +
+               [(b,p) for b in BA_BERUFE for p in (1,2)])
     roh=0; raus=0; fehler=0
     def hol(x):
         beruf,page=x
