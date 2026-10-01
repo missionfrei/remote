@@ -883,17 +883,43 @@ def _ba(beruf, size=100, page=1):
 # Eigene Erntefunktion (nicht ueber SOURCES), weil die BA-Schnittstelle bei schnellen Anfragen
 # hintereinander die Verbindung abbricht - hier wird deshalb bewusst pausiert.
 BA_BERUFE = [
+    # Service und Kundenkontakt
     "Kundenberater", "Kundenbetreuer", "Kundenservice", "Call-Center-Agent", "Kundenbetreuung",
+    "Telefonist", "Servicemitarbeiter", "Beschwerdemanagement", "Reklamationsbearbeitung",
+    "Customer Success Manager", "Helpdesk", "First Level Support", "Second Level Support",
+    "Reisebuerokaufmann", "Reiseverkehrskaufmann", "Hotelfachmann",
+    # Buero, Verwaltung, Finanzen
     "Sachbearbeiter", "Buerokaufmann", "Assistenz", "Backoffice", "Datenerfassung",
-    "Online-Marketing-Manager", "Social-Media-Manager", "Marketing-Assistent", "Content-Manager",
-    "Grafikdesigner", "Mediengestalter", "Redakteur", "Texter",
-    "Vertriebsmitarbeiter", "Vertriebsinnendienst", "Account-Manager", "Telefonverkaeufer",
-    "Softwareentwickler", "Webentwickler", "Fachinformatiker", "IT-Support", "Systemadministrator",
-    "Webdesigner", "Datenanalyst", "Projektmanager",
-    "Buchhalter", "Lohnbuchhalter", "Personalsachbearbeiter", "Projektassistenz", "Disponent",
-    "Medizinische Dokumentation", "Gesundheitsberater", "Uebersetzer", "Dolmetscher",
+    "Datentypist", "Sekretaer", "Teamassistenz", "Vorstandsassistenz", "Office Manager",
+    "Buchhalter", "Lohnbuchhalter", "Finanzbuchhalter", "Bilanzbuchhalter", "Steuerfachangestellter",
+    "Steuerfachwirt", "Controller", "Personalsachbearbeiter", "Personalreferent", "Recruiter",
+    "Projektassistenz", "Projektmanager", "Projektkoordinator", "Disponent",
     "Versicherungskaufmann", "Bankkaufmann", "Immobilienkaufmann", "Rechtsanwaltsfachangestellter",
-    "Homeoffice", "Remote", "Telearbeit",
+    "Notarfachangestellter", "Sachbearbeiter Energiewirtschaft", "Auftragsabwicklung",
+    # Marketing, Kreativ, Text
+    "Online-Marketing-Manager", "Social-Media-Manager", "Marketing-Assistent", "Content-Manager",
+    "Marketing Manager", "Performance Marketing Manager", "SEO-Manager", "SEA-Manager",
+    "E-Mail-Marketing-Manager", "Kampagnenmanager", "Produktmanager Marketing",
+    "Grafikdesigner", "Mediengestalter", "Webdesigner", "UX-Designer", "Motion Designer",
+    "Videoeditor", "Fotograf Bildbearbeitung", "Redakteur", "Texter", "Lektor", "Copywriter",
+    "Content Creator", "Community Manager", "PR-Referent", "Kommunikationsmanager",
+    # Vertrieb
+    "Vertriebsmitarbeiter", "Vertriebsinnendienst", "Account-Manager", "Telefonverkaeufer",
+    "Key-Account-Manager", "Sales Manager", "Business Development Manager", "Verkaufsberater",
+    "Vertriebsassistenz", "Inside Sales",
+    # IT und Technik
+    "Softwareentwickler", "Webentwickler", "Fachinformatiker", "IT-Support", "Systemadministrator",
+    "Frontend-Entwickler", "Backend-Entwickler", "Fullstack-Entwickler", "Anwendungsentwickler",
+    "DevOps Engineer", "Cloud Engineer", "Datenanalyst", "Data Engineer", "Data Scientist",
+    "Softwaretester", "IT-Consultant", "IT-Projektleiter", "SAP-Berater", "Netzwerkadministrator",
+    "IT-Sicherheit", "Datenbankadministrator", "Produktmanager Software", "Scrum Master",
+    "Business Analyst", "Technischer Redakteur", "CAD-Konstrukteur",
+    # Sprache, Gesundheit, Bildung
+    "Uebersetzer", "Dolmetscher", "Medizinische Dokumentation", "Gesundheitsberater",
+    "Medizinischer Schreibdienst", "Pflegeberater", "Ernaehrungsberater", "Online-Dozent",
+    "Nachhilfelehrer", "E-Learning-Autor", "Transkription",
+    # Generische Remote-Begriffe
+    "Homeoffice", "Remote", "Telearbeit", "Mobiles Arbeiten",
 ]
 # Lauf 157: Messung aus 156 - size=100 reisst die Verbindung ab (Connection reset, IncompleteRead),
 # Seite 1 kam meist durch, Seite 2 fast nie. Deshalb kleinere Portionen und ein zweiter Versuch.
@@ -926,7 +952,7 @@ def _ba_filtertest():
 # Loesung: 6 Anfragen parallel. Damit passen in dasselbe Zeitfenster rund sechsmal so viele
 # Datensaetze. Ausserdem belegt: einen serverseitigen Homeoffice-Filter gibt es nicht
 # (homeofficemoeglich=true und mobilesArbeiten=true liefern exakt die unveraenderte Trefferzahl).
-BA_BUDGET_SEK = 420
+BA_BUDGET_SEK = 600
 BA_TREFFER = []
 def _ba_ernte():
     import time as _t
@@ -941,7 +967,7 @@ def _ba_ernte():
         if _t.time()-start > BA_BUDGET_SEK: return None
         try: return _ba_hol(beruf, page)
         except Exception: return "ERR"
-    with ThreadPoolExecutor(max_workers=6) as ex:
+    with ThreadPoolExecutor(max_workers=8) as ex:
         futs={ex.submit(hol,x):x for x in auftraege}
         for f in as_completed(futs):
             d=f.result()
