@@ -81,6 +81,15 @@ BLOCK = ["werkstud","working student",   # Paul: keine Werkstudenten
 # hochberg performance: gefoerdertes Trainingsprogramm als Pflegejob getarnt (September).
 FIRMEN_BLOCK = ["recime", "talentspring"]
 
+# Kundenmeldung 02.10.: Stellen, bei denen man erst ein Konto oder ein Abo braucht, bevor man
+# zur Bewerbung kommt. Geprueft am 02.10.2026:
+# jobicy (Login vor "Apply"), remotive ("Unlock All Jobs", Bezahl-Abo), jobgether und remoteok
+# ("Upgrade to Premium"), freelancermap (Projektzugang nur mit Premium), jobleads und xing
+# (Login vor dem Anzeigentext), adzuna /land/ (Zwischenseite statt Stelle), himalayas
+# (blockiert, dort stand zudem eine Flirt-Line-Anzeige). Diese Quellen kommen nicht mehr aufs Board.
+LOGIN_HOSTS = ["jobicy.com","remotive.com","jobgether.com","remoteok.com","freelancermap.de",
+    "jobleads.com","xing.com","adzuna.de/land/","himalayas.app"]
+
 def esc(s):
     return (s or "").replace("&","&amp;").replace("<","&lt;").replace(">","&gt;").strip()
 
@@ -1129,6 +1138,7 @@ def process(raw_jobs):
         blob=(j["title"]+" "+j.get("raw_tags","")+" "+j.get("info","")).lower()
         if any(b in blob for b in BLOCK): continue
         if any(f in (j.get("company","") or "").lower() for f in FIRMEN_BLOCK): continue
+        if any(h in j["url"].lower() for h in LOGIN_HOSTS): continue
         ber=detect_bereich(j["title"]+" "+j.get("raw_tags",""))
         if not ber: continue
         lang,region,level=detect(j)
@@ -1323,11 +1333,15 @@ FD_JS = r'''
       Vertrieb nur als Lernfeld und ohne reine Provision. Berufliche Basis sind Versand-,
       Auftrags- und Datenerfassung plus jahrelanger direkter Kundenkontakt im Verkauf.
       Deutsch Muttersprache, Englisch nur Grundkenntnisse - daher deonly. */
-   "daniel26":{ber:{marketing:4.5,service:1.5,buero:1,vertrieb:0.5,start:1,sprache:0,it:0},
-     plus:["social media","social media manager","social media assistent","community management","community manager","content","content creation","content creator","creator","ugc","contentproduktion","video","videobearbeitung","videoschnitt","cutter","schnitt","reels","tiktok","instagram","youtube","shortform","canva","capcut","bildbearbeitung","grafik","marketing","online marketing","marketing assistenz","kampagne","newsletter","redaktion","kundenservice","kundensupport","kundenbetreuung","kundenbetreuer","kundenberater","kundenberatung","kundendienst","kundendialog","customer support","customer service","customer care","chat support","email support","e-mail support","support agent","1st level","first level","inbound","auftragsannahme","reklamation","betreuung","servicecenter","backoffice","back office","office","verwaltung","administration","sachbearbeit","assistenz","teamassistenz","virtuelle assistenz","datenerfassung","data entry","dateneingabe","datenpflege","auftragsabwicklung","auftragsbearbeitung","versand","disposition","dokumenten","terminplanung","organisation","content moderat","moderator","qualitaetspruef","qualitätsprüf","annotation","ai training","rater","transkription","quereinsteiger","berufseinsteiger","ohne erfahrung","einsteiger","teilzeit","appointment setter","setter","terminierung","terminvereinbarung","leadgenerierung","lead generation","sales assistent","vertriebsassistenz","vertriebsinnendienst"],
-     minus:["reine provision","nur provision","provisionsbasis","kaltakquise","cold call","telefonakquise","aussendienst","außendienst","closer","high ticket","developer","entwickler","engineer","software","devops","systemadmin","netzwerk","data scientist","it-support","it support","helpdesk","help desk","service desk","technischer support","fachinformatiker","buchhaltung","accounting","steuer","datev","controlling","lohn","bilanz","rechnungswesen","debitoren","kreditoren","pflege","pflegefach","medizin","arzt","apotheke","labor","therapeut","ingenieur","architekt","konstruk","cad","vermessung","jurist","anwalt","notar","versicherung","finanzberat","kredit","trading","crypto","blockchain","recruiting consultant","personalberat","übersetz","lektorat","handwerk","montage","lager","fahrer","spezialist","expert","consultant","senior","lead","head of"],
-     hard:["developer","software engineer","devops","data scientist","data engineer","systemadmin","buchhalt","steuerber","steuerfach","bilanzbuch","lohnbuchhalt","datev","accountant","accounting","bookkeep","controlling","payroll","wirtschaftsprüf","pflegefach","examinierte","arzt","ärztin","apotheker","rechtsanwalt","jurist","senior","architekt","head of","teamleit","abteilungsleit","closer","high ticket closer","kaltakquise","außendienst"],
-     exempt:/quereinsteiger|berufseinsteiger|einsteiger|ohne erfahrung|junior|assistenz|assistant|social media|content|video/i,
+   /* 02.10., Kundenmeldung: Schwerpunkt jetzt Kundenservice, Backoffice und Auftrags-/
+      Versandabwicklung, passend zur Berufserfahrung. Social Media bleibt als Wunsch, aber nur
+      Einstiegsrollen. Vertriebs-, Account- und Senior-Marketing-Rollen standen vorher oben und
+      passen nicht - jetzt harter Ausschluss. Teilzeit und Minijob zaehlen als Plus. */
+   "daniel26":{ber:{service:3.5,buero:2.5,marketing:1,vertrieb:0,start:1,sprache:0,it:0},
+     plus:["kundenservice","kundensupport","kundenbetreuung","kundenbetreuer","kundenberater","kundenberatung","kundendienst","kundendialog","kundenkontakt","customer support","customer service","customer care","chat support","chat","e-mail support","email support","support agent","1st level","first level","inbound","auftragsannahme","bestellannahme","reklamation","retoure","beschwerde","betreuung","servicecenter","service-mitarbeiter","servicemitarbeiter","backoffice","back office","office","verwaltung","administration","sachbearbeit","assistenz","teamassistenz","datenerfassung","data entry","dateneingabe","datenpflege","stammdaten","auftragsabwicklung","auftragsbearbeitung","versand","logistik","disposition","disponent","spedition","transport","sendungsverfolgung","warenwirtschaft","bestandsmanagement","bestell","einkauf","lieferanten","dokumentation","terminplanung","terminvereinbarung","organisation","social media","community management","community manager","content moderat","moderation","quereinsteiger","quereinstieg","berufseinsteiger","ohne erfahrung","einsteiger","einarbeitung","teilzeit","minijob"],
+     minus:["reine provision","nur provision","provisionsbasis","kaltakquise","cold call","telefonakquise","neukunden","aussendienst","außendienst","closer","high ticket","developer","entwickler","engineer","software","devops","systemadmin","netzwerk","data scientist","it-support","it support","helpdesk","help desk","service desk","technischer support","fachinformatiker","buchhaltung","accounting","steuer","datev","controlling","lohn","bilanz","rechnungswesen","pflege","pflegefach","medizin","arzt","apotheke","therapeut","ingenieur","architekt","jurist","anwalt","notar","versicherung","finanzberat","finanzprodukte","kredit","trading","crypto","blockchain","personalberat","übersetz","lektorat","spezialist","specialist","expert","consultant","senior","lead","head of","english","englisch fließend","fließend englisch","verhandlungssicher"],
+     hard:["developer","software","engineer","devops","data scientist","data engineer","systemadmin","entwickler","buchhalt","steuerber","steuerfach","bilanzbuch","lohnbuchhalt","datev","accountant","accounting","bookkeep","controlling","payroll","wirtschaftsprüf","pflegefach","examinierte","arzt","ärztin","apotheker","rechtsanwalt","jurist","senior","architekt","head of","teamleit","abteilungsleit","closer","kaltakquise","außendienst","account executive","account manager","key account","business development","sales manager","sales development","sales representative","sdr","bdr","vertriebsmitarbeiter","vertriebsmanager","neukundenakquise","growth","performance","seo","sea ","google ads","paid ads","ads manager","product manager","produktmanager","product owner","designer","design","game","copywriter","pr manager","hr manager","recruitment consultant","berater abrechnung","schadenregulier","finanzprodukte","vorsorge","versicherung","flirt","dozent","lehrer","coach","fundraising","e-commerce manager","marketplace","amazon","manager","outbound","telefonvertrieb","vertriebsinnendienst","sales opener","call center agent - outbound","werkstud","praktikum","gruppenleitung","client partner","business-owner","informationssicherheit","mechatroniker","rechtliche sachbearbeitung","technische sachbearbeit","it-sachbearbeit","it network","founders associate","recruiter","headhunter","personaldisponent","weiterbildung","kreditabsicherung","bankwesen","frankreich","spanien","außerhalb deutschland","ausserhalb deutschland","call center","callcenter","call-center","call agent","telefonist","vertrieb","teilweise","hybrid","front desk","empfang","referent","berater forschung","fördermittel","foerdermittel","scientist","video editor","strategist"],
+     exempt:/quereinsteiger|quereinstieg|berufseinsteiger|einsteiger|ohne erfahrung|kundenservice|kundenbetreu|kundenberat|kundendienst|customer service|customer support|backoffice|back office|sachbearbeit|assistenz|auftrags|versand|logistik|disposition/i,
      langs:["de"],deonly:true,reg:{world:3,eu:2,de:1}},
    "stefanie26":{ber:{buero:3,start:2,service:1},
      plus:["buchhaltung","accounting","steuer","datev","lohn","bilanz","finanz","controlling","rechnungswesen","sachbearbeit","office","verwaltung","back office"],
@@ -1744,6 +1758,7 @@ def main():
     ats=gather_ats()   # echte deutschsprachige Remote-Einzelstellen direkt von Firmen-Boards
     if ats: print(f"[ats] GESAMT: {len(ats)} deutschsprachige Remote-Einzelstellen von Firmen-Boards")
     manual = manual + ats   # ATS wie manuelle Schicht: nie gedeckelt, im Deutsch-Pool
+    manual = [m for m in manual if not any(h in m["url"].lower() for h in LOGIN_HOSTS)]  # Login-/Abo-Quellen raus (02.10.)
     # (Tote-Link-Check + Redirect-Aufloesung laufen jetzt board-weit weiter unten, ueber ALLE Stellen.)
 
     man_urls={m["url"].rstrip("/") for m in manual}
