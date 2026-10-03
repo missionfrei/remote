@@ -119,6 +119,9 @@
   #richtung .rtframe{width:100%;height:78vh;min-height:520px;border:1px solid #e2ded6;border-radius:14px;background:#fff;display:block}
   #richtung .rtgo{background:#0d6b60;color:#fff;border:0;border-radius:10px;padding:10px 16px;font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap}
   #richtung .rtgo:hover{background:#0a564d}
+  #richtung .rtmode{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+  #richtung .rtmode button{border:1px solid #d9d3c8;background:#fff;color:#3b352d;border-radius:999px;padding:8px 14px;font-weight:700;font-size:13px;cursor:pointer}
+  #richtung .rtmode button[aria-pressed="true"]{background:#0d6b60;border-color:#0d6b60;color:#fff}
   @media (max-width:640px){#richtung .rtframe{height:82vh;min-height:460px;border-radius:10px}}
   /* Lauf #107: Die ersten Sektionen liegen in einem Container, der die Innenabstaende schon mitbringt.
      Dadurch bekamen sie sie doppelt - ihre Karten standen 22px weiter rechts als in allen anderen
@@ -4389,10 +4392,11 @@
 
   <h3 class="tbx-h">Deine Vorlagen zum Download</h3>
   <div class="dlrow">
-    <a class="dl" href="lebenslauf-vorlage.docx" download>📄 Lebenslauf-Vorlage (Word)</a>
-    <a class="dl" href="anschreiben-vorlage.docx" download>✉️ Anschreiben-Vorlage (Word)</a>
+    <a class="dl" href="https://claude.ai/artifact/7tnjhwPzA76syP8PGH16Qr" target="_blank" rel="noopener">📄 Bewerbungs-Generator: Lebenslauf &amp; Anschreiben</a>
+    <a class="dl" href="https://claude.ai/artifact/2iQqpVvsMX37hgUqDtT2JM" target="_blank" rel="noopener">🔧 ProfilSchmiede: LinkedIn, Upwork &amp; Fiverr</a>
     <a class="dl" href="bewerbungs-tracker.xlsx" download>📊 Bewerbungs-Tracker (Excel)</a>
   </div>
+  <p class="sub" style="margin:8px 0 0;font-size:13px">Bewerbungs-Generator und ProfilSchmiede laufen auf claude.ai und brauchen ein kostenloses Claude-Konto. Lade dort nur hoch, was du teilen möchtest.</p>
 
   <h3 class="tbx-h">So bewirbst du dich, dass es klappt</h3>
   <div class="tips">
@@ -4489,7 +4493,8 @@
 
 <div id="richtung" class="hidden">
   <h2 style="border-left:4px solid #0d6b60;padding-left:12px">🧭 Finde deine Richtung</h2>
-  <p class="rthint">Zwölf Kapitel, in denen du sortierst, was dir liegt, was du kannst und was für dich nicht infrage kommt. Am Ende steht deine berufliche Richtung – und dein Dashboard stellt sich automatisch darauf ein: <b>⭐ Für dich</b> und <b>🆕 Neu für dich</b> rechnen danach mit deinen Antworten statt mit einer Voreinstellung. Du kannst jederzeit aufhören und später weitermachen, deine Antworten bleiben in diesem Browser gespeichert.</p>
+  <div class="rtmode" role="group" aria-label="Version wählen"><button type="button" data-rt="kurz" aria-pressed="true">⚡ Kurzversion · 5 Minuten</button><button type="button" data-rt="lang" aria-pressed="false">📘 Ausführlich · 12 Kapitel</button></div>
+  <p class="rthint">Starte mit der Kurzversion: fünf Schritte, Ergebnis sofort. Wer tiefer gehen will, macht danach das ausführliche Workbook – das genauere Ergebnis zählt dann für dein Dashboard. Ausführlich sind es zwölf Kapitel, in denen du sortierst, was dir liegt, was du kannst und was für dich nicht infrage kommt. Am Ende steht deine berufliche Richtung – und dein Dashboard stellt sich automatisch darauf ein: <b>⭐ Für dich</b> und <b>🆕 Neu für dich</b> rechnen danach mit deinen Antworten statt mit einer Voreinstellung. Du kannst jederzeit aufhören und später weitermachen, deine Antworten bleiben in diesem Browser gespeichert.</p>
   <div class="rtbar"><span class="rthint" id="rtstatus" style="margin:0"></span><button type="button" id="rtgo" class="rtgo" style="display:none">Zu deinen passenden Stellen</button></div>
   <iframe class="rtframe" id="rtframe" title="Finde deine Richtung – Workbook" loading="lazy"></iframe>
 </div>
@@ -4711,9 +4716,17 @@
      Der src wird erst beim ersten Oeffnen gesetzt - sonst laedt jeder Board-Aufruf 370 KB mit. */
   function rtOpen(){
     var f=document.getElementById('rtframe'); if(!f)return;
-    if(!f.getAttribute('src')){
-      f.setAttribute('src','workbook.html'+(CUR?('?pw='+encodeURIComponent(CUR)):''));
-    }
+    /* 04.10.: Kurzversion (richtung-kurz.html, 5 Schritte) als Standard, ausfuehrliches
+       Workbook per Umschalter. Beide legen dieselbe Auswertung fdr_prof_<pw> ab. */
+    var mode='kurz'; try{ mode=localStorage.getItem('mf_rt_mode')||'kurz'; }catch(e){}
+    var want=(mode==='lang'?'workbook.html':'richtung-kurz.html')+(CUR?('?pw='+encodeURIComponent(CUR)):'');
+    if(f.getAttribute('src')!==want){ f.setAttribute('src',want); }
+    document.querySelectorAll('#richtung .rtmode button').forEach(function(b){
+      b.setAttribute('aria-pressed', b.getAttribute('data-rt')===mode ? 'true':'false');
+      if(!b._rt){ b._rt=1; b.addEventListener('click',function(){
+        try{ localStorage.setItem('mf_rt_mode', b.getAttribute('data-rt')); }catch(e){}
+        rtOpen(); }); }
+    });
     rtStatus();
   }
   function rtProfil(){
