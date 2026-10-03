@@ -13,7 +13,7 @@ Design: uebernimmt template.html (das aktuelle Board) unveraendert und
 ersetzt nur die 7 Bereichs-Sektionen. Login-Gate, Chips, Favoriten-Sterne,
 Freelance, Toolbox, Footer bleiben wie sie sind.
 """
-import json, re, sys, os, datetime, datetime as dt, urllib.request, urllib.error, urllib.parse
+import json, re, sys, os, datetime, datetime as dt, urllib.request, urllib.error, urllib.parse, html as _html
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE = os.path.join(HERE, "template.html")
@@ -71,7 +71,7 @@ BLOCK = ["werkstud","working student",   # Paul: keine Werkstudenten
     "get-paid","get paid to","paid to click","faucet","cashback","nebenverdienst","praemien sammeln","belohnungen verdienen",
     # Lauf 144: Bildungstraeger, die Weiterbildungen als Stellenanzeigen ausschreiben. Gleiches Muster
     # wie Hochberg im September: klingt nach Job, ist ein Kurs. Gehoert nicht auf ein Job-Board.
-    "talentspring","bildungstraeger","bildungstr\u00e4ger","bildungsgutschein","umschulung","weiterbildungsangebot",
+    "talentspring","quereinstieg - weiterbildung","weiterbildung zum","weiterbildung zur","finanzvertrieb","bildungstraeger","bildungstr\u00e4ger","bildungsgutschein","umschulung","weiterbildungsangebot",
     # Paul, 25.09.: reine Provision ist kein Gehalt. Provisionsmodelle ohne Fixum fliegen raus.
     "provision basierend auf","rein auf provisionsbasis","ausschliesslich provision","ausschlie\u00dflich provision"]
 
@@ -79,7 +79,10 @@ BLOCK = ["werkstud","working student",   # Paul: keine Werkstudenten
 # recime: Verguetung ist reine Provision auf das Werbebudget, kein Fixum.
 # talentspring: Bildungstraeger, verkauft Weiterbildungen als Stellenanzeigen.
 # hochberg performance: gefoerdertes Trainingsprogramm als Pflegejob getarnt (September).
-FIRMEN_BLOCK = ["recime", "talentspring"]
+FIRMEN_BLOCK = ["recime", "talentspring",
+    # 03.10.: Mentify Learn schreibt eine Weiterbildung als "Quereinstieg"-Stelle aus.
+    # Kevin Kehr: Finanzvertrieb auf Provision (schon am 02.10. bei der ATS-Ernte aussortiert).
+    "mentify", "kevin kehr", "kevin-kehr"]
 
 # Kundenmeldung 02.10.: Stellen, bei denen man erst ein Konto oder ein Abo braucht, bevor man
 # zur Bewerbung kommt. Geprueft am 02.10.2026:
@@ -88,7 +91,13 @@ FIRMEN_BLOCK = ["recime", "talentspring"]
 # (Login vor dem Anzeigentext), adzuna /land/ (Zwischenseite statt Stelle), himalayas
 # (blockiert, dort stand zudem eine Flirt-Line-Anzeige). Diese Quellen kommen nicht mehr aufs Board.
 LOGIN_HOSTS = ["jobicy.com","remotive.com","jobgether.com","remoteok.com","freelancermap.de",
-    "jobleads.com","xing.com","adzuna.de/land/","himalayas.app"]
+    "jobleads.com","xing.com","adzuna.de/land/","himalayas.app",
+    # 03.10. Board-Vollcheck (Paul: "filter besser und check jede"):
+    # weworkremotely: 119 englische Stellen, viele an US-Staedte oder Japan gebunden ("Account Executive
+    # Kansas City", "Commercial Nagoya") - fuer Deutschsprachige nicht machbar, und die Seiten blocken
+    # jeden automatischen Link-Check (403), abgelaufene Anzeigen bleiben also unbemerkt stehen.
+    # cryptojobslist: englisch, Krypto, ebenfalls 403. opentrain.ai: KI-Trainings-Gigs mit Plattform-Konto.
+    "weworkremotely.com","cryptojobslist.com","opentrain.ai"]
 
 def esc(s):
     return (s or "").replace("&","&amp;").replace("<","&lt;").replace(">","&gt;").strip()
@@ -407,7 +416,11 @@ SOFT404 = re.compile(
     r"we are no longer accepting|this (job|role|vacancy) is (closed|filled)|"
     r"404\s*[-–|]\s*(not found|seite)|fehler 404|error 404|"
     r"oops[!,.]?\s*(something|diese|die seite)|"
-    r"sorry,? (wir konnten|we couldn.?t find)|nichts gefunden zu dieser", re.I)
+    r"sorry,? (wir konnten|we couldn.?t find)|nichts gefunden zu dieser|"
+    # 03.10. (Paul: "nimm alle abgelaufenen raus und check jede"): Formulierungen aus dem Board-Vollcheck.
+    r"nicht l(ä|ae)nger verf(ü|ue)gbar|stelle (ist|wurde) (bereits |leider )?(besetzt|vergeben|abgelaufen)\b(?! ist)|"
+    r"anzeige (ist )?(abgelaufen|nicht mehr)|existiert nicht mehr|job not found|stellenangebot nicht gefunden|"
+    r"this (job|role|vacancy|posting) (has been|is) (removed|filled|closed)|the job you are looking for", re.I)
 
 def resolve_link(url):
     """Folgt Redirects -> (finale_url, lebt). lebt=False bei 404/410 UND bei Soft-404 (HTTP 200,
@@ -419,9 +432,12 @@ def resolve_link(url):
             final=r.geturl() or url
             ctype=(r.headers.get("Content-Type") or "").lower()
             if "html" in ctype or ctype=="":
-                body=r.read(120000).decode("utf-8","replace")
-                head=body[:60000]
-                if SOFT404.search(head):
+                body=r.read(400000).decode("utf-8","replace")
+                # 03.10.: auf sichtbarem Text pruefen. Vorher lief der Regex auf rohem HTML -
+                # "Diese Stelle ist nicht mehr verf&uuml;gbar" oder Tags mitten im Satz rutschten durch.
+                _vis=re.sub(r"<script.*?</script>|<style.*?</style>|<noscript.*?</noscript>"," ",body,flags=re.S|re.I)
+                _vis=_html.unescape(re.sub(r"\s+"," ",re.sub(r"<[^>]+>"," ",_vis)))
+                if SOFT404.search(body[:60000]) or SOFT404.search(_vis[:200000]):
                     return url, False
             return final, True
     except urllib.error.HTTPError as e:
@@ -1857,7 +1873,7 @@ def main():
                       r"solution architect|enterprise architect|scrum master|product owner|"
                       r"wirtschaftspr(ü|ue)f|aktuar|actuary|penetration|security engineer", re.I)
     # Paul: "1-3 Tage Homeoffice bringt nichts, muss schon 100% immer remote sein."
-    _HYBRID=re.compile(r"hybrid|teilweise (home|remote)|anteilig home|\d\s*[-–bis]{1,3}\s*\d?\s*tage?\s*(pro\s*woche\s*)?(home|remote|b(ü|ue)ro)|"
+    _HYBRID=re.compile(r"hybrid|teilweise (home|remote)|(home ?office|remote)[^.]{0,20}teilweise|teilweise m(ö|oe)glich|anteilig home|\d\s*[-–bis]{1,3}\s*\d?\s*tage?\s*(pro\s*woche\s*)?(home|remote|b(ü|ue)ro)|"
                        r"\d\s*(tage?|days?)\s*(pro\s*woche|per\s*week|/\s*week)\s*(im\s*)?(home|remote|office)|"
                        r"\b(2|3|4)\s*days?\s*(in\s*)?(the\s*)?office|office[- ]first|"
                        # Lauf #104: drei Anzeigen sind nur deshalb durchgerutscht, weil "Office"
