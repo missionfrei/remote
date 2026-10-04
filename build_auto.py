@@ -97,7 +97,10 @@ LOGIN_HOSTS = ["jobicy.com","remotive.com","jobgether.com","remoteok.com","freel
     # Kansas City", "Commercial Nagoya") - fuer Deutschsprachige nicht machbar, und die Seiten blocken
     # jeden automatischen Link-Check (403), abgelaufene Anzeigen bleiben also unbemerkt stehen.
     # cryptojobslist: englisch, Krypto, ebenfalls 403. opentrain.ai: KI-Trainings-Gigs mit Plattform-Konto.
-    "weworkremotely.com","cryptojobslist.com","opentrain.ai"]
+    "weworkremotely.com","cryptojobslist.com","opentrain.ai",
+    # 04.10. Link-Pruefer: workingnomads zeigt "Log in to see" bzw. blockt (403), fast nur englische Senior-Stellen.
+    # direkt-hier-bewerben.de blockt jeden Abruf (403) - nicht pruefbar.
+    "workingnomads.com","direkt-hier-bewerben.de"]
 
 def esc(s):
     return (s or "").replace("&","&amp;").replace("<","&lt;").replace(">","&gt;").strip()
