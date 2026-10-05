@@ -1249,7 +1249,7 @@ def load_manual():
 
 # ---------- Render ----------
 def region_tag(r): return {"world":'<span class="tag world">🌍 Weltweit</span>',
-    "eu":'<span class="tag eu">🇪🇺 EU</span>',"de":'<span class="tag de">🇩🇪 DE</span>'}.get(r,'')
+    "eu":'<span class="tag eu">🇪🇺 EU</span>',"de":'<span class="tag de" title="Stelle verlangt Wohnsitz in Deutschland. Arbeiten aus dem Ausland im Bewerbungsgespräch verhandeln.">🇩🇪 Wohnsitz DE · Ausland verhandeln</span>'}.get(r,'')
 def level_tag(l): return '<span class="tag lvl">🌱 Einsteiger</span>' if l=="einsteiger" else '<span class="tag">📈 Mit Erfahrung</span>'
 def lang_tag(l):  return '<span class="tag delang">Deutsch</span>' if l=="de" else '<span class="tag">Englisch</span>'
 def fd_tag(fd):   return '<span class="tag" style="background:#f3ead4;color:#a8842e;font-weight:650">⭐ Für dich</span>' if fd else ''
@@ -1303,12 +1303,19 @@ def card(j):
     _age = _age_days(_iso) if _iso else None
     _agea = f' data-age="{_age}"' if _age is not None else ""
     _neu = '<span class="tag neu">🆕 NEU</span>' if (_age is not None and _age <= 7) else ""
+    # 05.10. (Kundenmeldung: "alle wollen Erfahrung, die ich nicht nachweisen kann"): Erfahrungs-Hinweis je Karte.
+    _ti=(j.get("title","")+" "+j.get("info","")).lower()
+    if re.search(r"quereinsteig|quereinstieg|ohne (vorherige |berufs)?erfahrung|keine (berufs)?erfahrung|einarbeitung|berufseinsteiger|no experience|entry.level", _ti) or j.get("level")=="einsteiger":
+        _exp='<span class="tag ohne">🟢 Ohne Erfahrung möglich</span>'
+    elif re.search(r"mehrj(ä|ae)hrige|mindestens \d|\d\+? jahre|years of (relevant )?experience|einschl(ä|ae)gige|abgeschlossene ausbildung als|senior|erfahrene", _ti):
+        _exp='<span class="tag pflicht">⚠️ Erfahrung nötig</span>'
+    else: _exp=""
     return (f'<div class="card" data-bereich="{j["bereich"]}" data-level="{j["level"]}" data-lang="{j["lang"]}" data-direct="{1 if d else 0}"'
             f' data-posted="{_iso}"{_agea}>\n'
             f'  <h3>{esc(j["title"])}</h3>\n  <div class="company">{esc(j["company"])}</div>\n'
             f'  <p class="info">{esc(j["info"])}</p>\n'
             f'  <div class="meta">{region_tag(j["region"])}{level_tag(j["level"])}{lang_tag(j["lang"])}{fd_tag(j["fd"])}'
-            f'{badge}{_neu}<span class="tag date">📅 {j["date"]}</span></div>\n'
+            f'{badge}{_neu}{_exp}<span class="tag date">📅 {j["date"]}</span></div>\n'
             f'  <div class="go"><a href="{j["url"]}" target="_blank" rel="noopener">{golabel}</a></div>\n</div>')
 
 # Deckel pro Bereich - kippt den Mix Richtung Service/Buero statt IT-Flut.
