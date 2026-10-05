@@ -305,10 +305,19 @@ def from_workable_global(raw):
         info=clean_text(desc)[:260]
         if land and land.lower() not in ("germany","deutschland"):
             info=f"Remote mit Wohnsitz/Arbeitsort {land}. "+info
+        # Region ehrlich: "global/anywhere" -> weltweit; Telecommute aus EU-Land -> EU; aus Nicht-EU-Land -> weltweit
+        # (Stelle ist remote aus diesem Land, Land steht im Infotext). Deutschland -> de.
+        _EU={"austria","belgium","bulgaria","croatia","cyprus","czech republic","czechia","denmark","estonia","finland","france","greece","hungary","ireland","italy","latvia","lithuania","luxembourg","malta","netherlands","poland","portugal","romania","slovakia","slovenia","spain","sweden"}
+        tele="TELECOMMUTE" in (j.get("locations") or [])
+        if re.search(r"global|anywhere|worldwide|world-wide", t, re.I): hint="world"
+        elif land.lower() in ("germany","deutschland",""): hint="de"
+        elif land.lower() in _EU: hint="eu"
+        elif tele: hint="world"
+        else: hint="de"
         out.append(dict(title=t, company=comp, url=j.get("url",""), info=info,
             raw_tags=(j.get("department","") or "")+" "+(j.get("employmentType","") or ""),
             posted=(j.get("created") or "")[:10],
-            raw_loc=("remote "+ort).strip(), raw_desc=desc[:4000]))
+            raw_loc=("remote "+ort).strip(), raw_desc=desc[:4000], region_hint=hint))
     return out
 
 def from_jobicy(raw):
@@ -587,6 +596,16 @@ def from_wwr(xmltext):
 # Firma erweitern = eine Zeile. Slug muss stimmen (sonst 0/Fehler -> wird geloggt).
 ATS_COMPANIES = [
     # (Anzeige-Firma, ats, slug, bereich-default, region-default)
+    # 05.10. (Paul: "100+ weltweite, 70 % auf Deutsch"): Firmen mit weltweit/mehrlaender-remote + Deutsch, per API gezaehlt
+    ("The Global Talent Co.", "ashby", "the-global-talent-co", "service", "world"),
+    ("Agency (Freelance AI Trainer)", "greenhouse", "agency", "sprache", "world"),
+    ("Secfix", "ashby", "secfix", "service", "eu"),
+    ("Lilt", "ashby", "lilt-production", "sprache", "world"),
+    ("Nivoda", "ashby", "Nivoda", "vertrieb", "eu"),
+    ("WorkNomads", "workable", "worknomads", "service", "eu"),
+    ("Welo Global", "lever", "weloglobal", "sprache", "world"),
+    ("SupportYourApp", "workable", "supportyourapp", "service", "world"),
+    ("TSMG", "lever", "tsmg", "buero", "world"),
     ("7Learnings", "personio", "7learnings.jobs.personio.com", "buero", "de"),  # 05.10. Crawl: Remote-Stellen auf Deutsch
     ("Amx", "personio", "amx.jobs.personio.com", "buero", "de"),  # 05.10. Crawl: Remote-Stellen auf Deutsch
     ("Clark", "personio", "clark.jobs.personio.com", "buero", "de"),  # 05.10. Crawl: Remote-Stellen auf Deutsch
@@ -712,6 +731,12 @@ def _ats_region(loc, region_default):
     # duerfen ihre DACH-Orte behalten - die Stelle ist remote, nur eben aus Deutschland ausgeschrieben.
     if region_default=="de" and re.search(r"deutschland|germany|österreich|austria|schweiz|switzerland|berlin|münchen|munich|hamburg|köln|cologne|frankfurt|stuttgart|düsseldorf|leipzig|dresden|hannover|nürnberg|bremen|dortmund|essen|mannheim|karlsruhe|freiburg|wien|vienna|zürich|zurich|dach", l):
         return "de"
+    # 05.10. (Paul: 100+ weltweite deutschsprachige Stellen): Weltweit-Firmen schreiben dieselbe Remote-Stelle
+    # oft fuer eine LISTE von Laendern aus ("South Africa; Kenya; Romania") -> mehrere Laender = Firmen-Default.
+    # Ein einzelnes EU-Land (z. B. "Remote - Portugal") = echte Auswander-Basis -> "eu".
+    if region_default in ("world","eu"):
+        if len([x for x in re.split(r"[;,/|]| and | oder | or ", l) if x.strip(" -()")]) >= 2: return region_default
+        if re.search(r"portugal|spain|spanien|greece|griechenland|cyprus|zypern|malta|bulgaria|bulgarien|romania|rum(ä|ae)nien|poland|polen|croatia|kroatien|ireland|irland|netherlands|niederlande|italy|italien|czech|tschechien|hungary|ungarn|estonia|estland|latvia|lithuania|slovenia|slovakia|austria|österreich|belgium|france|frankreich|sweden|denmark|finland|luxembourg", l): return "eu"
     return None                                # konkreter Ort (Budapest, Austin, Lissabon) -> raus
 
 def _ats_emit(company, title, url, loc, desc, remote_flag, ber_default, region_default):
@@ -885,6 +910,16 @@ SOURCES = [
     ("workable-11", "https://jobs.workable.com/api/v1/jobs?query=german%20data%20entry", from_workable_global, "json"),
     ("workable-12", "https://jobs.workable.com/api/v1/jobs?query=german%20virtual%20assistant", from_workable_global, "json"),
     ("workable-13", "https://jobs.workable.com/api/v1/jobs?query=german%20teilzeit", from_workable_global, "json"),
+    ("workable-14", "https://jobs.workable.com/api/v1/jobs?query=german%20customer%20support%20consultant", from_workable_global, "json"),
+    ("workable-15", "https://jobs.workable.com/api/v1/jobs?query=german%20native", from_workable_global, "json"),
+    ("workable-16", "https://jobs.workable.com/api/v1/jobs?query=german%20localization", from_workable_global, "json"),
+    ("workable-17", "https://jobs.workable.com/api/v1/jobs?query=german%20content", from_workable_global, "json"),
+    ("workable-18", "https://jobs.workable.com/api/v1/jobs?query=german%20account%20manager", from_workable_global, "json"),
+    ("workable-19", "https://jobs.workable.com/api/v1/jobs?query=german%20recruiter", from_workable_global, "json"),
+    ("workable-20", "https://jobs.workable.com/api/v1/jobs?query=german%20speaking%20customer", from_workable_global, "json"),
+    ("workable-21", "https://jobs.workable.com/api/v1/jobs?query=german%20chat%20support", from_workable_global, "json"),
+    ("workable-22", "https://jobs.workable.com/api/v1/jobs?query=dach%20remote", from_workable_global, "json"),
+    ("workable-23", "https://jobs.workable.com/api/v1/jobs?query=german%20moderator", from_workable_global, "json"),
     ("remoteok-de",   "https://remoteok.com/api?tags=german",         from_remoteok, "json"),
     # --- Weltweit (Volumen fuer die andere Haelfte) ---
     ("remotive",      "https://remotive.com/api/remote-jobs",         from_remotive, "json"),
