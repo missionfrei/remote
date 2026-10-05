@@ -244,16 +244,22 @@ BA_VETO = re.compile(r"au(?:ss|\u00df)endienst|vor\s?ort|monteur|servicetechnike
                      r"|filial|niederlassung|pflegekraft|pflegefachkraft|handwerk|lager|produktion", re.I)
 BA_TYP_OK = {"VOLLSTAENDIG","VOLLSTAENDIG_HOMEOFFICE","NUR_HOMEOFFICE","IMMER","AUSSCHLIESSLICH"}
 BA_TYPEN  = {}   # nur zum Mitzaehlen fuer die Diagnose
+BA_TITEL100 = re.compile(r"100\s?%|100 ?prozent|vollst(ä|ae)ndig (im |von )?(home|remote|zu hause)|komplett (im |von )?(home|remote|zu hause)|ausschlie(ß|ss)lich (im )?home|nur (im )?home ?office|full[- ]?remote|fully remote|remote[- ]only", re.I)
+BA_TITEL_EINSCHR = re.compile(r"bis zu|teilweise|anteilig|hybrid|tage|überwiegend|ueberwiegend|nach einarbeitung|nach der einarbeitung|vor ort|außendienst|aussendienst", re.I)
 def from_arbeitsagentur(raw):
     out=[]
     for j in (raw.get("ergebnisliste") or raw.get("stellenangebote") or []):
         typ=(j.get("homeofficetyp") or "").upper()
         pro=j.get("homeofficeprozent")
         BA_TYPEN[typ]=BA_TYPEN.get(typ,0)+1
-        if not j.get("homeofficemoeglich"): continue
-        voll = (isinstance(pro,(int,float)) and pro>=100) or (typ in BA_TYP_OK)
-        if not voll: continue
         title=_ba_field(j,"stellenangebotsTitel","titel","beruf","stellenbezeichnung")
+        # 05.10.: Stichprobe 1.500 Anzeigen - nur 98 tragen homeofficeprozent=100, aber 423 weitere
+        # schreiben "100 % Homeoffice" o.ae. woertlich in den TITEL (Feld steht dann auf "nach Vereinbarung").
+        # Titel-Beleg zaehlt jetzt als 100 %, solange kein Einschraenkungswort im Titel steht.
+        titel100 = bool(title) and bool(BA_TITEL100.search(title)) and not BA_TITEL_EINSCHR.search(title)
+        if not j.get("homeofficemoeglich") and not titel100: continue
+        voll = (isinstance(pro,(int,float)) and pro>=100) or (typ in BA_TYP_OK) or titel100
+        if not voll: continue
         refnr=_ba_field(j,"referenznummer","refnr","hashId")
         if not title or not refnr: continue
         # Der Arbeitgeber kreuzt "100 Prozent Homeoffice" auch bei Aussendienst an, weil kein
@@ -268,9 +274,11 @@ def from_arbeitsagentur(raw):
         tags=(ber+" "+" ".join(str(a) for a in alle if isinstance(a,str))).strip()
         url=f"https://www.arbeitsagentur.de/jobsuche/jobdetail/{urllib.parse.quote(refnr, safe='')}"
         beleg=(f"{int(pro)} Prozent Homeoffice" if isinstance(pro,(int,float)) else typ.lower())
+        if titel100 and not (isinstance(pro,(int,float)) and pro>=100): beleg="100 % Homeoffice laut Anzeigentitel"
+        quer=(" Laut Arbeitgeber fuer Quereinsteiger geeignet." if j.get("quereinstiegGeeignet") else "")
         out.append(dict(title=title, company=comp, url=url,
             info=("Der Arbeitgeber meldet diese Stelle in der amtlichen Jobdatenbank der Bundesagentur "
-                  f"fuer Arbeit mit {beleg}. Anzeigentext und Bewerbung ueber den Link."),
+                  f"fuer Arbeit mit {beleg}.{quer} Anzeigentext und Bewerbung ueber den Link."),
             raw_tags=tags, raw_loc=(ort+" homeoffice remote").strip(),
             posted=_ba_field(j,"datumErsteVeroeffentlichung"),
             raw_desc="", region_hint="de"))
