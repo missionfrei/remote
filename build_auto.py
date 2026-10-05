@@ -1130,6 +1130,15 @@ def gather():
 # das Feld "posted"), wird alles Aeltere verworfen. Quellen OHNE Datum bleiben unberuehrt -
 # lieber eine undatierte Stelle drin als die halbe Datenbank blind wegwerfen.
 MAXAGE_DAYS = 25
+# Paul (05.10.2026): Stellen direkt von Firmenseiten / Firmen-Bewerbersystemen duerfen aelter als
+# 25 Tage sein, solange sie dort noch stehen (der Link-Check entfernt sie, sobald sie weg sind).
+# Stellen von Jobplattformen bleiben bei max. 25 Tagen.
+COMPANY_ATS = re.compile(r"\.jobs\.personio\.(de|com)|job-boards(\.eu)?\.greenhouse\.io|boards\.greenhouse\.io|jobs\.(eu\.)?lever\.co|jobs\.ashbyhq\.com|\.recruitee\.com|\.teamtailor\.com|apply\.workable\.com|jobs\.smartrecruiters\.com|\.softgarden\.(io|de)|\.career\.softgarden|dvinci|rexx-systems|myworkdayjobs\.com|successfactors|join\.com/companies/|/karriere|/careers?/|/jobs/", re.I)
+JOBBOARD_HOSTS = ("arbeitsagentur.de","remotely.de","nomado24.de","arbeitnow.com","adzuna.","stepstone","indeed","jobware","xing.com","linkedin.com","machdudas","junico","freelancermap","trabajo.org","simplyhired","derjobmarkt","oberfrankenjobs","osourced.is","zuhausejobs")
+def is_company_source(j):
+    u=(j.get("url") or "").lower()
+    if any(h in u for h in JOBBOARD_HOSTS): return False
+    return bool(COMPANY_ATS.search(u))
 def _age_days(val):
     """ISO-Datum, RFC-Datum oder Unix-Timestamp -> Alter in Tagen. None = unbekannt."""
     if val is None or val == "": return None
@@ -1169,7 +1178,7 @@ def process(raw_jobs):
         # Paul #21: aus den Job-Boards NUR Direkt-Links zur Einzelstelle aufnehmen (keine Karriere-/Firmenseiten).
         # Die Boards verlinken fast immer direkt auf die Anzeige -> genau die wollen wir.
         _a=_age_days(j.get("posted"))
-        if _a is not None and _a > MAXAGE_DAYS: continue   # zu alt (Paul: max ~3 Wochen)
+        if _a is not None and _a > MAXAGE_DAYS and not is_company_source(j): continue   # zu alt (Jobplattform: max 25 Tage; Firmenseite: solange live)
         if not is_direct(j["url"]): continue
         u=j["url"].rstrip("/")
         if u in seen: continue
@@ -1898,7 +1907,7 @@ def main():
               f"(z.B. {_nodate[0].get('title','')[:50]})")
     alljobs=[j for j in alljobs
              if (j.get("src") not in ("import","customer") and _age_days(j.get("posted")) is None)
-             or (_age_days(j.get("posted")) is not None and _age_days(j.get("posted")) <= MAXAGE_DAYS)]
+             or (_age_days(j.get("posted")) is not None and (_age_days(j.get("posted")) <= MAXAGE_DAYS or is_company_source(j)))]
     _baz("frisch", alljobs)
     print(f"[frisch] Aelter als {MAXAGE_DAYS} Tage entfernt: {_ba-len(alljobs)} -> {len(alljobs)} bleiben")
 
