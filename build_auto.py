@@ -553,6 +553,31 @@ def from_wwr(xmltext):
 # Firma erweitern = eine Zeile. Slug muss stimmen (sonst 0/Fehler -> wird geloggt).
 ATS_COMPANIES = [
     # (Anzeige-Firma, ats, slug, bereich-default, region-default)
+    ("7Learnings", "personio", "7learnings.jobs.personio.com", "buero", "de"),  # 05.10. Crawl: Remote-Stellen auf Deutsch
+    ("Amx", "personio", "amx.jobs.personio.com", "buero", "de"),  # 05.10. Crawl: Remote-Stellen auf Deutsch
+    ("Clark", "personio", "clark.jobs.personio.com", "buero", "de"),  # 05.10. Crawl: Remote-Stellen auf Deutsch
+    ("Contracthero", "personio", "contracthero-gmbh.jobs.personio.com", "buero", "de"),  # 05.10. Crawl: Remote-Stellen auf Deutsch
+    ("Cyber Valley", "personio", "cyber-valley-gmbh.jobs.personio.com", "buero", "de"),  # 05.10. Crawl: Remote-Stellen auf Deutsch
+    ("Dentaltwin", "personio", "dentaltwin.jobs.personio.com", "buero", "de"),  # 05.10. Crawl: Remote-Stellen auf Deutsch
+    ("Deskbird", "personio", "deskbird.jobs.personio.com", "buero", "de"),  # 05.10. Crawl: Remote-Stellen auf Deutsch
+    ("Egruppe", "personio", "egruppe.jobs.personio.com", "buero", "de"),  # 05.10. Crawl: Remote-Stellen auf Deutsch
+    ("Emil Group", "personio", "emil-group-gmbh.jobs.personio.com", "buero", "de"),  # 05.10. Crawl: Remote-Stellen auf Deutsch
+    ("Eshop Guide", "personio", "eshop-guide.jobs.personio.com", "buero", "de"),  # 05.10. Crawl: Remote-Stellen auf Deutsch
+    ("Filu", "personio", "filu-gmbh.jobs.personio.com", "buero", "de"),  # 05.10. Crawl: Remote-Stellen auf Deutsch
+    ("Friedrich Zufall", "personio", "friedrich-zufall-gmbh.jobs.personio.com", "buero", "de"),  # 05.10. Crawl: Remote-Stellen auf Deutsch
+    ("Fsc", "personio", "fsc.jobs.personio.com", "buero", "de"),  # 05.10. Crawl: Remote-Stellen auf Deutsch
+    ("Gluecklichegaeste", "personio", "gluecklichegaeste.jobs.personio.com", "buero", "de"),  # 05.10. Crawl: Remote-Stellen auf Deutsch
+    ("Greencells", "personio", "greencells-gmbh.jobs.personio.com", "buero", "de"),  # 05.10. Crawl: Remote-Stellen auf Deutsch
+    ("Gridx", "personio", "gridx.jobs.personio.com", "buero", "de"),  # 05.10. Crawl: Remote-Stellen auf Deutsch
+    ("Holzkern", "personio", "holzkern.jobs.personio.com", "buero", "de"),  # 05.10. Crawl: Remote-Stellen auf Deutsch
+    ("Ida", "personio", "ida.jobs.personio.com", "buero", "de"),  # 05.10. Crawl: Remote-Stellen auf Deutsch
+    ("Inovisco", "personio", "inovisco.jobs.personio.com", "buero", "de"),  # 05.10. Crawl: Remote-Stellen auf Deutsch
+    ("It Haus", "personio", "it-haus-gmbh.jobs.personio.com", "buero", "de"),  # 05.10. Crawl: Remote-Stellen auf Deutsch
+    ("Lablions Software Solutions", "personio", "lablions-software-solutions-gmbh.jobs.personio.com", "buero", "de"),  # 05.10. Crawl: Remote-Stellen auf Deutsch
+    ("Neuplaner", "personio", "neuplaner.jobs.personio.com", "buero", "de"),  # 05.10. Crawl: Remote-Stellen auf Deutsch
+    ("Node Energy", "personio", "node-energy.jobs.personio.com", "buero", "de"),  # 05.10. Crawl: Remote-Stellen auf Deutsch
+    ("Nscon", "personio", "nscon.jobs.personio.com", "buero", "de"),  # 05.10. Crawl: Remote-Stellen auf Deutsch
+    ("Peakpeak", "personio", "peakpeak.jobs.personio.com", "buero", "de"),  # 05.10. Crawl: Remote-Stellen auf Deutsch
     ("Bybit",      "greenhouse", "bybit",             "service", "world"),
     ("Bitpanda",   "greenhouse", "bitpanda",          "service", "eu"),
     ("OKX",        "greenhouse", "okx",               "service", "world"),
@@ -778,7 +803,14 @@ def gather_ats():
     out=[]
     for company,ats,slug,ber,region in ATS_COMPANIES:
         try:
-            rows=fx[ats](slug)
+            # 05.10.: Personio & Co. antworten bei schnellen Serien mit 429/503 -> kurz warten, bis zu 2x neu.
+            import time as _tt
+            for _v in range(3):
+                try: rows=fx[ats](slug); break
+                except Exception as _e:
+                    if _v<2 and re.search(r"429|503|timed out|reset", str(_e)): _tt.sleep(6*(_v+1)); continue
+                    raise
+            _tt.sleep(0.7)
             emitted=[]
             for title,url,loc,desc,rf in rows:
                 e=_ats_emit(company,title,url,loc,desc,rf,ber,region)
