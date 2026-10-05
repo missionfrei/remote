@@ -288,6 +288,29 @@ def _j(x):  # list-oder-string -> string
     if isinstance(x,list): return " ".join(str(i) for i in x)
     return str(x or "")
 
+def from_workable_global(raw):
+    """05.10.: Workable-Jobboerse (jobs.workable.com/api/v1/jobs) - robots erlaubt /api, kein Login.
+    Viele deutschsprachige Support-Stellen, oft remote aus EU-/Drittlaendern. Nur workplace=remote und
+    nur mit Deutsch-Bezug (Titel/Text nennt german/deutsch)."""
+    out=[]
+    for j in raw.get("jobs", []) or []:
+        if (j.get("workplace") or "").lower()!="remote": continue
+        desc=re.sub(r"<[^>]+>"," ",j.get("description","") or "")
+        t=(j.get("title","") or "")
+        if not re.search(r"german|deutsch", t+" "+desc[:3000], re.I): continue
+        loc=j.get("location") or {}
+        land=loc.get("countryName","") or ""
+        ort=", ".join(x for x in [loc.get("city",""), land] if x)
+        comp=(j.get("company") or {}).get("title","")
+        info=clean_text(desc)[:260]
+        if land and land.lower() not in ("germany","deutschland"):
+            info=f"Remote mit Wohnsitz/Arbeitsort {land}. "+info
+        out.append(dict(title=t, company=comp, url=j.get("url",""), info=info,
+            raw_tags=(j.get("department","") or "")+" "+(j.get("employmentType","") or ""),
+            posted=(j.get("created") or "")[:10],
+            raw_loc=("remote "+ort).strip(), raw_desc=desc[:4000]))
+    return out
+
 def from_jobicy(raw):
     out=[]
     for j in raw.get("jobs", []):
@@ -847,6 +870,21 @@ SOURCES = [
     ("remotive-de",   "https://remotive.com/api/remote-jobs?search=german",  from_remotive, "json"),
     ("remotive-de2",  "https://remotive.com/api/remote-jobs?search=deutsch", from_remotive, "json"),
     ("jobicy-de",     "https://jobicy.com/api/v2/remote-jobs?count=100&tag=german", from_jobicy, "json"),
+    # 05.10.: Workable-Jobboerse (Recherche-Agent): deutschsprachige Remote-Support-Stellen weltweit
+    ("workable-0", "https://jobs.workable.com/api/v1/jobs?query=german%20remote", from_workable_global, "json"),
+    ("workable-1", "https://jobs.workable.com/api/v1/jobs?query=deutsch%20remote", from_workable_global, "json"),
+    ("workable-2", "https://jobs.workable.com/api/v1/jobs?query=german%20speaking", from_workable_global, "json"),
+    ("workable-3", "https://jobs.workable.com/api/v1/jobs?query=german%20customer%20support", from_workable_global, "json"),
+    ("workable-4", "https://jobs.workable.com/api/v1/jobs?query=german%20customer%20service", from_workable_global, "json"),
+    ("workable-5", "https://jobs.workable.com/api/v1/jobs?query=deutschsprachig", from_workable_global, "json"),
+    ("workable-6", "https://jobs.workable.com/api/v1/jobs?query=kundenservice", from_workable_global, "json"),
+    ("workable-7", "https://jobs.workable.com/api/v1/jobs?query=kundenservice%20remote", from_workable_global, "json"),
+    ("workable-8", "https://jobs.workable.com/api/v1/jobs?query=homeoffice", from_workable_global, "json"),
+    ("workable-9", "https://jobs.workable.com/api/v1/jobs?query=german%20sales", from_workable_global, "json"),
+    ("workable-10", "https://jobs.workable.com/api/v1/jobs?query=german%20content%20moderator", from_workable_global, "json"),
+    ("workable-11", "https://jobs.workable.com/api/v1/jobs?query=german%20data%20entry", from_workable_global, "json"),
+    ("workable-12", "https://jobs.workable.com/api/v1/jobs?query=german%20virtual%20assistant", from_workable_global, "json"),
+    ("workable-13", "https://jobs.workable.com/api/v1/jobs?query=german%20teilzeit", from_workable_global, "json"),
     ("remoteok-de",   "https://remoteok.com/api?tags=german",         from_remoteok, "json"),
     # --- Weltweit (Volumen fuer die andere Haelfte) ---
     ("remotive",      "https://remotive.com/api/remote-jobs",         from_remotive, "json"),
@@ -965,7 +1003,9 @@ def _ba(beruf, size=100, page=1):
 # Der Hebel ist also nicht der Filter, sondern EINDEUTIGE Treffer. Deshalb: wenige, wirklich
 # verschiedene Begriffe, dafuer sehr tief. "Homeoffice" allein meldet 37.729 Anzeigen -
 # davon haben wir bisher nur rund 3.000 gelesen.
-BA_TIEF = ["Homeoffice", "Remote", "Telearbeit"]
+# 05.10. (Paul: "schau in allen Kategorien, auch Teilzeit/20 h"): weitere Tiefen-Begriffe.
+BA_TIEF = ["Homeoffice", "Remote", "Telearbeit", "Home Office", "Heimarbeit", "von zu Hause",
+           "ortsunabhaengig", "Quereinsteiger Homeoffice", "Teilzeit Homeoffice", "Minijob Homeoffice"]
 BA_BERUFE = [
     "Kundenberater", "Kundenbetreuer", "Kundenservice", "Call-Center-Agent", "Kundenbetreuung",
     "Telefonist", "Servicemitarbeiter", "Customer Success Manager", "Helpdesk", "First Level Support",
