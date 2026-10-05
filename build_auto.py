@@ -438,7 +438,10 @@ def resolve_link(url):
                 body=r.read(400000).decode("utf-8","replace")
                 # 03.10.: auf sichtbarem Text pruefen. Vorher lief der Regex auf rohem HTML -
                 # "Diese Stelle ist nicht mehr verf&uuml;gbar" oder Tags mitten im Satz rutschten durch.
-                _vis=re.sub(r"<script.*?</script>|<style.*?</style>|<noscript.*?</noscript>"," ",body,flags=re.S|re.I)
+                # 05.10.: auch abgeschnittene <script>-Bloecke (Seite > 400 KB, z. B. remotely.de) entfernen -
+                # sonst landeten Texte wie "pageNotFound":"Seite nicht gefunden" aus dem Sprach-JSON im
+                # "sichtbaren" Text und 242 lebende Stellen flogen als Soft-404 raus.
+                _vis=re.sub(r"<script[\s\S]*?(?:</script>|\Z)|<style[\s\S]*?(?:</style>|\Z)|<noscript.*?</noscript>"," ",body,flags=re.I)
                 _vis=_html.unescape(re.sub(r"\s+"," ",re.sub(r"<[^>]+>"," ",_vis)))
                 if SOFT404.search(body[:60000]) or SOFT404.search(_vis[:200000]):
                     return url, False
@@ -1414,7 +1417,8 @@ FD_JS = r'''
    "merlin26":{ber:{service:3,it:2,buero:1,start:0.5,sprache:1,gesundheit:2},
      plus:["kundenservice","kundensupport","kundenbetreuung","kundendienst","kundendienst-mitarbeiter","customer support","customer service","customer care","chat support","email support","e-mail support","technischer support","technischer kundensupport","technischer kundenservice","technical support","application support","anwendersupport","anwenderbetreuung","helpdesk","help desk","it-support","it support","service desk","service desk agent","1st level","first level","second level","2nd level","support agent","support specialist","supporter","software supporter","fachinformatiker","systembetreuung","remote support","ticket","betreuung","kundenbetreuer","kundenberater","kundenberatung","inbound","erste anlaufstelle","content moderat","moderator","qualitaetspruef","qualitätsprüf","datenerfassung","data entry","dateneingabe","annotation","ai training","rater","transkription","teilzeit","quereinsteiger","backoffice","back office","sachbearbeit","auftragsabwicklung"],
      minus:["vertrieb","sales","telesales","closer","setter","outbound","kaltakquise","akquise","telefonverkauf","aussendienst","außendienst","provision","mediaberater","verkaeufer","verkäufer","neukunden","business development","account executive","buchhaltung","accounting","steuer","datev","bilanz","lohn","designer","grafik","marketing","seo"],
-     hard:["vertrieb","sales manager","sales representative","sales development","account executive","business development","sdr","telesales","akquise","closer","appointment setter","mediaberater","verkäufer","außendienst","buchhalt","steuerber","steuerfach","bilanzbuch","lohnbuchhalt","datev","accountant","accounting","payroll","senior","architekt"],langs:["de","en"],reg:{world:3,eu:2,de:1}},
+     hard:["vertrieb","sales manager","sales representative","sales development","account executive","business development","sdr","telesales","akquise","closer","appointment setter","mediaberater","verkäufer","außendienst","buchhalt","steuerber","steuerfach","bilanzbuch","lohnbuchhalt","datev","accountant","accounting","payroll","senior","architekt"],langs:["de","en"],reg:{world:3,eu:2,de:1},
+     noexp:true /* 05.10.: keine nachweisbare Erfahrung -> Einstieg zuerst */},
    /* Profil B (26.09. nachgescharft, Pauls Vorgabe): wieder klar auf Kreatives - Content, Video,
       Social Media, Grafik, Text. Verwaltung und Buchhaltung sind aus dem plus-Block raus und
       stehen jetzt im minus-Block, Kundenservice bleibt hart ausgeschlossen. */
@@ -1614,6 +1618,15 @@ FD_JS = r'''
     if(p.langs.indexOf(c.dataset.lang)>-1)s+=1;
     if(c.dataset.lang==='de')s+=2.5; else s-=1.5;   /* Deutsch klar vor Englisch (Paul) */
     if(c.dataset.level==='einsteiger')s+=0.4;
+    /* 05.10., Kundenmeldung Merlin: "Alle wollen eine Erfahrung, die ich nicht nachweisen kann."
+       noexp = Profil ohne nachweisbare Berufserfahrung im Wunschfeld: Einstiegs- und Quereinsteiger-
+       Stellen deutlich nach oben, Stellen mit harter Erfahrungs-Pflicht deutlich nach unten. */
+    if(p.noexp){
+      if(/senior|erfahren|experienced|specialist|spezialist|expert/.test(title))return -999;
+      if(c.dataset.level==='einsteiger')s+=3;
+      if(/quereinsteig|quereinstieg|ohne (vorherige |berufs)?erfahrung|keine (berufs)?erfahrung|einarbeitung|berufseinsteiger|einsteiger|no experience|entry.level/.test(t))s+=2.5;
+      if(/mehrj(ä|ae)hrige|mindestens \d|\d\+? jahre|years of (relevant )?experience|einschl(ä|ae)gige|abgeschlossene ausbildung als|erfahrung (als|im|in der|in einer)[^.]{0,40}(erforderlich|vorausgesetzt|zwingend|notwendig)/.test(t))s-=4;
+    }
     return s;
   }
   function fdStars(s){var n=(s>=10?5:(s>=8?4:(s>=6?3:(s>=4?2:1))));var o='';for(var i=0;i<5;i++)o+=(i<n?'★':'☆');return o;}
