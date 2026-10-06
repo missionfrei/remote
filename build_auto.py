@@ -1508,8 +1508,8 @@ FD_JS = r'''
    "merlin26":{ber:{service:3,it:2,buero:1,start:0.5,sprache:1,gesundheit:2},
      plus:["kundenservice","kundensupport","kundenbetreuung","kundendienst","kundendienst-mitarbeiter","customer support","customer service","customer care","chat support","email support","e-mail support","technischer support","technischer kundensupport","technischer kundenservice","technical support","application support","anwendersupport","anwenderbetreuung","helpdesk","help desk","it-support","it support","service desk","service desk agent","1st level","first level","second level","2nd level","support agent","support specialist","supporter","software supporter","fachinformatiker","systembetreuung","remote support","ticket","betreuung","kundenbetreuer","kundenberater","kundenberatung","inbound","erste anlaufstelle","content moderat","moderator","qualitaetspruef","qualitätsprüf","datenerfassung","data entry","dateneingabe","annotation","ai training","rater","transkription","teilzeit","quereinsteiger","backoffice","back office","sachbearbeit","auftragsabwicklung"],
      minus:["vertrieb","sales","telesales","closer","setter","outbound","kaltakquise","akquise","telefonverkauf","aussendienst","außendienst","provision","mediaberater","verkaeufer","verkäufer","neukunden","business development","account executive","buchhaltung","accounting","steuer","datev","bilanz","lohn","designer","grafik","marketing","seo"],
-     hard:["vertrieb","sales manager","sales representative","sales development","account executive","business development","sdr","telesales","akquise","closer","appointment setter","mediaberater","verkäufer","außendienst","buchhalt","steuerber","steuerfach","bilanzbuch","lohnbuchhalt","datev","accountant","accounting","payroll","senior","architekt","outbound","headhunter","recruiter","ernährungsberat","first-line manager","teamleit","vorsorge","versicherung"],langs:["de","en"],reg:{world:3,eu:2,de:1},
-     noexp:true /* 05.10.: keine nachweisbare Erfahrung -> Einstieg zuerst */},
+     hard:["vertrieb","sales manager","sales representative","sales development","account executive","business development","sdr","telesales","akquise","closer","appointment setter","mediaberater","verkäufer","außendienst","buchhalt","steuerber","steuerfach","bilanzbuch","lohnbuchhalt","datev","accountant","accounting","payroll","senior","architekt","outbound","headhunter","recruiter","ernährungsberat","first-line manager","teamleit","vorsorge","versicherung","mechatroniker","binance","linguist","security","frankreich","französisch","pathology","risk operations"],langs:["de","en"],reg:{world:3,eu:2,de:1},
+     noexp:true, onlyEntry:true /* 05.10./06.10.: keine nachweisbare Erfahrung -> NUR Einstiegsstellen */},
    /* Profil B (26.09. nachgescharft, Pauls Vorgabe): wieder klar auf Kreatives - Content, Video,
       Social Media, Grafik, Text. Verwaltung und Buchhaltung sind aus dem plus-Block raus und
       stehen jetzt im minus-Block, Kundenservice bleibt hart ausgeschlossen. */
@@ -1722,6 +1722,17 @@ FD_JS = r'''
     /* 05.10., Kundenmeldung Merlin: "Alle wollen eine Erfahrung, die ich nicht nachweisen kann."
        noexp = Profil ohne nachweisbare Berufserfahrung im Wunschfeld: Einstiegs- und Quereinsteiger-
        Stellen deutlich nach oben, Stellen mit harter Erfahrungs-Pflicht deutlich nach unten. */
+    /* 06.10. (Merlin: "überall Bachelor oder Sachen, die ich nicht habe"): onlyEntry = in "Für dich" NUR Stellen,
+       die als Einstieg markiert sind (Level einsteiger oder Hinweis "Ohne Erfahrung möglich"). */
+    /* Paul 06.10.: ALLE wirklich passenden einfachen Rollen rein (Kundenservice, Support, Backoffice, Datenerfassung,
+       Moderation, Assistenz ...), auch ohne das Wort "Quereinsteiger" - aber nie mit Hinweis "Erfahrung nötig". */
+    if(p.onlyEntry){
+      var _meta=(c.querySelector('.meta')||c).textContent;
+      if(/Erfahrung nötig/.test(_meta))return -999;
+      var _simple=/kundenservice|kundendienst|kundenbetreu|kundenberat|customer (support|service|care)|support agent|chat|e-mail-support|email support|1st.?level|first.?level|helpdesk|it-support|service.?desk|datenerfassung|data entry|dateneingabe|backoffice|back office|bürotätigkeit|sachbearbeit|assistenz|assistant|content.?moderat|moderator|rater|transkription|minijob|aushilfe|telefonist|inbound|call.?(center|agent)|callcenter|terminierung|terminvereinbarung|pannenhilfe|mitarbeiter/.test(title);
+      if(c.dataset.level!=='einsteiger' && !/Ohne Erfahrung/.test(_meta) && !_simple)return -999;
+      if(/senior|lead|leitung|teamleit|manager|head|spezialist|specialist|expert|engineer|entwickler|developer|analyst|werkstud|university|graduate/.test(title) && !/support engineer/.test(title))return -999;
+    }
     if(p.noexp){
       if(/senior|erfahren|experienced|specialist|spezialist|expert/.test(title))return -999;
       if(c.dataset.level==='einsteiger')s+=3;
