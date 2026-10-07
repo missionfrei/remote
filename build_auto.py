@@ -1578,6 +1578,16 @@ FD_JS = r'''
      hard:["spanien","frankreich","first-line","first line","1st level it","it career","entwickler","developer","software engineer","devops","frontend","backend","fullstack","data engineer","it-support","it support","administrator","marketing","social media","seo","sea ","content creator","designer","grafik","werkstudent","working student","praktikum","reine provision","handelsvertret"],
      extraLang:true,
      langs:["de","en"],reg:{world:3,eu:2.5,de:1}},
+   /* 07.10.: Neukundin (Formular + Lebenslauf): Bachelor Mehrsprachige Kommunikation (Uebersetzen EN/FR), seit Jahren
+      Dolmetschen/Uebersetzen, Flugbegleiterin, Assistenz mit Uebersetzungen/Recherche, DaF-Unterricht, Kundenbetreuung.
+      Fliessend DE, EN, FR, Swahili. Wunsch: fester Remote-Job, sprachlich/interkulturell/mehrsprachig, ca. 35 Std./Woche.
+      Ziel: Leben in Ostafrika -> weltweit machbare Stellen klar zuerst. */
+   "consolata26":{ber:{sprache:4,service:3,buero:2,start:1,marketing:0.5,gesundheit:0.5,vertrieb:0,it:0},
+     plus:["übersetz","uebersetz","translator","translation","lokalisierung","localization","localisation","dolmetsch","interpret","sprach","language","mehrsprachig","multilingual","französisch","french","francais","englisch","english","swahili","daf","deutsch als fremdsprache","deutschlehr","german teacher","tutor","lehrkraft","lektor","korrektor","proofread","untertitel","subtit","content moderat","moderation","kundenservice","customer support","customer service","customer experience","travel","reise","airline","flug","interkulturell","international","assistenz","assistant","office","recherche","research","weltweit","worldwide","anywhere"],
+     minus:["senior","head of","außendienst","aussendienst","provision","buchhaltung","steuer","datev","lohn","vertrieb","sales","kaltakquise"],
+     hard:["first-line","first line","it career","werkstudent","working student","praktikum","praktikant","reine provision","handelsvertret","entwickler","developer","software engineer","devops","außendienst"],
+     extraLang:true,
+     langs:["de","en"],reg:{world:3.5,eu:2,de:0.5}},
    "marcus26":{ber:{vertrieb:4.5,it:1,marketing:1,service:1,buero:0.5,start:0.5,sprache:0,gesundheit:0},
      plus:["sales","vertrieb","inside sales","remote sales","saas sales","tech sales","b2b sales","account manager","account management","account executive","key account","business development","business developer","sales development","sdr","bdr","sales representative","sales manager","vertriebsmitarbeiter","vertriebsinnendienst","vertriebsberater","verkaufsberater","neukunden","bestandskunden","customer success","partner manager","partnermanagement","channel sales","lead generation","leadgenerierung","crm","hubspot","salesforce","pipedrive","pipeline","angebote","abschluss","closing","verhandlung","sales engineer","solution engineer","solutions engineer","presales","pre-sales","technical account","technischer vertrieb","technical sales","saas","software","e-commerce","quereinsteiger","quereinstieg","fixgehalt","festgehalt","grundgehalt"],
      minus:["reine provision","nur provision","provisionsbasis","provision only","commission only","high ticket","callcenter","call center","telefonist","datenerfassung","dateneingabe","data entry","transkription","annotation","pflege","pflegefach","medizinisch","arzt","apotheke","buchhaltung","steuer","datev","lohnbuchhalt","lehrer","dozent","nachhilfe","handwerk","montage","lager","fahrer","aussendienst","au\u00dfendienst","versicherung","finanzberat","finanzprodukte","vorsorge","developer","entwickler","softwareentwickl","software engineer","frontend","front-end","backend","back-end","fullstack","full stack","full-stack","devops","programmier","data engineer","data scientist","qa engineer","systemadmin"],
@@ -2120,7 +2130,8 @@ def main():
                       r"wirtschaftspr(ü|ue)f|aktuar|actuary|penetration|security engineer", re.I)
     # Paul: "1-3 Tage Homeoffice bringt nichts, muss schon 100% immer remote sein."
     # 07.10.: "80-100 %" / "60 bis 100 %" ist kein 100-%-Beleg (OnlineDoctor stand so auf dem Board).
-    _HYBRID=re.compile(r"hybrid|(?<!\d)\d{1,2}\s*%?\s*(?:-|–|bis)\s*100\s*%|teilweise (home|remote)|(home ?office|remote)[^.]{0,20}teilweise|teilweise m(ö|oe)glich|anteilig home|\d\s*[-–bis]{1,3}\s*\d?\s*tage?\s*(pro\s*woche\s*)?(home|remote|b(ü|ue)ro)|"
+    # 07.10.: "remote/Homeoffice moeglich" ist kein 100-%-Beleg (Paul-Regel) - auch nicht "100 % remote moeglich".
+    _HYBRID=re.compile(r"hybrid|(remote|home ?office|mobil(es)? arbeiten)\s*(ist\s*)?m(ö|oe)glich|m(ö|oe)glichkeit,? (zu )?100|(?<!\d)\d{1,2}\s*%?\s*(?:-|–|bis)\s*100\s*%|teilweise (home|remote)|(home ?office|remote)[^.]{0,20}teilweise|teilweise m(ö|oe)glich|anteilig home|\d\s*[-–bis]{1,3}\s*\d?\s*tage?\s*(pro\s*woche\s*)?(home|remote|b(ü|ue)ro)|"
                        r"\d\s*(tage?|days?)\s*(pro\s*woche|per\s*week|/\s*week)\s*(im\s*)?(home|remote|office)|"
                        r"\b(2|3|4)\s*days?\s*(in\s*)?(the\s*)?office|office[- ]first|"
                        # Lauf #104: drei Anzeigen sind nur deshalb durchgerutscht, weil "Office"
