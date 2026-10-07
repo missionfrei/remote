@@ -485,6 +485,13 @@ def resolve_link(url):
                 _vis=_html.unescape(re.sub(r"\s+"," ",re.sub(r"<[^>]+>"," ",_vis)))
                 if SOFT404.search(body[:60000]) or SOFT404.search(_vis[:200000]):
                     return url, False
+                # 07.10. (Paul: "60 Tage, aber nur wenn die Stelle aktiv und nicht abgelaufen ist"):
+                # Ashby und Greenhouse liefern fuer geloeschte Stellen HTTP 200 ohne Fehlertext.
+                # Ashby: Seite enthaelt "posting":null. Greenhouse: Weiterleitung auf die Board-Seite mit ?error=true.
+                if "ashbyhq.com" in url and re.search(r'"posting"\s*:\s*null', body):
+                    return url, False
+            if "greenhouse.io" in (final or "") and "error=true" in (final or ""):
+                return url, False
             return final, True
     except urllib.error.HTTPError as e:
         if e.code in (404,410): return url, False
@@ -1247,10 +1254,12 @@ def gather():
 # Wo die Quelle ein Veroeffentlichungsdatum liefert (Feeds ueber `posted`, manuelle Eintraege ueber
 # das Feld "posted"), wird alles Aeltere verworfen. Quellen OHNE Datum bleiben unberuehrt -
 # lieber eine undatierte Stelle drin als die halbe Datenbank blind wegwerfen.
-MAXAGE_DAYS = 25
-# Paul (05.10.2026): Stellen direkt von Firmenseiten / Firmen-Bewerbersystemen duerfen aelter als
-# 25 Tage sein, solange sie dort noch stehen (der Link-Check entfernt sie, sobald sie weg sind).
-# Stellen von Jobplattformen bleiben bei max. 25 Tagen.
+MAXAGE_DAYS = 60
+# Paul (05.10.2026): Stellen direkt von Firmenseiten / Firmen-Bewerbersystemen duerfen aelter sein,
+# solange sie dort noch stehen (der Link-Check entfernt sie, sobald sie weg sind).
+# Paul (07.10.2026): Jobplattformen jetzt max. 60 Tage (vorher 25) - "aber nur wenn die Stelle aktiv
+# und nicht abgelaufen ist". Abgelaufene fliegen weiter sofort raus: resolve_and_prune prueft bei jedem
+# Build jeden Link (404/410, Soft-404-Text, Ashby "posting":null, Greenhouse ?error=true, Zweitpruefung).
 COMPANY_ATS = re.compile(r"\.jobs\.personio\.(de|com)|job-boards(\.eu)?\.greenhouse\.io|boards\.greenhouse\.io|jobs\.(eu\.)?lever\.co|jobs\.ashbyhq\.com|\.recruitee\.com|\.teamtailor\.com|apply\.workable\.com|jobs\.smartrecruiters\.com|\.softgarden\.(io|de)|\.career\.softgarden|dvinci|rexx-systems|myworkdayjobs\.com|successfactors|join\.com/companies/|/karriere|/careers?/|/jobs/", re.I)
 JOBBOARD_HOSTS = ("arbeitsagentur.de","remotely.de","nomado24.de","arbeitnow.com","adzuna.","stepstone","indeed","jobware","xing.com","linkedin.com","machdudas","junico","freelancermap","trabajo.org","simplyhired","derjobmarkt","oberfrankenjobs","osourced.is","zuhausejobs")
 def is_company_source(j):
@@ -1296,7 +1305,7 @@ def process(raw_jobs):
         # Paul #21: aus den Job-Boards NUR Direkt-Links zur Einzelstelle aufnehmen (keine Karriere-/Firmenseiten).
         # Die Boards verlinken fast immer direkt auf die Anzeige -> genau die wollen wir.
         _a=_age_days(j.get("posted"))
-        if _a is not None and _a > MAXAGE_DAYS and not is_company_source(j): continue   # zu alt (Jobplattform: max 25 Tage; Firmenseite: solange live)
+        if _a is not None and _a > MAXAGE_DAYS and not is_company_source(j): continue   # zu alt (Jobplattform: max 60 Tage; Firmenseite: solange live)
         if not is_direct(j["url"]): continue
         u=j["url"].rstrip("/")
         if u in seen: continue
@@ -1528,10 +1537,12 @@ FD_JS = r'''
    "danielb26":{ber:{it:4,buero:1.5,service:1,marketing:.5,start:.5,vertrieb:0,sprache:0,gesundheit:0},
      plus:["junior","einstieg","trainee","assistant","assistenz","operations assistant","crm manager","crm-manager","crm specialist","marketing operations","ops","prozessmanagement","no-code","nocode","ki-assistenz","ai assistant","automatisierung","gtm","go-to-market","go to market","revops","revenue operations","revenue ops","revenue systems","business systems","gtm operations","gtm systems","crm engineer","crm automation","growth engineer","solutions engineer","solution engineer","integration engineer","marketing automation","sales operations","sales systems","technical operations","automation engineer","workflow automation","ai solutions","ai automation","n8n","make.com","zapier","automatisierung","automation","automations","workflow","no-code","low-code","ki","ai","künstliche intelligenz","kuenstliche intelligenz","llm","gpt","openai","claude","prompt","chatbot","voice","agent","api","webhook","schnittstelle","integration","crm","hubspot","close","salesforce admin","pipedrive","prozess","prozessmanagement","operations","ops","revops","datenpflege","datenmanagement","daten","python","implementierung","implementation","onboarding","technischer support","application support","quereinsteiger","quereinstieg","junior","einsteiger","trainee"],
      minus:["vertrieb","sales","akquise","kaltakquise","neukunden","closer","setter","telesales","outbound","provision","aussendienst","außendienst","account executive","business development","pflege","buchhaltung","steuer","datev","lohn","senior","lead","head of","architekt","10+ jahre","5+ jahre"],
-     hard:["vertrieb","sales manager","sales representative","sales development","sales agent","sales specialist","inside sales","account executive","business development","sdr","bdr","telesales","outbound","akquise","kaltakquise","closer","setter","appointment setter","außendienst","neukundenakquise","buchhalt","steuerber","steuerfach","bilanzbuch","lohnbuchhalt","datev","pflegefach","arzt","senior","head of","architekt","devops","ruby","softwareentwickl","software developer","software engineer","teamleit","azure","cloud engineer","obsoleszenz","network","netzwerk","java","c#",".net","sap ","sap-","ingenieur","hardware","embedded","frontend","backend","fullstack","full stack","callcenter","call center","call-center","callcenter-agent","entwickler","consultant","dynamics","verwaltung","bürotätigkeit"],
+     hard:["seller","deal","go-to-market lead","dach lead","network automation","ansible","elasticsearch","vertrieb","sales manager","sales representative","sales development","sales agent","sales specialist","inside sales","account executive","business development","sdr","bdr","telesales","outbound","akquise","kaltakquise","closer","setter","appointment setter","außendienst","neukundenakquise","buchhalt","steuerber","steuerfach","bilanzbuch","lohnbuchhalt","datev","pflegefach","arzt","senior","head of","architekt","devops","ruby","softwareentwickl","software developer","software engineer","teamleit","azure","cloud engineer","obsoleszenz","network","netzwerk","java","c#",".net","sap ","sap-","ingenieur","hardware","embedded","frontend","backend","fullstack","full stack","callcenter","call center","call-center","callcenter-agent","entwickler","consultant","dynamics","verwaltung","bürotätigkeit"],
      langs:["de","en"],reg:{world:3,eu:2,de:1},
      /* 06.10.: Entwickler-/Ingenieursrollen raus – Daniel ist Quereinsteiger ohne Abschluss, Fokus Automatisierung/CRM/KI-Anwendung */
      noexp:true, noexpSoft:true, /* 06.10. Paul: nicht zu anspruchsvoll, viele Stellen zum Einsteigen */
+     /* 07.10. Paul/Kunde: Wunschrollen nach oben (siehe _wish in fdScore). */
+     wish:/gtm|go-?to-?market|revops|revenue (op|sys)|business systems|crm[ -](automation|engineer|specialist|spezialist|manager)|hubspot|growth engineer|solutions? engineer|integration engineer|marketing automation|sales (operations|systems)|technical operations|automation (engineer|specialist|spezialist|manager)|workflow|ki-automation|ai (solutions|automation|engineer)|n8n|make\.com|zapier|no-?code|low-?code/i,
      exempt:/gtm|go-?to-?market|revops|revenue (op|sys)|business systems|crm (automation|engineer)|growth engineer|solutions? engineer|integration engineer|marketing automation|sales (operations|systems)|technical operations|automation engineer|workflow|ai (solutions|automation)/i
      /* 06.10.: Daniels Wunschrollen (GTM Engineer & Co.) – diese Titel sind vom minus-Block ausgenommen */},
    "marcus26":{ber:{vertrieb:4.5,it:1,marketing:1,service:1,buero:0.5,start:0.5,sprache:0,gesundheit:0},
@@ -1736,7 +1747,21 @@ FD_JS = r'''
       if(c.dataset.level!=='einsteiger' && !/Ohne Erfahrung/.test(_meta) && !_simple)return -999;
       if(/senior|lead|leitung|teamleit|manager|head|spezialist|specialist|expert|engineer|entwickler|developer|analyst|werkstud|university|graduate/.test(title) && !/support engineer/.test(title))return -999;
     }
-    if(p.noexp){
+    /* 07.10. (Kundenmeldung danielb26: "es tut sich nichts"): Wunschrollen standen unter Einstiegsstellen,
+       weil noexp Erfahrung/Studium/Manager hart abzog. wish = Titel-Regex der Wunschrollen. Regeln (Paul 07.10.):
+       5+ Jahre gefordert -> raus; 2-4 Jahre -> bleibt, leicht abgewertet (gelb); Studium -> leicht abgewertet,
+       "oder vergleichbar" -> kein Abzug. Wunschrollen kommen vor die allgemeinen Einstiegsstellen. */
+    var _wish=!!(p.wish && p.wish.test(title));
+    if(_wish){
+      if(/senior|staff|principal|head of|director|\bvp\b/.test(title))return -999;
+      var _yrs=0;t.replace(/(\d{1,2})\s*(?:\+|-\s*\d{1,2}|bis\s*\d{1,2})?\s*(?:jahre|years)/g,function(m,a){_yrs=Math.max(_yrs,+a);return m;});
+      if(/mindestens (f(ü|ue)nf|sechs|sieben|acht|zehn) jahre/.test(t))_yrs=Math.max(_yrs,5);
+      if(_yrs>=5)return -999;
+      s+=7;
+      if(_yrs>=2)s-=1;
+      if(/\bbsc\b|b\.sc|bachelor|studium|hochschulabschluss|degree/.test(t) && !/oder vergleichbar|or equivalent|or similar|oder gleichwertig/.test(t))s-=1;
+    }
+    if(p.noexp && !_wish){
       if(p.noexpSoft ? /senior|staff|principal|head of|\blead\b|architect/.test(title) : /senior|erfahren|experienced|specialist|spezialist|expert/.test(title))return -999;
       if(c.dataset.level==='einsteiger')s+=3;
       if(/quereinsteig|quereinstieg|ohne (vorherige |berufs)?erfahrung|keine (berufs)?erfahrung|einarbeitung|berufseinsteiger|einsteiger|no experience|entry.level/.test(t))s+=2.5;
@@ -2057,7 +2082,8 @@ def main():
                       r"solution architect|enterprise architect|scrum master|product owner|"
                       r"wirtschaftspr(ü|ue)f|aktuar|actuary|penetration|security engineer", re.I)
     # Paul: "1-3 Tage Homeoffice bringt nichts, muss schon 100% immer remote sein."
-    _HYBRID=re.compile(r"hybrid|teilweise (home|remote)|(home ?office|remote)[^.]{0,20}teilweise|teilweise m(ö|oe)glich|anteilig home|\d\s*[-–bis]{1,3}\s*\d?\s*tage?\s*(pro\s*woche\s*)?(home|remote|b(ü|ue)ro)|"
+    # 07.10.: "80-100 %" / "60 bis 100 %" ist kein 100-%-Beleg (OnlineDoctor stand so auf dem Board).
+    _HYBRID=re.compile(r"hybrid|(?<!\d)\d{1,2}\s*%?\s*(?:-|–|bis)\s*100\s*%|teilweise (home|remote)|(home ?office|remote)[^.]{0,20}teilweise|teilweise m(ö|oe)glich|anteilig home|\d\s*[-–bis]{1,3}\s*\d?\s*tage?\s*(pro\s*woche\s*)?(home|remote|b(ü|ue)ro)|"
                        r"\d\s*(tage?|days?)\s*(pro\s*woche|per\s*week|/\s*week)\s*(im\s*)?(home|remote|office)|"
                        r"\b(2|3|4)\s*days?\s*(in\s*)?(the\s*)?office|office[- ]first|"
                        # Lauf #104: drei Anzeigen sind nur deshalb durchgerutscht, weil "Office"

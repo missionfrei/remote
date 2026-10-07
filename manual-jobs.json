@@ -8022,20 +8022,6 @@
   "src": "ats"
  },
  {
-  "title": "GTM Engineer / AI Engineer",
-  "company": "The Global Talent Co.",
-  "url": "https://jobs.ashbyhq.com/the-global-talent-co/3f8ab5f5-b2b5-4926-8671-0e46b1e80912",
-  "info": "Baut KI-gestützte GTM-Workflows und Agenten (Salesforce/HubSpot, Lead-Scoring, Routing, Outbound-Trigger) direkt mit den Gründern. Remote-Beleg: \"Fully remote work environment with flexible hours\". Erlaubte Länder: Polen, Rumänien, Portugal (Score 8/10)",
-  "lang": "en",
-  "region": "eu",
-  "level": "erfahren",
-  "bereich": "it",
-  "date": "06.10.2026",
-  "fd": false,
-  "src": "import",
-  "posted": "2026-07-16"
- },
- {
   "title": "GTM Systems Analyst",
   "company": "Ashby",
   "url": "https://jobs.ashbyhq.com/ashby/c62ec47a-8de9-4781-b1f7-563a229c4e90",
@@ -8118,5 +8104,47 @@
   "fd": false,
   "src": "import",
   "posted": "2026-09-18"
+ },
+ {
+  "title": "Junior GTM Engineer",
+  "company": "SalesCaptain",
+  "url": "https://jobs.workable.com/view/wP3TyhJWhT7wA9CYvKu9V4/remote-junior-gtm-engineer-in-germany-at-salescaptain",
+  "info": "Baut für eine Outbound-Agentur Clay-Workflows, Enrichment-Waterfalls, Signal-Trigger und n8n/Make/Zapier-Automationen für Kundenkampagnen; verlangt 2+ Jahre Erfahrung mit Outbound-/Revenue-Systemen, Clay-Power-User und Englisch C1–C2 (Quereinsteiger aus RevOps/BDR willkommen). Remote-Beleg: \"This is a full-time, remote role, working EU hours.\" Erlaubte Länder: Deutschland, Griechenland, Nordmazedonien, UK (EU-Arbeitszeiten).",
+  "lang": "en",
+  "region": "eu",
+  "level": "erfahren",
+  "bereich": "it",
+  "date": "07.10.2026",
+  "fd": false,
+  "src": "import",
+  "posted": "2026-08-24"
+ },
+ {
+  "title": "Marketing Automation / CRM Manager (gn)",
+  "company": "Bikeleasing Gruppe (BLS Beteiligungs GmbH)",
+  "url": "https://bikeleasing.jobs.personio.de/job/2759045",
+  "info": "Entwickelt HubSpot-Automationen und Lifecycle-Journeys für alle Marken weiter, segmentiert Kundendaten, wertet Kampagnen-KPIs aus und bindet Systeme per API an; Jahre nicht genannt, aber tiefes HubSpot- und API-Verständnis gefordert (Mid-Level-Anspruch). Remote-Beleg: \"Zurück ins Office? Nicht bei uns!\" (Standort: Remote Deutschland). Erlaubte Länder: Deutschland.",
+  "lang": "de",
+  "region": "de",
+  "level": "erfahren",
+  "bereich": "it",
+  "date": "07.10.2026",
+  "fd": false,
+  "src": "import",
+  "posted": "2026-08-18"
+ },
+ {
+  "title": "Revenue Operations Manager (m/w/d)",
+  "company": "metergrid",
+  "url": "https://metergrid.jobs.personio.de/job/2526663",
+  "info": "Verantwortet die AI-fokussierte Revenue-Operations-Strategie (Marketing, Partnerships, Sales) samt Prozessen, Systemen und Reporting; gefordert sind 1 bis 3 Jahre Erfahrung in Sales Operations, Sales Enablement oder Sales Analytics. Remote-Beleg: \"Ob in Stuttgart, Hamburg, Berlin oder fully remote\" (Standort: Remote). Erlaubte Länder: Deutschland.",
+  "lang": "de",
+  "region": "de",
+  "level": "erfahren",
+  "bereich": "it",
+  "date": "07.10.2026",
+  "fd": false,
+  "src": "import",
+  "posted": "2026-02-11"
  }
 ]
