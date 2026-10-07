@@ -79,7 +79,8 @@ BLOCK = ["werkstud","working student",   # Paul: keine Werkstudenten
 # recime: Verguetung ist reine Provision auf das Werbebudget, kein Fixum.
 # talentspring: Bildungstraeger, verkauft Weiterbildungen als Stellenanzeigen.
 # hochberg performance: gefoerdertes Trainingsprogramm als Pflegejob getarnt (September).
-FIRMEN_BLOCK = ["recime", "talentspring",
+FIRMEN_BLOCK = ["recime", "talentspring", "vielhaber", "viral.app", "viralapp",  # 07.10.: Finanzvertrieb / Bezahlung pro Video (Kunden-Betreuer)
+
     # 03.10.: Mentify Learn schreibt eine Weiterbildung als "Quereinstieg"-Stelle aus.
     # Kevin Kehr: Finanzvertrieb auf Provision (schon am 02.10. bei der ATS-Ernte aussortiert).
     "mentify", "kevin kehr", "kevin-kehr"]
@@ -741,8 +742,14 @@ def _ats_region(loc, region_default):
     # 05.10. (Paul: 100+ weltweite deutschsprachige Stellen): Weltweit-Firmen schreiben dieselbe Remote-Stelle
     # oft fuer eine LISTE von Laendern aus ("South Africa; Kenya; Romania") -> mehrere Laender = Firmen-Default.
     # Ein einzelnes EU-Land (z. B. "Remote - Portugal") = echte Auswander-Basis -> "eu".
+    # 07.10.: Laendergebundene Grossregionen ausserhalb Europas = Wohnsitz im Ausland -> raus. Vorher zaehlte
+    # "Latin America | Remote" als Laender-Liste ("remote" = 2. Land) und landete als "Weltweit" auf dem Board.
+    if re.search(r"latin america|latam|south america|north america|americas|united states|\busa?\b|canada|mexico|brazil|"
+                 r"colombia|argentina|chile|venezuela|peru|apac|asia|india|philippines|indonesia|vietnam|africa|kenya|nigeria|egypt", l):
+        return None
     if region_default in ("world","eu"):
-        if len([x for x in re.split(r"[;,/|]| and | oder | or ", l) if x.strip(" -()")]) >= 2: return region_default
+        if len([x for x in re.split(r"[;,/|]| and | oder | or ", l)
+                if x.strip(" -()") and not re.fullmatch(r"(remote|anywhere|hybrid|full[- ]?time|home ?office)", x.strip(" -()"))]) >= 2: return region_default
         if re.search(r"portugal|spain|spanien|greece|griechenland|cyprus|zypern|malta|bulgaria|bulgarien|romania|rum(ä|ae)nien|poland|polen|croatia|kroatien|ireland|irland|netherlands|niederlande|italy|italien|czech|tschechien|hungary|ungarn|estonia|estland|latvia|lithuania|slovenia|slovakia|austria|österreich|belgium|france|frankreich|sweden|denmark|finland|luxembourg", l): return "eu"
     return None                                # konkreter Ort (Budapest, Austin, Lissabon) -> raus
 
@@ -1490,7 +1497,7 @@ FD_JS = r'''
    "francesco26":{ber:{service:3,buero:2,start:0.5},
      plus:["kundenservice","kundensupport","kundenbetreuung","kundendienst","kundenberater","customer support","customer service","chat support","email support","technischer support","technischer kundenservice","helpdesk","it-support","1st level","first level","content moderat","moderator","support agent","betreuung","backoffice","back office","sachbearbeit","datenerfassung","data entry","auftragsabwicklung","versand","verwaltung","assistenz","office"],
      minus:["sales","closer","setter","outbound","kaltakquise","telefonverkauf","designer","marketing","seo","provision","buchhaltung","accounting","steuer","datev","controlling","lohn","bilanz","debitoren","kreditoren","rechnungswesen","finanzbuch"],
-     hard:["vertrieb","sales development","account executive","business development","sdr","sales manager","sales representative","außendienst","akquise","developer","software engineer","devops","data scientist","data engineer","buchhalt","buchhaltung","steuerber","steuerfach","steuerass","bilanzbuch","lohnbuchhalt","datev","accountant","accounting","bookkeep","controlling","debitoren","kreditoren","rechnungswesen","payroll","wirtschaftsprüf"],langs:["de"],deonly:true,reg:{world:3,eu:2,de:1}},
+     hard:["vorsorge","versicherung","insurance","kreditabsicherung","financial advisor","vertrieb","sales development","account executive","business development","sdr","sales manager","sales representative","außendienst","akquise","developer","software engineer","devops","data scientist","data engineer","buchhalt","buchhaltung","steuerber","steuerfach","steuerass","bilanzbuch","lohnbuchhalt","datev","accountant","accounting","bookkeep","controlling","debitoren","kreditoren","rechnungswesen","payroll","wirtschaftsprüf"],langs:["de"],deonly:true,reg:{world:3,eu:2,de:1}},
    /* Profil D (27.09., neu): Quereinsteiger ohne Remote-Erfahrung. Wunschfelder laut Formular
       Social Media und Content/Video zuerst, dann Kundenservice und Verwaltung/Assistenz,
       Vertrieb nur als Lernfeld und ohne reine Provision. Berufliche Basis sind Versand-,
@@ -1795,6 +1802,10 @@ FD_JS = r'''
       var s=fdScore(c,p);if(s>-900)arr.push({c:c,s:s});
     });
     arr.sort(function(a,b){return b.s-a.s;});
+    /* 07.10. (Kunden-Betreuer): 4 fast gleiche Anzeigen einer Firma belegten 20 % der Top 20.
+       Vielfalt: je Firma max. 2 Karten oben, weitere Karten derselben Firma ans Ende. */
+    (function(){var cnt={},vorn=[],hinten=[];arr.forEach(function(o){var f=(((o.c.querySelector('.company')||{}).textContent)||'').trim().toLowerCase();
+      cnt[f]=(cnt[f]||0)+1;(f&&cnt[f]>2?hinten:vorn).push(o);});arr=vorn.concat(hinten);})();
     var sel=arr.filter(function(o){return o.s>=6;});   /* alle Treffer mit >=3 von 5 Sternen */
     if(sel.length<50)sel=arr.slice(0,50);              /* aber immer mindestens 50 */
     sel.forEach(function(o){
