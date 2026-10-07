@@ -530,14 +530,22 @@ def resolve_and_prune(jobs, workers=32):
             if al2:
                 res[i]=(fi2,True); _rescued+=1
         print(f"[linkcheck] Zweitpruefung: {_rescued} von {len(_recheck)} waren faelschlich tot gemeldet")
-    kept=[]; dead=0; resolved=0; seen=set()
+    # 07.10.: Diese Bewerbersysteme sperren die GitHub-Server (Sperrseite statt Anzeige) - lokal auf Pauls Mac
+    # sind dieselben Links aktiv (118 JOIN-Stellen fielen sonst faelschlich raus). Fuer manuell gepruefte
+    # Eintraege gilt hier der Link-Check auf dem Mac (Hauptrecruiter 2x taeglich + Board-Upload vor jedem Upload).
+    _MAC_GEPRUEFT=("join.com","gohiring.com","csod.com","staryou.de","softgarden.de","softgarden.io")
+    kept=[]; dead=0; resolved=0; seen=set(); _vertraut=0
     for j,(final,alive) in zip(jobs,res):
+        if not alive and j.get("src") in ("import","customer") and any(h in (j.get("url") or "") for h in _MAC_GEPRUEFT):
+            alive=True; final=j["url"]; _vertraut+=1
         if not alive: dead+=1; continue
         if final and final!=j["url"] and is_direct(final):
             j["url"]=final; resolved+=1
         u=j["url"].rstrip("/")
         if u in seen: continue          # nach Aufloesung koennen Dubletten entstehen -> raus
         seen.add(u); kept.append(j)
+    try: DIAG.append(f"linkcheck-mac-vertraut={_vertraut}")
+    except Exception: pass
     return kept, dead, resolved
 
 def from_rss_generic(xmltext):
