@@ -2133,7 +2133,13 @@ def main():
         r"(nur|only) (in|for) (greece|portugal|spain|bulgaria|romania|cyprus|malta)|"
         r"must be (located|based|residing|living) in|"
         r"wohnsitz in (griechenland|portugal|spanien|bulgarien|zypern|malta|rum(ä|ae)nien)|"
-        r"vor ort in (griechenland|portugal|spanien|bulgarien)", re.I)
+        r"vor ort in (griechenland|portugal|spanien|bulgarien)|"
+        # 07.10.: Talent-Agenturen schreiben das Land in den Kopf ("Remote | Poland", "Remote / LATAM",
+        # "Hiring in Romania, South Africa") - 6 solche Stellen standen als "Weltweit" auf dem Board.
+        r"remote\s*[|/–-]\s*(latam|latin america|poland|romania|bulgaria|portugal|spain|greece|serbia|hungary|"
+        r"philippines|india|south africa|mexico|brazil|colombia|argentina|usa|us only|united states|canada|uk|united kingdom)\b|"
+        r"hiring in (latam|poland|romania|bulgaria|portugal|spain|greece|serbia|hungary|philippines|india|south africa|"
+        r"mexico|brazil|colombia|argentina|the us|the usa|the uk|canada)\b", re.I)
     _L3=(r"franz(ö|oe)sisch|french|niederl(ä|ae)ndisch|dutch|nederlands|italienisch|italian|"
          r"spanisch|spanish|portugiesisch|portuguese|t(ü|ue)rkisch|turkish|polnisch|polish|"
          r"schwedisch|swedish|norwegisch|norwegian|d(ä|ae)nisch|danish|finnisch|finnish|"
