@@ -79,7 +79,7 @@ BLOCK = ["werkstud","working student",   # Paul: keine Werkstudenten
 # recime: Verguetung ist reine Provision auf das Werbebudget, kein Fixum.
 # talentspring: Bildungstraeger, verkauft Weiterbildungen als Stellenanzeigen.
 # hochberg performance: gefoerdertes Trainingsprogramm als Pflegejob getarnt (September).
-FIRMEN_BLOCK = ["recime", "talentspring", "vielhaber", "viral.app", "viralapp",  # 07.10.: Finanzvertrieb / Bezahlung pro Video (Kunden-Betreuer)
+FIRMEN_BLOCK = ["recime", "talentspring", "vielhaber", "viral.app", "viralapp", "blessura", "hochberg",  # 07.10.: Finanzvertrieb / Bezahlung pro Video (Kunden-Betreuer)
 
     # 03.10.: Mentify Learn schreibt eine Weiterbildung als "Quereinstieg"-Stelle aus.
     # Kevin Kehr: Finanzvertrieb auf Provision (schon am 02.10. bei der ATS-Ernte aussortiert).
@@ -2128,6 +2128,8 @@ def main():
     _baz("frisch", alljobs)
     print(f"[frisch] Aelter als {MAXAGE_DAYS} Tage entfernt: {_ba-len(alljobs)} -> {len(alljobs)} bleiben")
 
+    # 07.10.: Firmen-Sperre auch fuer manuelle Eintraege (vorher nur fuer Feeds in process()).
+    alljobs=[j for j in alljobs if not any(f in ((j.get("company","") or "")+" "+(j.get("url","") or "")).lower() for f in FIRMEN_BLOCK)]
     _bh=len(alljobs)
     alljobs=[j for j in alljobs if not _HYBRID.search(j.get("title","")+" "+j.get("info",""))]
     _baz("100remote", alljobs)
