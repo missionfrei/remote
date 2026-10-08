@@ -2232,10 +2232,14 @@ def main():
                         # "Deutsch UND Franzoesisch" ist der haeufigste Fall und der klarste Ausschluss
                         r"(deutsch|german)[^.]{0,25}(und|and|sowie|\+|&|/)[^.]{0,25}(" + _L3 + r")|"
                         r"(" + _L3 + r")[^.]{0,25}(und|and|sowie|\+|&|/)[^.]{0,25}(deutsch|german)", re.I)
+    _SPRACHJOB=re.compile(r"dolmetsch|interpret|(ü|ue)bersetz|translat|lektor|lokalis|locali[sz]", re.I)
     _br=len(alljobs)
     def _ortsfrei(j):
         t=j.get("title","") or ""; i=j.get("info","") or ""
         if _RELOC.search(t+" "+i): return False
+        # 08.10. (Paul: mehr Dolmetschen fuer Kundinnen mit Fremdsprachen): Bei Dolmetsch-/Uebersetzungsstellen
+        # ist die weitere Sprache die Arbeit selbst. Die fdScore-Profile (extraLang) sortieren sie passend ein.
+        if _SPRACHJOB.search(t): return True
         if _L3_TITLE.search(t): return False
         if _L3_INFO.search(i): return False
         return True
@@ -2267,7 +2271,8 @@ def main():
 
     _SEN=re.compile(r"\bsenior\b|\blead\b|\bhead of\b|\bprincipal\b|\bstaff\b|\bdirector\b|\bvp\b|"
                     r"vice president|\bchief\b|teamleit|teamlead|team lead|abteilungsleit|bereichsleit|"
-                    r"gesch(ä|ae)ftsf(ü|ue)hr|\bexpert(e|in)?\b|\barchitect\b|10\+ years", re.I)
+                    r"(?<!assistenz des )(?<!assistent des )(?<!assistentin des )gesch(ä|ae)ftsf(ü|ue)hrer|\bexpert(e|in)?\b|\barchitect\b|10\+ years", re.I)
+    # 08.10.: "Assistenz der Geschaeftsfuehrung" ist eine Einstiegs-Assistenz, keine Fuehrungsstelle -> nur "Geschaeftsfuehrer" zaehlt.
     _bs=len(alljobs)
     # Lauf 143: Marcus ist Senior Fullstack-Entwickler. Der Quereinsteiger-Filter hat genau seinen
     # Markt weggeschnitten (Senior/Lead/Engineer im Titel). IT-Stellen sind deshalb ausgenommen -
