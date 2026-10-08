@@ -43,5 +43,10 @@ jobs:
             echo "Keine Aenderung - nichts zu committen."
           else
             git commit -m "Auto-Update Board $(date -u +%F)"
-            git push
+            # 08.10.: Wurde waehrend des Builds etwas hochgeladen (manual-jobs.json, Profile), war der Push
+            # frueher "non-fast-forward" und der ganze Lauf verloren. Jetzt: neuesten Stand nachziehen, bis zu 3 Versuche.
+            for i in 1 2 3; do
+              git pull --rebase origin main && git push && break
+              sleep 5
+            done
           fi
