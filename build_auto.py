@@ -245,8 +245,10 @@ BA_VETO = re.compile(r"au(?:ss|\u00df)endienst|vor\s?ort|monteur|servicetechnike
                      r"|filial|niederlassung|pflegekraft|pflegefachkraft|handwerk|lager|produktion", re.I)
 BA_TYP_OK = {"VOLLSTAENDIG","VOLLSTAENDIG_HOMEOFFICE","NUR_HOMEOFFICE","IMMER","AUSSCHLIESSLICH"}
 BA_TYPEN  = {}   # nur zum Mitzaehlen fuer die Diagnose
-BA_TITEL100 = re.compile(r"100\s?%|100 ?prozent|vollst(ä|ae)ndig (im |von )?(home|remote|zu hause)|komplett (im |von )?(home|remote|zu hause)|ausschlie(ß|ss)lich (im )?home|nur (im )?home ?office|full[- ]?remote|fully remote|remote[- ]only", re.I)
-BA_TITEL_EINSCHR = re.compile(r"bis zu|teilweise|anteilig|hybrid|tage|überwiegend|ueberwiegend|nach einarbeitung|nach der einarbeitung|vor ort|außendienst|aussendienst", re.I)
+# 08.10.: "100 %" allein ist oft die Arbeitszeit ("Erzieher 100 %", "Zuschlaege bis 100 %", "70-100 %").
+# Als Titel-Beleg zaehlt es nur direkt neben remote/Homeoffice/mobil.
+BA_TITEL100 = re.compile(r"100\s?%\s*[-–|·,(]?\s*(remote|home\s?-?office|homeoffice|mobil|von zu hause|ortsunabh)|(remote|home\s?-?office|homeoffice|mobil\w*)\s*[-–|·:(]?\s*(zu\s*)?100\s?%|100 ?prozent\s*(remote|home|mobil)|vollst(ä|ae)ndig (im |von )?(home|remote|zu hause)|komplett (im |von )?(home|remote|zu hause)|ausschlie(ß|ss)lich (im )?home|nur (im )?home ?office|full[- ]?remote|fully remote|remote[- ]only", re.I)
+BA_TITEL_EINSCHR = re.compile(r"m(ö|oe)glich|\d\s*%?\s*(-|–|bis)\s*100|bis zu|teilweise|anteilig|hybrid|tage|überwiegend|ueberwiegend|nach einarbeitung|nach der einarbeitung|vor ort|außendienst|aussendienst", re.I)
 def from_arbeitsagentur(raw):
     out=[]
     for j in (raw.get("ergebnisliste") or raw.get("stellenangebote") or []):
