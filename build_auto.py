@@ -1240,6 +1240,27 @@ else:
 # und die Web-Oberflaeche rendert das Log nicht ins DOM). Dadurch war bei jeder neuen Quelle unklar,
 # ob sie nichts liefert oder ob sie gar nicht laeuft. DIAG sammelt pro Quelle das Ergebnis und wird
 # als HTML-Kommentar in die fertige index.html geschrieben - damit ist jeder Lauf von aussen pruefbar.
+# 08.10. (Dashboard-Chat): Arbeitnow hat ~28 Seiten, oben werden nur 1-10 gelesen. Die Seiten ab 11
+# lieferten am 08.10. 34 Stellen mit woertlichem 100-%-Beleg. Arbeitnow sperrt bei schnellen Anfragen (429),
+# deshalb langsam: 4 s Pause je Seite, bei 429 einmal 30 s warten. Stopp, wenn keine Folgeseite mehr kommt.
+def _arbeitnow_tief(von=11, bis=40):
+    import time as _t
+    out=[]; n=0
+    for p in range(von, bis+1):
+        d=None
+        for versuch in (1,2):
+            try:
+                d=http_json(f"https://www.arbeitnow.com/api/job-board-api?page={p}"); break
+            except Exception as e:
+                if "429" in str(e) and versuch==1: _t.sleep(30); continue
+                break
+        if not d or not d.get("data"): break
+        out+=from_arbeitnow(d); n=p
+        if not (d.get("links") or {}).get("next"): break
+        _t.sleep(4)
+    DIAG.append(f"arbeitnow-tief=S{von}-{n}:{len(out)}")
+    return out
+
 DIAG=[]
 def gather():
     jobs=[]
@@ -1264,6 +1285,8 @@ def gather():
         except Exception as e:
             print(f"[feed] {name} FEHLER (uebersprungen): {e}")
             DIAG.append(f"{name}=ERR:{str(e)[:70]}")
+    try: jobs+=_arbeitnow_tief()
+    except Exception as e: DIAG.append("arbeitnow-tief=ERR:"+str(e)[:50])
     return jobs
 
 # ---------- Aufbereiten ----------
