@@ -1610,7 +1610,9 @@ FD_JS = r'''
    "consolata26":{ber:{sprache:4,service:3,buero:3,start:1,marketing:0.5,gesundheit:0.5,vertrieb:0,it:0},
      plus:["dolmetsch","video-dolmetsch","telefondolmetsch","ferndolmetsch","sprachmittl","interpret","virtuelle assistenz","virtual assistant","va (","(va)","va ","freiberuf","freelance","selbstständig","selbststaendig","honorar","ortsunabhängig","von wo du willst","im ausland","übersetz","uebersetz","translator","translation","lokalisierung","localization","localisation","dolmetsch","interpret","sprach","language","mehrsprachig","multilingual","französisch","french","francais","englisch","english","swahili","daf","deutsch als fremdsprache","deutschlehr","german teacher","tutor","lehrkraft","lektor","korrektor","proofread","untertitel","subtit","content moderat","moderation","kundenservice","customer support","customer service","customer experience","travel","reise","airline","flug","interkulturell","international","assistenz","assistant","office","recherche","research","weltweit","worldwide","anywhere"],
      minus:["senior","head of","außendienst","aussendienst","provision","buchhaltung","steuer","datev","lohn","vertrieb","sales","kaltakquise"],
-     hard:["first-line","first line","it career","werkstudent","working student","praktikum","praktikant","reine provision","handelsvertret","entwickler","developer","software engineer","devops","außendienst"],
+     hard:["sales opener","opener","setter","latein","mathe","physik","chemie","first-line","first line","it career","werkstudent","working student","praktikum","praktikant","reine provision","handelsvertret","entwickler","developer","software engineer","devops","außendienst"],
+     /* 08.10. Paul: mehr Dolmetschen und freiberufliche VA ganz oben */
+     wish:/dolmetsch|interpret|virtuelle? (pers(ö|oe)nliche )?assisten|virtual assistant|\bva\b/,
      extraLang:true,
      langs:["de","en"],reg:{world:3.5,eu:2,de:0.5}},
    "marcus26":{ber:{vertrieb:4.5,it:1,marketing:1,service:1,buero:0.5,start:0.5,sprache:0,gesundheit:0},
