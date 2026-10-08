@@ -300,7 +300,8 @@ def from_workable_global(raw):
         if (j.get("workplace") or "").lower()!="remote": continue
         desc=re.sub(r"<[^>]+>"," ",j.get("description","") or "")
         t=(j.get("title","") or "")
-        if not re.search(r"german|deutsch", t+" "+desc[:3000], re.I): continue
+        # 08.10.: "german" traf auch "Germany" und "deutsch" auch "Deutschland" -> nur noch die Sprache zaehlt.
+        if not re.search(r"\bgerman\b|deutsch(?!land)", t+" "+desc[:3000], re.I): continue
         loc=j.get("location") or {}
         land=loc.get("countryName","") or ""
         ort=", ".join(x for x in [loc.get("city",""), land] if x)
