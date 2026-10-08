@@ -2209,6 +2209,8 @@ def main():
         r"griechenland|portugal|spanien|bulgarien|rum(ä|ue|ae)nien|zypern|ungarn)|"
         r"(nur|only) (in|for) (greece|portugal|spain|bulgaria|romania|cyprus|malta)|"
         r"must be (located|based|residing|living) in|"
+        # 08.10.: Workable-Stellen tragen "Remote mit Wohnsitz/Arbeitsort <Land>" - alles ausser Deutschland ist Wohnsitzpflicht im Ausland.
+        r"wohnsitz/arbeitsort (?!germany\b|deutschland\b)[a-z]|work in [a-z]+, (bulgaria|romania|greece|portugal|spain|poland|hungary|egypt|serbia|croatia|cyprus|malta)\b|"
         r"wohnsitz in (griechenland|portugal|spanien|bulgarien|zypern|malta|rum(ä|ae)nien)|"
         r"vor ort in (griechenland|portugal|spanien|bulgarien)|"
         # 07.10.: Talent-Agenturen schreiben das Land in den Kopf ("Remote | Poland", "Remote / LATAM",
