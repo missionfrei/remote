@@ -87,7 +87,12 @@ FIRMEN_BLOCK = ["recime", "talentspring", "vielhaber", "viral.app", "viralapp", 
     # 09.10.: Network-Marketing (BA-Anzeigen "Lifestyle & Well-Being", "Netzwerkpflege", "neue Teammitglieder einarbeiten", "Kein Investieren!").
     "level up consulting",
     # 09.10.: BA meldet 100 % Homeoffice, Anzeigentext: Gebietsvertrieb mit Beratung vor Ort und "Verpflegung im Aussendienst".
-    "planprotect"]
+    "planprotect",
+    # 09.10.: BA meldet 100 % Homeoffice, Anzeige: "Wundexpert/in im Aussendienst", eigenes Gebiet (8 gleiche Anzeigen).
+    "akanni"]
+# 09.10.: einzelne BA-Anzeigen, die trotz "100 % Homeoffice" Aussendienst/Reisen/Provision verlangen und die
+# Textpruefung (BA_AUSSEN) nicht sicher erkennt - von Hand im Anzeigentext bestaetigt.
+STELLEN_BLOCK = ["10001-1003766826-s", "11858-sde-115840-sta-s", "12117-yf-51552-yf-s", "12117-yf-52141-yf-s", "12511-2026x0000051994-s", "12951-53e504f3-1fbe-4f37--s"]
 
 # Kundenmeldung 02.10.: Stellen, bei denen man erst ein Konto oder ein Abo braucht, bevor man
 # zur Bewerbung kommt. Geprueft am 02.10.2026:
@@ -486,6 +491,8 @@ def _job_id(path):
     m = re.findall(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|\d{5,}", path or "", re.I)
     return m[-1] if m else ""
 
+BA_AUSSEN = re.compile(r"(eigene[sn]?|deine[mns]?|ihre[mns]?|des eigenen) (vertriebs)?gebiet(e?s)?\b|kundenbesuche|fahrten quer|(hohe|intensive|regelm(ä|ae)(ß|ss)ige|deutschlandweite|100 ?%ige) reise(bereitschaft|t(ä|ae)tigkeit)|reiset(ä|ae)tigkeit (von |bis zu |ca\. )?\d{2}|\d{2} tage pro jahr reiset(ä|ae)tigkeit|reisebereitschaft innerhalb (europas|deutschlands|des)|vor-ort-termine bei kunden|firmenwagen (inkl\. tankkarte )?f(ü|ue)r (deine|ihre) termine|provisionsbasis|reine provision|an einem unserer standorte\W+oder im homeoffice|wundexpert|kundenbetreuer im au(ß|ss)endienst|gebietsverkaufsleiter|au(ß|ss)endienstmitarbeiter(in)? \(|unterst(ü|ue)tzen unseren vertriebsau(ß|ss)endienst", re.I)
+
 def resolve_link(url, _versuch=0):
     """Folgt Redirects -> (finale_url, lebt). lebt=False bei 404/410 UND bei Soft-404 (HTTP 200,
     aber 'Seite existiert nicht'). So werden auch Portal-Landing-URLs auf die echte Anzeige
@@ -498,7 +505,13 @@ def resolve_link(url, _versuch=0):
             _rq=urllib.request.Request("https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v4/jobdetails/"
                                        +_b64.b64encode(_ref.encode()).decode(),
                                        headers={"X-API-Key":"jobboerse-jobsuche","User-Agent":UA_LC["User-Agent"]})
-            with urllib.request.urlopen(_rq, timeout=20): return url, True
+            with urllib.request.urlopen(_rq, timeout=20) as _r:
+                _d=json.loads(_r.read().decode("utf-8","replace"))
+            # 09.10.: BA meldet "100 % Homeoffice", der Anzeigentext beschreibt aber Aussendienst/Gebiet/Reisen
+            # (AKANNI "Wundexpert/in im Aussendienst", PLANPROTECT, Gebietsvertrieb mit Firmenwagen) -> nicht aufs Board.
+            _t=re.sub(r"[\\*#_]","",re.sub(r"\s+"," ",_d.get("stellenangebotsBeschreibung","") or ""))
+            if BA_AUSSEN.search(_t): return url, False
+            return url, True
         except urllib.error.HTTPError as e:
             return url, (e.code not in (404,410))
         except Exception:
@@ -2319,7 +2332,7 @@ def main():
     print(f"[frisch] Aelter als {MAXAGE_DAYS} Tage entfernt: {_ba-len(alljobs)} -> {len(alljobs)} bleiben")
 
     # 07.10.: Firmen-Sperre auch fuer manuelle Eintraege (vorher nur fuer Feeds in process()).
-    alljobs=[j for j in alljobs if not any(f in ((j.get("company","") or "")+" "+(j.get("url","") or "")).lower() for f in FIRMEN_BLOCK)]
+    alljobs=[j for j in alljobs if not any(f in ((j.get("company","") or "")+" "+(j.get("url","") or "")).lower() for f in FIRMEN_BLOCK+STELLEN_BLOCK)]
     _bh=len(alljobs)
     alljobs=[j for j in alljobs if not _HYBRID.search(j.get("title","")+" "+j.get("info",""))]
     _baz("100remote", alljobs)
