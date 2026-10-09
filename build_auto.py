@@ -509,8 +509,9 @@ def resolve_link(url, _versuch=0):
             final=r.geturl() or url
             _a=urllib.parse.urlparse(url); _b=urllib.parse.urlparse(final); _id=_job_id(_a.path)
             if (_id and _a.netloc.replace("www.","")==_b.netloc.replace("www.","") and _id not in final
-                    and len(_b.path.rstrip("/"))<len(_a.path.rstrip("/"))):
+                    and len(_b.path.rstrip("/"))<len(_a.path.rstrip("/")) and not _job_id(_b.path)):
                 return url, False   # gleiche Firma, Stellen-ID weg -> auf die Uebersicht umgeleitet = Stelle geloescht
+            # (join.com veroeffentlicht Stellen neu und leitet die alte ID auf die neue um -> lebt, final = neue URL)
             ctype=(r.headers.get("Content-Type") or "").lower()
             if "html" in ctype or ctype=="":
                 body=r.read(400000).decode("utf-8","replace")
