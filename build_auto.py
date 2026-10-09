@@ -1619,6 +1619,16 @@ FD_JS = r'''
      wish:/dolmetsch|interpret|virtuelle? (pers(ö|oe)nliche )?assisten|virtual assistant|\bva\b/,
      extraLang:true,
      langs:["de","en"],reg:{world:3.5,eu:2,de:0.5}},
+   /* 09.10.: Neue Nutzerin ueber Paul (Bekannte eines Freundes): studiert Medizin, noch keine Berufserfahrung, lernt schnell,
+      kommunikativ, sauberes Englisch, Laptop, zeitlich flexibel, 3-5 Tage/Woche. Wunsch: Kundensupport per Chat/Mail,
+      Virtual Assistant, Recherche, gern Health. NUR englische Stellen, komplett remote, weltweit machbar (lebt nicht in DE). */
+   "gerogeorgien":{ber:{service:4,buero:3,gesundheit:3,start:2,sprache:1.5,marketing:0.5,it:0.5,vertrieb:0},
+     plus:["customer support","customer service","customer care","customer experience","customer success","chat support","email support","e-mail support","live chat","support agent","support specialist","support associate","help desk","helpdesk","ticket","virtual assistant","executive assistant","admin assistant","administrative assistant","personal assistant","research","researcher","research assistant","data research","fact-check","health","healthcare","medical","patient","care navigator","care coordinator","telehealth","clinical","pharma","biology","life science","entry level","entry-level","junior","no experience","graduate","associate","part-time","part time","flexible","worldwide","anywhere","global","english"],
+     minus:["senior","lead","manager","head of","director","5+ years","3+ years","sales","outbound","cold call","quota"],
+     hard:["german","deutsch","dach","dutch","french","spanish","italian","portuguese","japanese","swedish","danish","norwegian","finnish","polish","turkish","werkstudent","praktikum","intern","nurse","physician","licensed","pharmacist","dentist","engineer","developer","account executive","sales development"],
+     wish:/customer support|chat support|email support|customer service|customer care|virtual assistant|research|patient|care navigator|health/,
+     noexp:true, enonly:true,
+     langs:["en"],reg:{world:4,eu:1.5,de:0}},
    "marcus26":{ber:{vertrieb:4.5,it:4,marketing:1,service:1,buero:0.5,start:0.5,sprache:0,gesundheit:0},
      plus:["sales","vertrieb","inside sales","remote sales","saas sales","tech sales","b2b sales","account manager","account management","account executive","key account","business development","business developer","sales development","sdr","bdr","sales representative","sales manager","vertriebsmitarbeiter","vertriebsinnendienst","vertriebsberater","verkaufsberater","neukunden","bestandskunden","customer success","partner manager","partnermanagement","channel sales","lead generation","leadgenerierung","crm","hubspot","salesforce","pipedrive","pipeline","angebote","abschluss","closing","verhandlung","sales engineer","solution engineer","solutions engineer","presales","pre-sales","technical account","technischer vertrieb","technical sales","saas","software","e-commerce","quereinsteiger","quereinstieg","fixgehalt","festgehalt","grundgehalt","entwickler","developer","fullstack","full stack","full-stack","backend","frontend","software engineer","softwareentwickl","javascript","typescript","react","node","python","java","php","cloud","devops","it-consultant","it consultant","it-berater","systemadministrator","support engineer"],
      minus:["air & sea","air &amp; sea","spedition","reine provision","nur provision","provisionsbasis","provision only","commission only","high ticket","callcenter","call center","telefonist","datenerfassung","dateneingabe","data entry","transkription","annotation","pflege","pflegefach","medizinisch","arzt","apotheke","buchhaltung","steuer","datev","lohnbuchhalt","lehrer","dozent","nachhilfe","handwerk","montage","lager","fahrer","aussendienst","au\u00dfendienst","versicherung","finanzberat","finanzprodukte","vorsorge",],
@@ -1627,6 +1637,7 @@ FD_JS = r'''
      exempt:/sales|vertrieb|account|business develop|presales|pre-sales|solution|customer success|partner/i,
      langs:["de"],deonly:true,reg:{world:3,eu:2,de:1}},
   };
+  PROFILES["georggeorgien"]=PROFILES["gerogeorgien"];  /* 09.10.: zweite Schreibweise des Zugangs (Paul) */
   function fdRegion(c){var t=(c.querySelector('.meta')||c).textContent;if(/Weltweit|\u{1F30D}/u.test(t))return'world';if(/EU|\u{1F1EA}\u{1F1FA}|Europa/u.test(t))return'eu';return'de';}
   function fdText(c){return (((c.querySelector('h3')||{}).textContent||'')+' '+((c.querySelector('.info')||{}).textContent||'')+' '+((c.querySelector('.company')||{}).textContent||'')).toLowerCase();}
 
@@ -1855,6 +1866,23 @@ FD_JS = r'''
     return s;
   }
   function fdStars(s){var n=(s>=10?5:(s>=8?4:(s>=6?3:(s>=4?2:1))));var o='';for(var i=0;i<5;i++)o+=(i<n?'★':'☆');return o;}
+  /* 09.10. Paul: "Für dich sollte besser sortiert sein, nicht so quer durch verschiedene Bereiche."
+     -> Treffer nach Bereich gruppieren, je Bereich eine Überschrift. Reihenfolge der Bereiche: der Bereich mit dem
+        besten Treffer zuerst (bei Gleichstand das Profilgewicht); innerhalb des Bereichs bleibt die beste Passung oben. */
+  var FD_BER=[['service','#0e7a52','🟢 Service'],['buero','#b07d10','🟡 Büro & Orga'],['start','#c2610c','🟠 Schnell-Start'],
+    ['gesundheit','#0d7a7a','🩺 Gesundheit'],['sprache','#6d3fb0','🟣 Sprache & Text'],['marketing','#1e57b0','🔵 Marketing & Kreativ'],
+    ['vertrieb','#b3261e','🔴 Vertrieb & Sales'],['it','#33333b','⚫ IT & Tech']];
+  function fdGruppen(sel,p){
+    var grp={};sel.forEach(function(o){var b=o.c.dataset.bereich||'sonst';(grp[b]=grp[b]||[]).push(o);});
+    var w=(p&&p.ber)||{};var ord=Object.keys(grp);
+    ord.sort(function(a,b){var d=(grp[b][0].s||0)-(grp[a][0].s||0);if(d)return d;return (w[b]||0)-(w[a]||0);});
+    return ord.map(function(b){var m=FD_BER.filter(function(x){return x[0]===b;})[0]||[b,'#555555',b];return {m:m,items:grp[b]};});
+  }
+  function fdKopf(grid,m,n){
+    var h=document.createElement('div');h.className='fdgrp';
+    h.style.cssText='grid-column:1/-1;font-size:14px;font-weight:800;margin:18px 0 0;padding-bottom:5px;border-bottom:2px solid '+m[1]+';color:'+m[1];
+    h.textContent=m[2]+' · '+n+(n===1?' Stelle':' Stellen');grid.appendChild(h);
+  }
   function buildFD(){
     var sec=document.getElementById('fuerdich');if(!sec)return;
     var grid=sec.querySelector('.grid');var empty=sec.querySelector('.fdempty');var cnt=sec.querySelector('h2 .cnt');
@@ -1878,13 +1906,16 @@ FD_JS = r'''
       cnt[f]=(cnt[f]||0)+1;(f&&cnt[f]>2?hinten:vorn).push(o);});arr=vorn.concat(hinten);})();
     var sel=arr.filter(function(o){return o.s>=6;});   /* alle Treffer mit >=3 von 5 Sternen */
     if(sel.length<50)sel=arr.slice(0,50);              /* aber immer mindestens 50 */
-    sel.forEach(function(o){
+    fdGruppen(sel,p).forEach(function(g){
+     fdKopf(grid,g.m,g.items.length);
+     g.items.forEach(function(o){
       var cl=o.c.cloneNode(true);cl.classList.remove('hidden');
       var badge=document.createElement('div');badge.className='fdfit';
       badge.style.cssText='font-size:11px;font-weight:800;color:#a8842e;letter-spacing:.06em;margin:2px 0 8px';
       badge.textContent='PASST ZU DIR  '+fdStars(o.s);
       cl.insertBefore(badge,cl.firstChild);
       grid.appendChild(cl);
+     });
     });
     if(empty)empty.style.display=sel.length?'none':'block';
     if(cnt)cnt.textContent=sel.length?(sel.length+' passende Treffer für dich'):'';
@@ -1925,7 +1956,8 @@ FD_JS = r'''
       sel=frisch.map(function(c){return {c:c,s:null};});
       if(hint)hint.textContent='Alle Stellen der letzten sieben Tage, die neueste zuerst.';
     }
-    sel.forEach(function(o){
+    var _gr=p?fdGruppen(sel,p):[{m:null,items:sel}];
+    _gr.forEach(function(g){ if(g.m)fdKopf(grid,g.m,g.items.length); g.items.forEach(function(o){
       var cl=o.c.cloneNode(true);cl.classList.remove('hidden');
       if(o.s!==null){
         var badge=document.createElement('div');badge.className='fdfit';
@@ -1934,7 +1966,7 @@ FD_JS = r'''
         cl.insertBefore(badge,cl.firstChild);
       }
       grid.appendChild(cl);
-    });
+    }); });
     if(empty)empty.style.display=sel.length?'none':'block';
     if(cnt)cnt.textContent=sel.length?(sel.length+' neue '+(sel.length===1?'Stelle':'Stellen')+' für dich'):'';
     paintStars();
