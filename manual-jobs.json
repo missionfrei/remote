@@ -5628,20 +5628,6 @@
   "src": "nomado24"
  },
  {
-  "title": "Customer Care Specialist (m/w/d) - E-Commerce, Full Remote",
-  "company": "JobRad Loop",
-  "url": "https://jobrad-loop.jobs.personio.de/job/2796073",
-  "info": "Arbeitsort laut Bewerbersystem \"Full Remote\" (alternativ Buero Muenchen). Kundenbetreuung im E-Commerce fuer Fahrrad-Abos: Tickets loesen, Faelle abschliessen, schriftlich stark kommunizieren, Tagesgeschaeft statt Projektmanagement. Mind. 3 Jahre Erfahrung in der Kundenbetreuung, Bike-Wissen nur ein Plus. (Score 7/10) Link am 04.10.2026 geprueft.",
-  "lang": "de",
-  "region": "de",
-  "level": "erfahren",
-  "bereich": "service",
-  "date": "04.10.2026",
-  "posted": "2026-09-14",
-  "fd": false,
-  "src": "ats"
- },
- {
   "title": "Sales Development Representative (m/w/d) - Remote in Deutschland",
   "company": "avenit AG",
   "url": "https://avenit-ag.jobs.personio.de/job/2817355",
@@ -11940,5 +11926,75 @@
   "fd": false,
   "src": "import",
   "posted": "2026-10-08"
+ },
+ {
+  "title": "Automation Engineer",
+  "company": "fonio.ai",
+  "url": "https://jobs.ashbyhq.com/fonio/70c04e87-4e00-4887-b897-f2cb4f126bd2",
+  "info": "Interne Tools, Automatisierungen und Prozesse für ein schnell wachsendes KI-Startup (Sprachagenten für kleine Firmen) bauen. Anzeige: „100% Remote“, Büro nur auf Wunsch.",
+  "lang": "de",
+  "region": "de",
+  "level": "erfahren",
+  "bereich": "it",
+  "date": "09.10.2026",
+  "fd": false,
+  "src": "import",
+  "posted": "2026-08-18"
+ },
+ {
+  "title": "IT Support Specialist (Junior, 2nd Level) – Hosting (m/w/d)",
+  "company": "dataforest GmbH",
+  "url": "https://dataforest.jobs.personio.com/job/2597712",
+  "info": "Junior-Stelle im 2nd-Level-Support eines Hosters: Webstack- und Mailprobleme eingrenzen, Konfigurationen korrigieren, Runbooks schreiben. Anzeige: „100 % remote“.",
+  "lang": "de",
+  "region": "de",
+  "level": "einsteiger",
+  "bereich": "it",
+  "date": "09.10.2026",
+  "fd": false,
+  "src": "import",
+  "posted": "2026-04-10"
+ },
+ {
+  "title": "Linux-Systemadministrator (Junior) – 2nd-Level-Support im Hosting (m/w/d)",
+  "company": "dataforest GmbH",
+  "url": "https://dataforest.jobs.personio.com/job/2806011",
+  "info": "Junior-Linux-Administration im 2nd-Level-Hosting-Support: Tickets lösen, Backups und Restores, Fehleranalyse auf Systemebene. Anzeige: „100 % remote“.",
+  "lang": "de",
+  "region": "de",
+  "level": "einsteiger",
+  "bereich": "it",
+  "date": "09.10.2026",
+  "fd": false,
+  "src": "import",
+  "posted": "2026-09-21"
+ },
+ {
+  "title": "Sales Consultant (m/w/d)",
+  "company": "Pagestreet Legal Solutions GmbH",
+  "url": "https://pagestreet-legal-solutions-gmbh.jobs.personio.de/job/2443065",
+  "info": "B2B-Vertrieb für Fördermittel- und Energieberatung: Beratungsgespräche mit Mittelständlern bis zum Vertragsabschluss, dazu Neukundengewinnung und CRM-Pflege; Vergütung mit festem und variablem Anteil. Remote-Beleg: \"100% remote mit flexiblen Arbeitszeiten\".",
+  "lang": "de",
+  "region": "de",
+  "level": "erfahren",
+  "bereich": "vertrieb",
+  "date": "09.10.2026",
+  "fd": false,
+  "src": "import",
+  "posted": "2025-11-28"
+ },
+ {
+  "title": "Telefonischer Kundenbetreuer (m/w/d) im Servicecenter Inbound - 100% Homeoffice",
+  "company": "qardsCOM GmbH",
+  "url": "https://qardscom-gmbh.jobs.personio.de/job/2647717",
+  "info": "Eingehende Anrufe für Kunden von Sparkassen, Banken und Energieversorgern annehmen, Anliegen klären und dokumentieren; Erfahrung im Telefonservice nur von Vorteil, Schulung (2–6 Wochen) ebenfalls im Homeoffice, rollierender Schichtdienst 6–22 Uhr mit Zuschlägen, Vollzeit oder Teilzeit ab 30 Std. Remote-Beleg: \"Tätigkeit zu 100% im Home-Office\".",
+  "lang": "de",
+  "region": "de",
+  "level": "einsteiger",
+  "bereich": "service",
+  "date": "09.10.2026",
+  "fd": false,
+  "src": "import",
+  "posted": "2026-05-26"
  }
 ]
