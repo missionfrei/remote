@@ -83,7 +83,9 @@ FIRMEN_BLOCK = ["recime", "talentspring", "vielhaber", "viral.app", "viralapp", 
 
     # 03.10.: Mentify Learn schreibt eine Weiterbildung als "Quereinstieg"-Stelle aus.
     # Kevin Kehr: Finanzvertrieb auf Provision (schon am 02.10. bei der ATS-Ernte aussortiert).
-    "mentify", "kevin kehr", "kevin-kehr"]
+    "mentify", "kevin kehr", "kevin-kehr",
+    # 09.10.: Network-Marketing (BA-Anzeigen "Lifestyle & Well-Being", "Netzwerkpflege", "neue Teammitglieder einarbeiten", "Kein Investieren!").
+    "level up consulting"]
 
 # Kundenmeldung 02.10.: Stellen, bei denen man erst ein Konto oder ein Abo braucht, bevor man
 # zur Bewerbung kommt. Geprueft am 02.10.2026:
@@ -1609,9 +1611,9 @@ FD_JS = r'''
      /* 08.10. Kundin: KEIN Rechnungswesen (Buchhaltung, Steuer, Lohn ...); Assistenz (GF/Backoffice) und Customer Support ganz oben */
      /* 09.10. Kundin: alles mit IT raus (auch technischer Support, Software, CRM/ERP, Digitalisierung); "sales" = englisches "vertrieb" */
      noBer:["it"],
-     hardRx:/\bit\b|technisch|technical|techniker|technician|tech support|(1st|2nd|3rd|first|second|third).?level|help.?desk|service.?desk|\bsap\b|\berp\b|\bcrm\b|software|saas|system|netzwerk|network|cloud|cyber|security|informatik|programmier|python|java|\bsql\b|datenbank|database|data (analy|scien|engineer)|datenanaly|digitalisierung|devops|scrum|product owner|tester|\bqa\b|webentwick|webdesign|web develop|linux|implementation|implementier|product support|integration|migration|ingenieur|engineer|application|sales|business development|product manag|produktmanag|research associate|studentisch|\bai\b|\bki\b/,
+     hardRx:/\bit\b|technisch|technical|techniker|technician|tech support|(1st|2nd|3rd|first|second|third).?level|help.?desk|service.?desk|\bsap\b|\berp\b|\bcrm\b|software|saas|system|netzwerk|network|cloud|cyber|security|informatik|programmier|python|java|\bsql\b|datenbank|database|data (analy|scien|engineer)|datenanaly|digitalisierung|devops|scrum|product owner|tester|\bqa\b|webentwick|webdesign|web develop|linux|implementation|implementier|product support|integration|migration|ingenieur|engineer|application|sales|business development|product manag|produktmanag|research associate|studentisch|\bai\b|\bki\b|oracle|\bdba\b|business analyst|financ|testmanag|fachplaner|steuer(?!ung)|verk(ä|ae)uf/,
      /* Software-Firmen, deren Support-Stellen Software-Support sind (Beschreibung zu knapp fuer ein Stichwort) */
-     hardTxt:/software|saas|ubuntu|linux|cyber|pentest|open.?source|it-sicherheit|it-dienstleist|it-services|\bki-|k(ü|ue)nstliche intelligenz|impower|plancraft|simscale|heydata|wordly|canonical|openproject/,
+     hardTxt:/software|saas|ubuntu|linux|cyber|pentest|open.?source|it-sicherheit|it-dienstleist|it-services|\bki-|k(ü|ue)nstliche intelligenz|impower|plancraft|simscale|heydata|wordly|canonical|openproject|nextcloud|ntt data|\bit ug\b|it-excelsus/,
      wish:/assisten|assistant|backoffice|back office|office manag|customer support|customer service|customer success|customer care|kundenservice|kundensupport|kundenbetreu|kundenberat|kundendienst|support specialist|support agent/,
      extraLang:true,
      langs:["de","en"],reg:{world:3,eu:2.5,de:1}},
