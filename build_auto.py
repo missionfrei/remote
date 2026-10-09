@@ -471,14 +471,44 @@ SOFT404 = re.compile(
     r"anzeige (ist )?(abgelaufen|nicht mehr)|existiert nicht mehr|job not found|stellenangebot nicht gefunden|"
     r"this (job|role|vacancy|posting) (has been|is) (removed|filled|closed)|the job you are looking for", re.I)
 
-def resolve_link(url):
+# 09.10. (Paul: "alle Stellen, die offline sind, raus"): 67 abgelaufene join.com-Stellen standen trotz Pruefung live.
+# Ursache 1: join.com leitet jede Stelle per HTTP 308 um - Python < 3.11 (Mac-Nachtpruefung) folgt 308 nicht,
+#            der 308 galt als "lebt". Ursache 2: bei 429 (zu viele Anfragen) galt die Stelle ebenfalls als "lebt".
+# Ursache 3: geloeschte Stellen leiten oft auf die Stellenuebersicht derselben Firma um (HTTP 200) - z. B. talention, pinpoint.
+class _Redir308(urllib.request.HTTPRedirectHandler):
+    def http_error_308(self, req, fp, code, msg, headers):
+        return self.http_error_302(req, fp, 302, msg, headers)
+_LC_OPENER = urllib.request.build_opener(_Redir308)
+def _job_id(path):
+    """Kennung der Einzelstelle im Pfad (Zahl ab 5 Stellen oder UUID/Hash) - fehlt sie nach der Umleitung, ist die Stelle weg."""
+    m = re.findall(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|\d{5,}", path or "", re.I)
+    return m[-1] if m else ""
+
+def resolve_link(url, _versuch=0):
     """Folgt Redirects -> (finale_url, lebt). lebt=False bei 404/410 UND bei Soft-404 (HTTP 200,
     aber 'Seite existiert nicht'). So werden auch Portal-Landing-URLs auf die echte Anzeige
     aufgeloest, und tote Anzeigen fliegen raus, bevor ein Kunde draufklickt."""
+    # 09.10.: BA-Seiten sind eine App (immer HTTP 200) -> ob die Anzeige noch existiert, sagt nur die BA-API.
+    if "arbeitsagentur.de/jobsuche/jobdetail/" in url:
+        try:
+            import base64 as _b64
+            _ref=re.search(r"jobdetail/([^/?#]+)", url).group(1)
+            _rq=urllib.request.Request("https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v4/jobdetails/"
+                                       +_b64.b64encode(_ref.encode()).decode(),
+                                       headers={"X-API-Key":"jobboerse-jobsuche","User-Agent":UA_LC["User-Agent"]})
+            with urllib.request.urlopen(_rq, timeout=20): return url, True
+        except urllib.error.HTTPError as e:
+            return url, (e.code not in (404,410))
+        except Exception:
+            return url, True
     try:
         req=urllib.request.Request(url, method="GET", headers=UA_LC)
-        with urllib.request.urlopen(req, timeout=14) as r:
+        with _LC_OPENER.open(req, timeout=14) as r:
             final=r.geturl() or url
+            _a=urllib.parse.urlparse(url); _b=urllib.parse.urlparse(final); _id=_job_id(_a.path)
+            if (_id and _a.netloc.replace("www.","")==_b.netloc.replace("www.","") and _id not in final
+                    and len(_b.path.rstrip("/"))<len(_a.path.rstrip("/"))):
+                return url, False   # gleiche Firma, Stellen-ID weg -> auf die Uebersicht umgeleitet = Stelle geloescht
             ctype=(r.headers.get("Content-Type") or "").lower()
             if "html" in ctype or ctype=="":
                 body=r.read(400000).decode("utf-8","replace")
@@ -501,6 +531,8 @@ def resolve_link(url):
             return final, True
     except urllib.error.HTTPError as e:
         if e.code in (404,410): return url, False
+        if e.code in (429,503) and _versuch<2:
+            import time as _t; _t.sleep(8*(_versuch+1)); return resolve_link(url, _versuch+1)
         try: return (e.geturl() or url), True
         except Exception: return url, True
     except Exception:

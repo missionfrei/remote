@@ -90,6 +90,8 @@
   .toolbar{position:sticky;top:0;background:rgba(246,243,236,.94);backdrop-filter:blur(8px);z-index:40;padding:14px 0;border-bottom:1px solid var(--border-soft);margin-bottom:26px}
   .search{width:100%;padding:12px 16px;border-radius:12px;border:1px solid var(--border);background:#fff;color:var(--text);font-size:15px;outline:none;margin-bottom:10px}
   .search::placeholder{color:#a59d8b}
+  .qinfo{font-size:13px;color:#7a715f;margin:-4px 2px 10px;min-height:0}
+  .qinfo:empty{display:none}
   .search:focus{border-color:var(--gold)}
   .chips{display:flex;flex-wrap:wrap;gap:7px}
   .chip{padding:7px 14px;border-radius:999px;background:#fff;border:1px solid var(--border);color:var(--muted);font-size:12.5px;cursor:pointer;user-select:none;font-weight:600}
@@ -239,6 +241,7 @@
 
 <div class="toolbar">
   <input class="search" id="q" placeholder="Suche nach Titel, Firma oder Stichwort …">
+  <div id="qinfo" class="qinfo"></div>
   <div class="chips">
     <span class="chip active" data-f="all">Alle</span>
     <span class="chip" data-f="ber:service">🟢 Service</span>
@@ -4638,7 +4641,69 @@
   var active='all';
   var langOnly=false;
   var directOnly=false;  // Filter-Chips entfernt (Team-Wunsch): stattdessen sortiert der Build deutsch+direkt nach oben
+  /* 09.10. (Paul: "wenn man im Suchfeld was eingibt wie sales, dann sollen auch wirklich ALLE diese Stellen kommen"):
+     1) Die Suche gilt immer fuer das ganze Board. Vorher wurde sie in "Für dich", "Neu", "Favoriten" und
+        "Beworben" komplett ignoriert - und "Für dich" ist der Start-Tab jedes Kunden nach dem Login.
+     2) Mehrere Woerter: alle muessen vorkommen (vorher nur der exakte Satz).
+     3) Umlaute, ß und Bindestriche egal (verkäufer = verkaeufer, e-commerce = e commerce).
+     4) Deutsch/Englisch-Synonyme: "sales" findet auch Vertrieb, Verkauf, Account Executive, Akquise ...
+        und alle Karten aus dem passenden Bereich (z. B. Vertrieb & Sales). */
+  var MF_SYN=[
+    {b:'vertrieb',w:['sales','vertrieb','verkauf','verkaeuf','account executive','account manager','key account','business development','business developer','sdr','bdr','closer','setter','telesales','akquise','akquisiteur','neukunden','inside sales','handelsvertret','kundengewinnung','lead generation']},
+    {b:'service',w:['kundenservice','customer service','customer support','kundensupport','kundenbetreu','kundendienst','customer care','customer success','customer experience','kundenberat','call center','callcenter','servicecenter','chat support','email support','e mail support','helpdesk','help desk','support agent','client support','kundenkontakt','kundensupport']},
+    {b:'',w:['buchhalt','accounting','accountant','bookkeep','finanzbuch','lohnbuch','fibu','debitor','kreditor','rechnungswesen','payroll','lohnabrechnung','controlling']},
+    {b:'buero',w:['assistenz','assistent','assistant','sekretaer','office manag','backoffice','back office','buero','virtuelle assistenz','virtual assistant','teamassistenz','sachbearbeit','verwaltung','administration','administrativ']},
+    {b:'marketing',w:['marketing','social media','online marketing','community manag','influencer','seo','sea']},
+    {b:'it',w:['it','software','entwickler','developer','devops','programmier','informatik','frontend','backend','fullstack','sysadmin','it support','systemadministr']},
+    {b:'sprache',w:['uebersetz','translat','dolmetsch','interpret','lektor','korrektor','lokalis','locali','texter','copywrit','redakteur','transkri']},
+    {b:'gesundheit',w:['gesundheit','health','medizin','medical','pflege','nurse','patient','aerzt','therap','pharma','klinik','care navigator']},
+    {b:'',w:['hr','human resources','recruit','personalvermittl','headhunt','personalwesen','personalreferent','personalsachbearb']},
+    {b:'',w:['design','grafik','graphic','illustr','mediengestalt']},
+    {b:'',w:['lehrer','nachhilfe','tutor','dozent','teacher','unterricht','lehrkraft','tutoring']},
+    {b:'',w:['teilzeit','part time','minijob','nebenjob','geringfuegig']},
+    {b:'',w:['freelance','freelancer','freiberuf','selbststaendig','selbstaendig','honorar','freie mitarbeit','contractor']},
+    {b:'',w:['quereinst','einsteiger','ohne erfahrung','entry level','berufseinsteiger','no experience']},
+    {b:'',w:['weltweit','worldwide','anywhere']},
+    {b:'',w:['englisch','english']},
+    {b:'',w:['projektmanag','project manag','projektleit','projektkoordin','project coordinat']},
+    {b:'',w:['e commerce','ecommerce','onlineshop','online shop','shopify','marketplace']},
+    {b:'',w:['moderat','trust safety','content review']},
+    {b:'',w:['datenerfassung','data entry','dateneingabe','datenpflege','stammdaten']},
+    {b:'',w:['logistik','logistics','disponent','disposition','dispatch','spedition','supply chain','einkauf','procurement']},
+    {b:'',w:['reisebuero','travel','touristik','tourism','hotel','reservier','reservation']},
+    {b:'',w:['versicherung','insurance']},
+    {b:'',w:['immobilie','real estate','hausverwalt']}
+  ];
+  function mfNorm(x){return (' '+String(x||'').toLowerCase().replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss')
+    .replace(/[‐-―\-_\/|·,;:()\[\]"'„“!?+*&]+/g,' ').replace(/\s+/g,' ')+' ');}
+  function mfHas(t,w){return w.length<=3 ? t.indexOf(' '+w+' ')>-1 || new RegExp('[^a-z0-9]'+w+'[^a-z0-9]').test(t) : t.indexOf(w)>-1;}
+  function mfGroup(tok){
+    for(var i=0;i<MF_SYN.length;i++){var g=MF_SYN[i];for(var k=0;k<g.w.length;k++){var w=g.w[k];
+      if(w===tok || (w.length>=5 && tok.indexOf(w)===0) || (tok.length>=5 && w.indexOf(tok)===0))return g;}}
+    return null;
+  }
+  function mfQuery(raw){
+    var n=mfNorm(raw).trim(); if(!n)return null;
+    /* ganze Eingabe ist genau ein Begriff ("customer service", "account executive") */
+    var g=null; if(n.indexOf(' ')<0)g=mfGroup(n); else MF_SYN.forEach(function(x){if(!g && x.w.indexOf(n)>-1)g=x;});
+    if(g)return [{w:g.w.concat([n]),b:g.b}];
+    return n.split(' ').filter(Boolean).map(function(t){var g2=mfGroup(t);return g2?{w:g2.w.concat([t]),b:g2.b}:{w:[t],b:''};});
+  }
+  function mfMatch(c,qq){
+    var t=mfNorm(c.textContent);
+    for(var i=0;i<qq.length;i++){var o=qq[i],hit=!!(o.b && c.dataset.bereich===o.b);
+      for(var k=0;!hit && k<o.w.length;k++)if(mfHas(t,o.w[k]))hit=true;
+      if(!hit)return false;}
+    return true;
+  }
   function apply(){
+    /* Suche laeuft immer ueber das ganze Board -> bei Eingabe auf "Alle" umschalten */
+    if((q.value||'').trim() && active!=='all'){
+      document.querySelectorAll('.chip').forEach(function(x){x.classList.remove('active');});
+      var _ca=document.querySelector('.chip[data-f="all"]'); if(_ca)_ca.classList.add('active');
+      active='all';
+    }
+    var _qi=document.getElementById('qinfo'); if(_qi)_qi.textContent='';
     var tb=document.getElementById('toolbox');
     var fl=document.getElementById('freelance');
     var fav=document.getElementById('favoriten');
@@ -4677,13 +4742,13 @@
     }
     tb.classList.add('hidden');
     sects.forEach(function(s2){if(s2!==tb && s2!==fav && s2!==bew)s2.classList.remove('hidden');});
-    var s=(q.value||'').toLowerCase();
+    var s=(q.value||'').toLowerCase(); var _mq=mfQuery(s);
     /* "Neu" = hoechstens 7 Tage. data-age setzt der Build, damit hier nichts gerechnet wird. */
     var neuOnly=(active==='neu');
     document.querySelectorAll('.card').forEach(function(c){
       if(c.closest('#favoriten')||c.closest('#beworben'))return;
       var okB=(active==='all')||neuOnly||(active.indexOf('ber:')===0 && c.dataset.bereich===active.slice(4));
-      var okS=!s||c.textContent.toLowerCase().indexOf(s)>-1;
+      var okS=!_mq||mfMatch(c,_mq);
       var okL=!langOnly||c.dataset.lang==='de';
       var okD=!directOnly||c.dataset.direct==='1';
       var okN=!neuOnly||(c.dataset.age!==undefined && c.dataset.age!=='' && (+c.dataset.age)<=7);
@@ -4693,10 +4758,23 @@
       if(sec.id==='toolbox'||sec.id==='favoriten'||sec.id==='beworben')return;
       var vis=sec.querySelectorAll('.card:not(.hidden)').length;
       sec.classList.toggle('hidden',vis===0);
+      /* bei Suche: Zaehler im Bereichskopf = Treffer in diesem Bereich (sonst stand dort die Gesamtzahl) */
+      var _c=sec.querySelector('h2 .cnt'); if(_c && sec.dataset.ber){ if(_c.dataset.orig===undefined)_c.dataset.orig=_c.textContent;
+        var _e=false; try{_e=!!(CUR && PROFILES[CUR] && PROFILES[CUR].ui==='en');}catch(e){}
+        _c.textContent=_mq?(vis+(_e?(vis===1?' job':' jobs'):(vis===1?' Stelle':' Stellen'))):_c.dataset.orig; }
     });
+    if(_mq && _qi){
+      var _seen={},_n=0;
+      document.querySelectorAll('section:not(.hidden) .card:not(.hidden)').forEach(function(c){
+        if(c.closest('#toolbox')||c.closest('#freelance')||c.closest('#favoriten')||c.closest('#beworben')||c.closest('#fuerdich')||c.closest('#neuheiten'))return;
+        var a=c.querySelector('.go a'); var u=a?a.getAttribute('href'):c.textContent.slice(0,80); if(_seen[u])return; _seen[u]=1; _n++;});
+      var _en=false; try{_en=!!(CUR && PROFILES[CUR] && PROFILES[CUR].ui==='en');}catch(e){}
+      _qi.textContent=_en ? (_n+(_n===1?' job found':' jobs found')) : (_n+(_n===1?' Stelle gefunden':' Stellen gefunden'));
+    }
   }
   q.addEventListener('input',apply);
   document.querySelectorAll('.chip:not(.lv):not(.langf):not(.directf)').forEach(function(ch){ch.addEventListener('click',function(){
+    q.value='';
     document.querySelectorAll('.chip:not(.lv):not(.langf):not(.directf)').forEach(function(x){x.classList.remove('active');});
     ch.classList.add('active');active=ch.dataset.f;apply();
   });});
