@@ -1625,9 +1625,9 @@ FD_JS = r'''
    "gerogeorgien":{ber:{service:4,buero:3,gesundheit:3,start:2,sprache:1.5,marketing:0.5,it:0.5,vertrieb:0},
      plus:["customer support","customer service","customer care","customer experience","customer success","chat support","email support","e-mail support","live chat","support agent","support specialist","support associate","help desk","helpdesk","ticket","virtual assistant","executive assistant","admin assistant","administrative assistant","personal assistant","research","researcher","research assistant","data research","fact-check","health","healthcare","medical","patient","care navigator","care coordinator","telehealth","clinical","pharma","biology","life science","entry level","entry-level","junior","no experience","graduate","associate","part-time","part time","flexible","worldwide","anywhere","global","english"],
      minus:["senior","lead","manager","head of","director","5+ years","3+ years","sales","outbound","cold call","quota"],
-     hard:["german","deutsch","dach","dutch","french","spanish","italian","portuguese","japanese","swedish","danish","norwegian","finnish","polish","turkish","werkstudent","praktikum","intern","nurse","physician","licensed","pharmacist","dentist","engineer","developer","account executive","sales development"],
+     hard:["interpret","translator","linguist","swahili","german","deutsch","dach","dutch","french","spanish","italian","portuguese","japanese","swedish","danish","norwegian","finnish","polish","turkish","werkstudent","praktikum","intern","nurse","physician","licensed","pharmacist","dentist","engineer","developer","account executive","sales development"],
      wish:/customer support|chat support|email support|customer service|customer care|virtual assistant|research|patient|care navigator|health/,
-     noexp:true, enonly:true,
+     noexp:true, enonly:true, ui:'en', worldonly:true,
      langs:["en"],reg:{world:4,eu:1.5,de:0}},
    "marcus26":{ber:{vertrieb:4.5,it:4,marketing:1,service:1,buero:0.5,start:0.5,sprache:0,gesundheit:0},
      plus:["sales","vertrieb","inside sales","remote sales","saas sales","tech sales","b2b sales","account manager","account management","account executive","key account","business development","business developer","sales development","sdr","bdr","sales representative","sales manager","vertriebsmitarbeiter","vertriebsinnendienst","vertriebsberater","verkaufsberater","neukunden","bestandskunden","customer success","partner manager","partnermanagement","channel sales","lead generation","leadgenerierung","crm","hubspot","salesforce","pipedrive","pipeline","angebote","abschluss","closing","verhandlung","sales engineer","solution engineer","solutions engineer","presales","pre-sales","technical account","technischer vertrieb","technical sales","saas","software","e-commerce","quereinsteiger","quereinstieg","fixgehalt","festgehalt","grundgehalt","entwickler","developer","fullstack","full stack","full-stack","backend","frontend","software engineer","softwareentwickl","javascript","typescript","react","node","python","java","php","cloud","devops","it-consultant","it consultant","it-berater","systemadministrator","support engineer"],
@@ -1807,6 +1807,8 @@ FD_JS = r'''
     if(p.deonly && c.dataset.lang!=='de')return -999;
     /* 09.10.: Gegenstueck fuer Kunden, die nur auf Englisch arbeiten (Paul: "muss eine englische Stelle sein"). */
     if(p.enonly && c.dataset.lang!=='en')return -999;
+    /* 09.10.: Wer ausserhalb von EU/DE lebt, kann EU- oder DE-gebundene Stellen nicht annehmen. */
+    if(p.worldonly && fdRegion(c)!=='world')return -999;
     var s=0,t=fdText(c),ber=c.dataset.bereich||'';
     s+=(p.ber[ber]||0);
     var ph=0;for(var j=0;j<p.plus.length;j++){if(t.indexOf(p.plus[j])>-1)ph++;}s+=Math.min(ph*1.4,5.5);
@@ -1881,7 +1883,8 @@ FD_JS = r'''
   function fdKopf(grid,m,n){
     var h=document.createElement('div');h.className='fdgrp';
     h.style.cssText='grid-column:1/-1;font-size:14px;font-weight:800;margin:18px 0 0;padding-bottom:5px;border-bottom:2px solid '+m[1]+';color:'+m[1];
-    h.textContent=m[2]+' · '+n+(n===1?' Stelle':' Stellen');grid.appendChild(h);
+    var lab=m[2],en=false;try{var _p=fdP();en=!!(_p&&_p.ui==='en');if(en&&typeof MF_EN!=='undefined'&&MF_EN[lab])lab=MF_EN[lab];}catch(e){}
+    h.textContent=lab+' · '+n+(en?(n===1?' job':' jobs'):(n===1?' Stelle':' Stellen'));grid.appendChild(h);
   }
   function buildFD(){
     var sec=document.getElementById('fuerdich');if(!sec)return;
@@ -1905,7 +1908,7 @@ FD_JS = r'''
     (function(){var cnt={},vorn=[],hinten=[];arr.forEach(function(o){var f=(((o.c.querySelector('.company')||{}).textContent)||'').toLowerCase();/* 09.10. Hauptrecruiter: 'Neo Temp GmbH' und 'NEO Temp' zaehlten als zwei Firmen -> Firmenname vereinheitlichen */f=f.replace(/\(.*?\)/g,' ').replace(/\b(gmbh|mbh|kg|ag|ug|ohg|se|inc|ltd|llc|co|e\.?\s?v)\b\.?/g,' ').replace(/[^a-z0-9äöüß]+/g,' ').trim();var _al={'smartkündigen':'simplyright','smartkuendigen':'simplyright'};f=_al[f]||f;
       cnt[f]=(cnt[f]||0)+1;(f&&cnt[f]>2?hinten:vorn).push(o);});arr=vorn.concat(hinten);})();
     var sel=arr.filter(function(o){return o.s>=6;});   /* alle Treffer mit >=3 von 5 Sternen */
-    if(sel.length<50)sel=arr.slice(0,50);              /* aber immer mindestens 50 */
+    if(sel.length<50)sel=arr.filter(function(o){return o.s>=4;}).slice(0,50);  /* mind. 50 – aber Fuellkarten erst ab 2 Sternen (09.10.: duenne Profile bekamen sonst Unpassendes) */
     fdGruppen(sel,p).forEach(function(g){
      fdKopf(grid,g.m,g.items.length);
      g.items.forEach(function(o){
@@ -1982,6 +1985,47 @@ FD_JS = r'''
       }catch(e){ active='all'; try{apply();}catch(_){ } }   /* Fallback: nie das Board zerschiessen */
     }else{chip.style.display='none';}
   }
+
+  /* 09.10. Paul: "vlt auch die Seite bei ihr auf Englisch". Profile mit ui:'en' bekommen eine englische Oberflaeche.
+     Uebersetzt werden nur Bedienelemente (Navigation, Abzeichen, Ueberschriften, Zaehler, Tags), nie Jobtitel/Firma/Kurztext. */
+  var MF_EN={"Dein privater Members-Bereich":"Your private members area","Deine Remote-Positionen.":"Your remote positions.",
+    "Individuell für dich ausgewählt.":"Hand-picked for you.","Positionen aktuell":"positions live","weltweit machbar":"doable worldwide",
+    "Einsteiger-geeignet":"entry-level friendly","auf Deutsch":"in German","Alle":"All","🟢 Service":"🟢 Customer Service",
+    "🟡 Büro & Orga":"🟡 Office & Admin","🟠 Schnell-Start":"🟠 Quick Start","🩺 Gesundheit":"🩺 Health",
+    "🟣 Sprache & Text":"🟣 Language & Writing","🔵 Marketing & Kreativ":"🔵 Marketing & Creative","🔴 Vertrieb & Sales":"🔴 Sales",
+    "🆕 Neu für dich":"🆕 New for you","⭐ Deine Favoriten":"⭐ Your favourites","✅ Beworben":"✅ Applied",
+    "🧭 Finde deine Richtung":"🧭 Find your direction","⭐ Für dich":"⭐ For you","Für dich":"For you","🌍 Weltweit":"🌍 Worldwide",
+    "🌱 Einsteiger":"🌱 Entry level","📈 Mit Erfahrung":"📈 Experienced","Deutsch":"German","Englisch":"English",
+    "Zur Stelle →":"View job →","Zu den offenen Stellen →":"Open positions →","→ Direkt zur Stelle":"→ Direct link","NEU":"NEW",
+    "laufend offen":"ongoing","⚠️ Erfahrung nötig":"⚠️ Experience required","🆕 NEU":"🆕 NEW","🇩🇪 Wohnsitz DE · Ausland verhandeln":"🇩🇪 German residence · abroad negotiable",
+    "🌍 Weltweit machbar":"🌍 Doable worldwide","🟢 Ohne Erfahrung möglich":"🟢 No experience needed","Einsteiger":"Entry level","Auftrag":"Gig",
+    "🧰 Deine Toolbox":"🧰 Your toolbox","🧑‍💻 Freelancer-Aufträge":"🧑‍💻 Freelance gigs","Deine mit Stern markierten Stellen":"Jobs you starred",
+    "Deine abgehakten Bewerbungen":"Your ticked-off applications","Zu deinen passenden Stellen":"To your matching jobs","Verdiene Geld mit Mission Frei:":"Earn money with Mission Frei:",
+    "Empfiehl uns jemanden, der unser Programm startet, und wir schenken dir":"Refer someone who starts our programme and we will give you",
+    "als Dankeschön.":"as a thank-you.",
+    "Für dich ist noch keine persönliche Auswahl hinterlegt. Sag kurz in deiner WhatsApp-Gruppe Bescheid – dann richten wir sie ein.":"No personal selection yet – just let us know in your group chat and we will set it up.",
+    "Diese Woche ist noch nichts Passendes für dich dazugekommen. Schau unter ⭐ Für dich – dort steht der komplette Bestand, der zu dir passt.":"Nothing new for you this week yet. Check ⭐ For you – it lists every job that matches you."};
+  var MF_EN_RX=[[/(\d+) neue (Stellen|Stelle) für dich/g,'$1 new jobs for you'],[/(\d+) passende Treffer für dich/g,'$1 matches for you'],
+    [/(\d+) Stellen\b/g,'$1 jobs'],[/\b1 jobs\b/g,'1 job'],[/(\d+) Stelle\b/g,'$1 job'],[/NEU UND PASST ZU DIR/g,'NEW & MATCHES YOU'],[/PASST ZU DIR/g,'MATCHES YOU'],
+    [/Die Stellen der letzten sieben Tage, die zu deinem Profil passen – die beste zuerst\.( Von (\d+) neuen Stellen insgesamt\.)?/g,
+     function(m,x,n){return 'Jobs from the last seven days that match your profile – best first.'+(n?' Out of '+n+' new jobs in total.':'');}]];
+  function mfEnNode(n){var p=n.parentNode;if(!p||(p.closest&&p.closest('.info,h3,.company,script,style,textarea')))return;
+    var v=n.nodeValue,k=v.trim();if(!k)return;if(MF_EN[k]){n.nodeValue=v.replace(k,MF_EN[k]);return;}
+    var w=v;MF_EN_RX.forEach(function(r){w=w.replace(r[0],r[1]);});if(w!==v)n.nodeValue=w;}
+  function mfEnTree(root){var tw=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null),a=[],n;while((n=tw.nextNode()))a.push(n);a.forEach(mfEnNode);}
+  function mfUiEn(){
+    document.documentElement.lang='en';
+    var q=document.getElementById('q');if(q)q.placeholder='Search by title, company or keyword …';
+    var sub=document.querySelector('.hero p.sub');
+    if(sub)sub.innerHTML='Pick your coloured <b style="color:var(--silver)">area</b> above – or browse “All”. Aim for <b style="color:var(--silver)">10 applications a day</b>: pace and volume get you there faster than waiting for the one perfect job. When you are through, the <b style="color:var(--silver)">Toolbox</b> has more platforms with matching jobs. The short descriptions on the cards are in German – your browser can translate them for you.';
+    mfEnTree(document.body);
+    var queue=[],pend=false;
+    new MutationObserver(function(ms){ms.forEach(function(m){m.addedNodes.forEach(function(x){queue.push(x);});});
+      if(pend)return;pend=true;requestAnimationFrame(function(){pend=false;var b=queue;queue=[];
+        b.forEach(function(x){if(x.nodeType===3)mfEnNode(x);else if(x.nodeType===1)mfEnTree(x);});});
+    }).observe(document.body,{childList:true,subtree:true});
+  }
+  (function(){var iv=setInterval(function(){try{if(typeof CUR!=='undefined'&&CUR){clearInterval(iv);var p=PROFILES[CUR];if(p&&p.ui==='en')mfUiEn();}}catch(e){}},400);})();
 '''
 
 def _inject_fd(head, tail):
