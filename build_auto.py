@@ -1520,7 +1520,10 @@ FD_JS = r'''
    "lisamaria26":{ber:{buero:3.5,start:1,sprache:0.5,service:0},
      plus:["office","back office","backoffice","verwaltung","administration","sachbearbeit","assistenz","teamassistenz","projektassistenz","virtuelle assistenz","virtual assistant","executive assistant","personal assistant","administrative","koordination","coordinator","disposition","auftragsabwicklung","auftragsbearbeitung","datenerfassung","data entry","dateneingabe","datenpflege","stammdaten","belegerfassung","dokumenten","dokumentenmanagement","archivierung","digitalisierung","e-mail-bearbeitung","e-mail bearbeitung","postbearbeitung","schriftlich","terminplanung","kalender","organisation","office manager","office administration","office assistant","operations","scheduling","order management","rechnungspruefung","rechnungspruefung","abrechnung","reservierung","reservations","reservation agent","booking","buchung","reisebuero","reisebüro","reiseverkehrskauffrau","touristik","travel consultant","business travel","reiseberat","hotel reservation","revenue","groups & events"],
      minus:["kundenservice","kundensupport","kundenkontakt","kundenbetreuung","kundendienst","customer service","customer support","customer care","customer success","concierge","call center","callcenter","telefonie","telefonisch","telefonist","hotline","anrufe","inbound","outbound","chat support","live chat","help desk","helpdesk","support agent","beschwerde","developer","engineer","software","vertrieb","sales","closer","setter","designer","marketing","crypto","blockchain","devops","rater","annotation","ai training"],
-     hard:["developer","software engineer","devops","data engineer","qa engineer","call center","callcenter","call agent","telefonist","telefonakquise","outbound","cold call"],exempt:/travel|reise|touristik|tourism|reservat|reservier|booking|buchung|hotel|flug|kreuzfahrt|assistenz|assistant|back\s?office|backoffice|sachbearbeit|datenpflege|datenerfassung/i,langs:["de","en"],reg:{world:3,eu:2,de:1}},
+     hard:["developer","software engineer","devops","data engineer","qa engineer","call center","callcenter","call agent","telefonist","telefonakquise","outbound","cold call"],
+     /* 09.10. Paul: "Lisa steuern und Recht / Anwaltsachen raus" (Titel; Beschreibung/Firma nur bei Kanzlei/Steuerbuero) */
+     hardRx:/steuer(fach|berat|kanzlei|b(ü|ue)ro|assist|recht|erkl|sachbearb|gehilf|kraft|deklar|referent|spezialist)|\btax\b|recht|jurist|anwalt|kanzlei|notar|justiz|legal|paralegal|lawyer|attorney|compliance/,
+     hardTxt:/steuerberat|steuerkanzlei|steuerb(ü|ue)ro|rechtsanwalt|anwaltskanzlei|kanzlei|notariat|law firm/,exempt:/travel|reise|touristik|tourism|reservat|reservier|booking|buchung|hotel|flug|kreuzfahrt|assistenz|assistant|back\s?office|backoffice|sachbearbeit|datenpflege|datenerfassung/i,langs:["de","en"],reg:{world:3,eu:2,de:1}},
    /* Annette (26.09., Pauls Vorgabe): klar auf Kundenservice ausrichten, Vertrieb raus.
       Vertriebstitel stehen jetzt im hard-Block, Vertriebswoerter im minus-Block. */
    "annette26":{ber:{service:3.5,gesundheit:2,buero:1.5,start:0.5},
@@ -1604,6 +1607,11 @@ FD_JS = r'''
      minus:["senior","head of","außendienst","aussendienst","provision","kaltakquise","französisch","french","spanisch fließend","niederländisch","polnisch"],
      hard:["vertrieb","versicherungskaufm","vorsorge","buchhalt","buchführ","fibu","bookkeep","accounting","accountant","accounts payable","accounts receivable","payroll","lohn","gehaltsabrechnung","steuerfach","steuerberat","steuerkanzlei","steuerbüro","steuerassist","tax ","datev","bilanz","rechnungs","kreditor","debitor","finanz","finance","controll","fp&a","billing","invoice","abrechnung","mahnwesen","forderungs","inkasso","spanien","frankreich","first-line","first line","1st level it","it career","entwickler","developer","software engineer","devops","frontend","backend","fullstack","data engineer","it-support","it support","administrator","marketing","social media","seo","sea ","content creator","designer","grafik","werkstudent","working student","praktikum","reine provision","handelsvertret"],
      /* 08.10. Kundin: KEIN Rechnungswesen (Buchhaltung, Steuer, Lohn ...); Assistenz (GF/Backoffice) und Customer Support ganz oben */
+     /* 09.10. Kundin: alles mit IT raus (auch technischer Support, Software, CRM/ERP, Digitalisierung); "sales" = englisches "vertrieb" */
+     noBer:["it"],
+     hardRx:/\bit\b|technisch|technical|techniker|technician|tech support|(1st|2nd|3rd|first|second|third).?level|help.?desk|service.?desk|\bsap\b|\berp\b|\bcrm\b|software|saas|system|netzwerk|network|cloud|cyber|security|informatik|programmier|python|java|\bsql\b|datenbank|database|data (analy|scien|engineer)|datenanaly|digitalisierung|devops|scrum|product owner|tester|\bqa\b|webentwick|webdesign|web develop|linux|implementation|implementier|product support|integration|migration|ingenieur|engineer|application|sales|business development|product manag|produktmanag|research associate|studentisch|\bai\b|\bki\b/,
+     /* Software-Firmen, deren Support-Stellen Software-Support sind (Beschreibung zu knapp fuer ein Stichwort) */
+     hardTxt:/software|saas|ubuntu|linux|cyber|pentest|open.?source|it-sicherheit|it-dienstleist|it-services|\bki-|k(ü|ue)nstliche intelligenz|impower|plancraft|simscale|heydata|wordly|canonical|openproject/,
      wish:/assisten|assistant|backoffice|back office|office manag|customer support|customer service|customer success|customer care|kundenservice|kundensupport|kundenbetreu|kundenberat|kundendienst|support specialist|support agent/,
      extraLang:true,
      langs:["de","en"],reg:{world:3,eu:2.5,de:1}},
@@ -1626,7 +1634,7 @@ FD_JS = r'''
      plus:["customer support","customer service","customer care","customer experience","customer success","chat support","email support","e-mail support","live chat","support agent","support specialist","support associate","help desk","helpdesk","ticket","virtual assistant","executive assistant","admin assistant","administrative assistant","personal assistant","research","researcher","research assistant","data research","fact-check","health","healthcare","medical","patient","care navigator","care coordinator","telehealth","clinical","pharma","biology","life science","entry level","entry-level","junior","no experience","graduate","associate","part-time","part time","flexible","worldwide","anywhere","global","english"],
      minus:["senior","lead","manager","head of","director","5+ years","3+ years","sales","outbound","cold call","quota"],
      hard:["interpret","translator","linguist","swahili","german","deutsch","dach","dutch","french","spanish","italian","portuguese","japanese","swedish","danish","norwegian","finnish","polish","turkish","werkstudent","praktikum","intern","nurse","physician","licensed","pharmacist","dentist","engineer","developer","account executive","sales development"],
-     wish:/customer support|chat support|email support|customer service|customer care|virtual assistant|research|patient|care navigator|health/,
+     wish:/customer support|chat support|email support|customer service|customer care|customer experience|client support|support specialist|virtual assistant|research|patient|care navigator|health/,
      noexp:true, enonly:true, ui:'en', worldonly:true,
      langs:["en"],reg:{world:4,eu:1.5,de:0}},
    "marcus26":{ber:{vertrieb:4.5,it:4,marketing:1,service:1,buero:0.5,start:0.5,sprache:0,gesundheit:0},
@@ -1809,6 +1817,12 @@ FD_JS = r'''
     if(p.enonly && c.dataset.lang!=='en')return -999;
     /* 09.10.: Wer ausserhalb von EU/DE lebt, kann EU- oder DE-gebundene Stellen nicht annehmen. */
     if(p.worldonly && fdRegion(c)!=='world')return -999;
+    /* 09.10. (Kundin christina26: "Alles was mit IT zu tun hat ... rausfiltern"): noBer = ganze Bereiche sperren,
+       hardRx = Titel-Regex fuer Faelle, die eine Wortliste nicht sauber trifft (z. B. "IT" als eigenes Wort),
+       hardTxt = Regex auf Titel+Beschreibung+Firma (z. B. Support fuer eine Software, Arbeitgeber ist eine Kanzlei). */
+    if(p.noBer && p.noBer.indexOf(c.dataset.bereich||'')>-1)return -999;
+    if(p.hardRx && p.hardRx.test(title))return -999;
+    if(p.hardTxt && p.hardTxt.test(fdText(c)))return -999;
     var s=0,t=fdText(c),ber=c.dataset.bereich||'';
     s+=(p.ber[ber]||0);
     var ph=0;for(var j=0;j<p.plus.length;j++){if(t.indexOf(p.plus[j])>-1)ph++;}s+=Math.min(ph*1.4,5.5);
