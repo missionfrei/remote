@@ -971,7 +971,7 @@ SOURCES = [
     ("wwr-allother",  "https://weworkremotely.com/categories/all-other-remote-jobs.rss", from_wwr, "text"),
     ("wwr-design",    "https://weworkremotely.com/categories/remote-design-jobs.rss",     from_wwr, "text"),
     # --- Weitere freie RSS-Boards ---
-    ("euremotejobs",  "https://euremotejobs.com/feed/",                  from_rss_generic, "text"),
+    # 09.10.: euremotejobs-Feed enthaelt nur Blogartikel ("How to hire ...") statt Stellen -> raus.
     # --- Runde: mehr Boersen + gezielte deutschsprachige/kundennahe Suchen ---
     ("remotive-kundenservice","https://remotive.com/api/remote-jobs?search=kundenservice",   from_remotive, "json"),
     ("remotive-support-de",   "https://remotive.com/api/remote-jobs?search=german%20support", from_remotive, "json"),
@@ -1794,6 +1794,8 @@ FD_JS = r'''
     for(var i=0;i<p.hard.length;i++){if(title.indexOf(p.hard[i])>-1)return -999;}
     /* Paul: "die englischen Stellen muessen raus" -> wer nur Deutsch arbeitet, sieht NUR deutschsprachige Stellen. */
     if(p.deonly && c.dataset.lang!=='de')return -999;
+    /* 09.10.: Gegenstueck fuer Kunden, die nur auf Englisch arbeiten (Paul: "muss eine englische Stelle sein"). */
+    if(p.enonly && c.dataset.lang!=='en')return -999;
     var s=0,t=fdText(c),ber=c.dataset.bereich||'';
     s+=(p.ber[ber]||0);
     var ph=0;for(var j=0;j<p.plus.length;j++){if(t.indexOf(p.plus[j])>-1)ph++;}s+=Math.min(ph*1.4,5.5);
