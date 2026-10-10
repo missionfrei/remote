@@ -555,7 +555,7 @@ def resolve_link(url, _versuch=0):
             # (join.com veroeffentlicht Stellen neu und leitet die alte ID auf die neue um -> lebt, final = neue URL)
             ctype=(r.headers.get("Content-Type") or "").lower()
             if "html" in ctype or ctype=="":
-                body=r.read(400000).decode("utf-8","replace")
+                body=r.read(1500000).decode("utf-8","replace")   # 11.10.: remotely.de zeigt "Diese Stelle ist nicht mehr verfuegbar" erst bei ~580 KB -> 42 abgelaufene blieben stehen
                 # 03.10.: auf sichtbarem Text pruefen. Vorher lief der Regex auf rohem HTML -
                 # "Diese Stelle ist nicht mehr verf&uuml;gbar" oder Tags mitten im Satz rutschten durch.
                 # 05.10.: auch abgeschnittene <script>-Bloecke (Seite > 400 KB, z. B. remotely.de) entfernen -
