@@ -79,7 +79,8 @@ BLOCK = ["werkstud","working student",   # Paul: keine Werkstudenten
 # recime: Verguetung ist reine Provision auf das Werbebudget, kein Fixum.
 # talentspring: Bildungstraeger, verkauft Weiterbildungen als Stellenanzeigen.
 # hochberg performance: gefoerdertes Trainingsprogramm als Pflegejob getarnt (September).
-FIRMEN_BLOCK = ["recime", "talentspring", "vielhaber", "viral.app", "viralapp", "blessura", "hochberg", "welo global", "welocalize",  # 07.10.: Finanzvertrieb / Bezahlung pro Video (Kunden-Betreuer)
+FIRMEN_BLOCK = ["engelvoelkers", "engel & völkers", "engel & voelkers",  # 11.10.: freie Immobilienmakler auf Provision mit Standort
+    "recime", "talentspring", "vielhaber", "viral.app", "viralapp", "blessura", "hochberg", "welo global", "welocalize",  # 07.10.: Finanzvertrieb / Bezahlung pro Video (Kunden-Betreuer)
 
     # 03.10.: Mentify Learn schreibt eine Weiterbildung als "Quereinstieg"-Stelle aus.
     # Kevin Kehr: Finanzvertrieb auf Provision (schon am 02.10. bei der ATS-Ernte aussortiert).
@@ -100,7 +101,7 @@ STELLEN_BLOCK = ["10001-1003766826-s", "11858-sde-115840-sta-s", "12117-yf-51552
 # 11.10.: Lernplattform-Saetze ("dm-Lernwelt: lernst Du zeit- und ortsunabhaengig") sind kein Beleg (BA_WEICH)
 # -> BA-Stellen brauchen den woertlichen Beleg im Anzeigentext/Titel (siehe resolve_link). BA_GEPRUEFT = von Hand gepruefte Ausnahmen,
 #    deren Arbeitsort ausdruecklich das Homeoffice ist, nur ohne "100 %" (TelePower, Onepilot, Online-Nachhilfe Kolm, MEWA Telefonakquise).
-BA_BELEG = re.compile(r"[^.\n]{0,70}(100\s?%\s?(im\s|zu\s)?(remote|homeoffice|mobil)|vollst(ä|ae)ndig(es)?\s+(remote|im homeoffice|von zu hause)|komplett(es)?\s+(remote|im homeoffice|von zu hause)|ausschlie(ß|ss)lich\s+(remote|im homeoffice)|full(y)?[- ]remote|ortsunabh(ä|ae)ngig)[^.\n]{0,70}", re.I)
+BA_BELEG = re.compile(r"[^.\n]{0,70}(100\s?%\s?(im\s|zu\s)?(remote|homeoffice|mobil(?!it))|vollst(ä|ae)ndig(es)?\s+(remote|im homeoffice|von zu hause)|komplett(es)?\s+(remote|im homeoffice|von zu hause)|ausschlie(ß|ss)lich\s+(remote|im homeoffice)|full(y)?[- ]remote|ortsunabh(ä|ae)ngig)[^.\n]{0,70}", re.I)
 BA_WEICH = re.compile(r"lern|zugreif|probezeit|standort oder|e-learning|seminar|schulung|weiterbildung|zugriff|kurs|fast (komplett|vollst)|\bkann\b|\bk(ö|oe)nnen\b|grunds(ä|ae)tzlich|nach (\w+ )?einarbeitung|m(ö|oe)glich|optional|\boption\b|oder (im )?b(ü|ue)ro|nahezu|(ü|ue)berwiegend|teilweise|hybrid|bis zu", re.I)
 BA_GEPRUEFT = ["10000-1207738900-s", "10001-1003799550-s", "10001-1003649278-s", "10001-1003788040-s", "10001-1003774320-s", "10001-1003788063-s"]
 # 11.10.: Auch Feed-/ATS-Stellen (nicht von Hand geprueft) kamen ohne Pruefung des Anzeigentexts aufs Board: von 259 hatten 86
@@ -964,6 +965,7 @@ def gather_ats():
         "smartrecruiters":from_smartrecruiters,"workable":from_workable}
     out=[]
     for company,ats,slug,ber,region in ATS_COMPANIES:
+        if ats=="smartrecruiters": continue   # 11.10.: api.smartrecruiters.com per robots.txt fuer alle ausser LinkedInBot gesperrt
         try:
             # 05.10.: Personio & Co. antworten bei schnellen Serien mit 429/503 -> kurz warten, bis zu 2x neu.
             import time as _tt
