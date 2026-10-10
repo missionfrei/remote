@@ -95,6 +95,29 @@ FIRMEN_BLOCK = ["recime", "talentspring", "vielhaber", "viral.app", "viralapp", 
 # 09.10.: einzelne BA-Anzeigen, die trotz "100 % Homeoffice" Aussendienst/Reisen/Provision verlangen und die
 # Textpruefung (BA_AUSSEN) nicht sicher erkennt - von Hand im Anzeigentext bestaetigt.
 STELLEN_BLOCK = ["10001-1003766826-s", "11858-sde-115840-sta-s", "12117-yf-51552-yf-s", "12117-yf-52141-yf-s", "12511-2026x0000051994-s", "12951-53e504f3-1fbe-4f37--s"]
+# 11.10.: Hauptrecruiter + Dashboard-Chat: 141 BA-Stellen hatten nur das BA-Label "Homeoffice (bis zu 100 %)", im Anzeigentext aber
+# "Homeoffice moeglich", hybrid, anteilig oder "Standort oder Homeoffice" (NTT DATA, SoftwareOne, ifm, GISA ...). Paul: nur 100 % remote.
+# -> BA-Stellen brauchen den woertlichen Beleg im Anzeigentext/Titel (siehe resolve_link). BA_GEPRUEFT = von Hand gepruefte Ausnahmen,
+#    deren Arbeitsort ausdruecklich das Homeoffice ist, nur ohne "100 %" (TelePower, Onepilot, Online-Nachhilfe Kolm, MEWA Telefonakquise).
+BA_BELEG = re.compile(r"[^.\n]{0,70}(100\s?%\s?(im\s|zu\s)?(remote|homeoffice|mobil)|vollst(ä|ae)ndig(es)?\s+(remote|im homeoffice|von zu hause)|komplett(es)?\s+(remote|im homeoffice|von zu hause)|ausschlie(ß|ss)lich\s+(remote|im homeoffice)|full(y)?[- ]remote|ortsunabh(ä|ae)ngig)[^.\n]{0,70}", re.I)
+BA_WEICH = re.compile(r"\bkann\b|\bk(ö|oe)nnen\b|grunds(ä|ae)tzlich|nach (\w+ )?einarbeitung|m(ö|oe)glich|optional|\boption\b|oder (im )?b(ü|ue)ro|nahezu|(ü|ue)berwiegend|teilweise|hybrid|bis zu", re.I)
+BA_GEPRUEFT = ["10000-1207738900-s", "10001-1003799550-s", "10001-1003649278-s", "10001-1003788040-s", "10001-1003774320-s", "10001-1003788063-s"]
+# 11.10.: Auch Feed-/ATS-Stellen (nicht von Hand geprueft) kamen ohne Pruefung des Anzeigentexts aufs Board: von 259 hatten 86
+# Gegenbelege im Text ("1 Homeoffice-Tag pro Woche", hybrid, on-site, "nach der Einarbeitung", "Homeoffice moeglich") und 44 nur
+# das Portal-Etikett "Remote" (ElevenLabs via arbeitnow). Regel: woertlicher 100-%-Beleg ODER Remote im Text ohne jeden Gegenbeleg.
+AUTO_NEG = re.compile(r"hybrid|homeoffice-tag|home-office-tag|\b\d\s*(tage?|days?)\s*(pro|per|a|im|in the|in)\s*(woche|week|b(ü|ue)ro|office)|tage? im (b(ü|ue)ro|office)|days? (in|at) (the|our) office|office days|in-office|on-?site|vor ort|gelegentlich\w*\s+(reisen|besuche)|regelm(ä|ae)(ß|ss)ig\w* (im|ins) (b(ü|ue)ro|office)|nach (der |einer )?einarbeitung|home-?office (ist )?m(ö|oe)glich|remote (work )?(ist )?m(ö|oe)glich|m(ö|oe)glichkeit (zum|zu|f(ü|ue)r) (mobile|home|remote)|remote option|option to work remote|possibility to work remote|flexible (remote|hybrid|working) (model|arrangement|policy)|mobiles arbeiten|anteilig|teilweise|commut|relocat|based in (our )?(berlin|munich|m(ü|ue)nchen|hamburg|london|new york|san francisco|toronto)", re.I)
+AUTO_REM = re.compile(r"remote|home\s?-?office|von zu hause|ortsunabh|anywhere|work from home|wfh", re.I)
+def auto_remote_ok(title, desc):
+    t = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", _html.unescape(_html.unescape(desc or ""))))
+    if not t.strip(): return False
+    tn = re.sub(r"(?i)home-office", "Homeoffice", re.sub(r"\s[-–•✓·|]\s", ". ", t + " . " + (title or "")))
+    if any(not BA_WEICH.search(m.group(0)) for m in BA_BELEG.finditer(tn)): return not re.search(r"\bhybrid", t, re.I)
+    if AUTO_NEG.search(t): return False
+    return bool(AUTO_REM.search(t))
+def ba_beleg_ok(text, titel, url=""):
+    if any(g in (url or "").lower() for g in BA_GEPRUEFT): return True
+    t = re.sub(r"(?i)home-office", "Homeoffice", re.sub(r"\s[-–•✓·|]\s", ". ", (text or "") + " . " + (titel or "")))
+    return any(not BA_WEICH.search(m.group(0)) for m in BA_BELEG.finditer(t))
 
 # Kundenmeldung 02.10.: Stellen, bei denen man erst ein Konto oder ein Abo braucht, bevor man
 # zur Bewerbung kommt. Geprueft am 02.10.2026:
@@ -178,7 +201,7 @@ def from_arbeitnow(raw):
         out.append(dict(title=j.get("title",""), company=j.get("company_name",""),
             url=j.get("url",""), info=clean_text(j.get("description","")),
             raw_tags=" ".join(j.get("tags",[]) or [])+" "+" ".join(j.get("job_types",[]) or []),
-            raw_desc=clean_text(j.get("description",""), 1000),
+            raw_desc=clean_text(j.get("description",""), 1000), raw_full=j.get("description","") or "",
             posted=j.get("created_at") or j.get("created") or "",
             raw_loc=j.get("location","") + " remote"))
     return out
@@ -513,6 +536,7 @@ def resolve_link(url, _versuch=0):
             # (AKANNI "Wundexpert/in im Aussendienst", PLANPROTECT, Gebietsvertrieb mit Firmenwagen) -> nicht aufs Board.
             _t=re.sub(r"[\\*#_]","",re.sub(r"\s+"," ",_d.get("stellenangebotsBeschreibung","") or ""))
             if BA_AUSSEN.search(_t): return url, False
+            if not ba_beleg_ok(_t, _d.get("stellenangebotsTitel",""), url): return url, False
             return url, True
         except urllib.error.HTTPError as e:
             return url, (e.code not in (404,410))
@@ -821,6 +845,7 @@ def _ats_emit(company, title, url, loc, desc, remote_flag, ber_default, region_d
     if not title or not url: return None
     remote_ok = remote_flag or bool(ATS_REMOTE.search((title+" "+(loc or "")+" "+(desc or "")).lower()))
     if not remote_ok: return None
+    if not auto_remote_ok(title, desc): return None      # 11.10.: Anzeigentext pruefen (Label allein zaehlt nicht)
     region=_ats_region(loc, region_default)
     if region is None: return None                       # laendergebunden ("Germany - Remote", "Budapest") -> raus
     german = bool(ATS_GER_TITLE.search(title) or ATS_GER_DESC.search(desc or "") or ATS_DE_TITLE.search(title))
@@ -847,11 +872,11 @@ def _ats_emit(company, title, url, loc, desc, remote_flag, ber_default, region_d
                 date=TODAY, fd=False, src="ats")
 
 def from_greenhouse(slug):
-    d=http_json(f"https://boards-api.greenhouse.io/v1/boards/{slug}/jobs")
+    d=http_json(f"https://boards-api.greenhouse.io/v1/boards/{slug}/jobs?content=true")   # 11.10.: Text fuer auto_remote_ok
     out=[]
     for j in d.get("jobs",[]):
         loc=(j.get("location") or {}).get("name","")
-        out.append((j.get("title",""), j.get("absolute_url",""), loc, "", False))
+        out.append((j.get("title",""), j.get("absolute_url",""), loc, _html.unescape(j.get("content","") or ""), False))
     return out
 
 def from_lever(slug):
@@ -1389,6 +1414,10 @@ def process(raw_jobs):
         if any(h in j["url"].lower() for h in LOGIN_HOSTS): continue
         ber=detect_bereich(j["title"]+" "+j.get("raw_tags",""))
         if not ber: continue
+        # 11.10. (Hauptrecruiter): Feed-Stellen nur mit Remote im Anzeigentext ohne Gegenbeleg; Laender-Klammern und Schweiz-Stellen raus
+        if "raw_full" in j and not auto_remote_ok(j["title"], j["raw_full"]): continue
+        if re.search(r"\((poland|polen|uk|united kingdom|spain|spanien|france|frankreich|italy|italien|netherlands|portugal|romania|czech|hungary|india|us|usa|canada|brazil|mexico|latam|apac)\)", j["title"], re.I): continue
+        if "arbeitnow.ch" in j["url"] and re.search(r"\bch\b|schweiz|switzerland|z(ü|u)rich|basel|bern|luzern|genf|lausanne", j["title"]+" "+j.get("raw_loc",""), re.I): continue
         lang,region,level=detect(j)
         # WELTWEIT-FIRST (Paul): KEINE reinen Deutschland-Stellen. Aber ab Lauf #20 VOLLES Volumen:
         # ALLES weltweit ODER EU-remote behalten (deutsch UND englisch, alle Bereiche). Die Sortierung
@@ -1636,10 +1665,11 @@ FD_JS = r'''
       Datenpflege, Inbound-Kundenservice. Kein Abschluss -> Quereinsteiger-Rollen. KEIN Vertrieb (Kundenwunsch). */
    "danielb26":{ber:{it:4,buero:1.5,service:1,marketing:.5,start:.5,vertrieb:0,sprache:0,gesundheit:0},
      plus:["junior","einstieg","trainee","assistant","assistenz","operations assistant","crm manager","crm-manager","crm specialist","marketing operations","ops","prozessmanagement","no-code","nocode","ki-assistenz","ai assistant","automatisierung","gtm","go-to-market","go to market","revops","revenue operations","revenue ops","revenue systems","business systems","gtm operations","gtm systems","crm engineer","crm automation","growth engineer","solutions engineer","solution engineer","integration engineer","marketing automation","sales operations","sales systems","technical operations","automation engineer","workflow automation","ai solutions","ai automation","n8n","make.com","zapier","automatisierung","automation","automations","workflow","no-code","low-code","ki","ai","künstliche intelligenz","kuenstliche intelligenz","llm","gpt","openai","claude","prompt","chatbot","voice","agent","api","webhook","schnittstelle","integration","crm","hubspot","close","salesforce admin","pipedrive","prozess","prozessmanagement","operations","ops","revops","datenpflege","datenmanagement","daten","python","implementierung","implementation","onboarding","technischer support","application support","quereinsteiger","quereinstieg","junior","einsteiger","trainee"],
-     minus:["vertrieb","sales","akquise","kaltakquise","neukunden","closer","setter","telesales","outbound","provision","aussendienst","außendienst","account executive","business development","pflege","buchhaltung","steuer","datev","lohn","senior","lead","head of","architekt","10+ jahre","5+ jahre"],
+     minus:["vertrieb","sales","akquise","kaltakquise","neukunden","closer","setter","telesales","outbound","provision","aussendienst","außendienst","account executive","business development","pflege","buchhaltung","steuer","datev","lohn","senior","lead","head of","architekt","10+ jahre","5+ jahre","mobilitätsservice","rufbus","softwarewartung"],
      hard:["seller","deal","go-to-market lead","dach lead","network automation","ansible","elasticsearch","vertrieb","sales manager","sales representative","sales development","sales agent","sales specialist","inside sales","account executive","business development","sdr","bdr","telesales","outbound","akquise","kaltakquise","closer","setter","appointment setter","außendienst","neukundenakquise","buchhalt","steuerber","steuerfach","bilanzbuch","lohnbuchhalt","datev","pflegefach","arzt","senior","head of","architekt","devops","ruby","softwareentwickl","software developer","software engineer","teamleit","azure","cloud engineer","obsoleszenz","network","netzwerk","java","c#",".net","sap ","sap-","ingenieur","hardware","embedded","frontend","backend","fullstack","full stack","callcenter","call center","call-center","callcenter-agent","entwickler","consultant","dynamics","verwaltung","bürotätigkeit"],
      langs:["de","en"],reg:{world:3,eu:2,de:1},
      /* 06.10.: Entwickler-/Ingenieursrollen raus – Daniel ist Quereinsteiger ohne Abschluss, Fokus Automatisierung/CRM/KI-Anwendung */
+     /* 11.10. Hauptrecruiter: Lead-Rollen und Konstruktion/CAD passen nicht zum Quereinstieg */ hardRx:/\blead\b|konstrukt|\bcad\b/i,
      noexp:true, noexpSoft:true, /* 06.10. Paul: nicht zu anspruchsvoll, viele Stellen zum Einsteigen */
      /* 07.10. Paul/Kunde: Wunschrollen nach oben (siehe _wish in fdScore). */
      wish:/gtm|go-?to-?market|revops|revenue (op|sys)|business systems|crm[ -](automation|engineer|specialist|spezialist|manager)|hubspot|growth engineer|solutions? engineer|integration engineer|marketing automation|sales (operations|systems)|technical operations|automation (engineer|specialist|spezialist|manager)|workflow|ki-automation|ai (solutions|automation|engineer)|n8n|make\.com|zapier|no-?code|low-?code/i,
