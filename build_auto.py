@@ -112,13 +112,13 @@ AUTO_REM = re.compile(r"remote|home\s?-?office|von zu hause|ortsunabh|anywhere|w
 def auto_remote_ok(title, desc):
     t = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", _html.unescape(_html.unescape(desc or ""))))
     if not t.strip(): return False
-    tn = re.sub(r"(?i)home-office", "Homeoffice", re.sub(r"\s[-–•✓·|]\s", ". ", t + " . " + (title or "")))
+    tn = re.sub(r"(?i)home[\s-]+office", "Homeoffice", re.sub(r"\s[-–•✓·|]\s", ". ", t + " . " + (title or "")))
     if any(not BA_WEICH.search(m.group(0)) for m in BA_BELEG.finditer(tn)): return not re.search(r"\bhybrid", t, re.I)
     if AUTO_NEG.search(t): return False
     return bool(AUTO_REM.search(t))
 def ba_beleg_ok(text, titel, url=""):
     if any(g in (url or "").lower() for g in BA_GEPRUEFT): return True
-    t = re.sub(r"(?i)home-office", "Homeoffice", re.sub(r"\s[-–•✓·|]\s", ". ", (text or "") + " . " + (titel or "")))
+    t = re.sub(r"(?i)home[\s-]+office", "Homeoffice", re.sub(r"\s[-–•✓·|]\s", ". ", (text or "") + " . " + (titel or "")))
     return any(not BA_WEICH.search(m.group(0)) for m in BA_BELEG.finditer(t))
 
 # Kundenmeldung 02.10.: Stellen, bei denen man erst ein Konto oder ein Abo braucht, bevor man
