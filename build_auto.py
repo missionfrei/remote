@@ -89,7 +89,9 @@ FIRMEN_BLOCK = ["recime", "talentspring", "vielhaber", "viral.app", "viralapp", 
     # 09.10.: BA meldet 100 % Homeoffice, Anzeigentext: Gebietsvertrieb mit Beratung vor Ort und "Verpflegung im Aussendienst".
     "planprotect",
     # 09.10.: BA meldet 100 % Homeoffice, Anzeige: "Wundexpert/in im Aussendienst", eigenes Gebiet (8 gleiche Anzeigen).
-    "akanni"]
+    "akanni",
+    # 10.10.: Scam-Verdacht (Recruiter Service): "Chat-Support" ohne Produkt, 3.200-3.600 EUR fuer Quereinsteiger, Bewerbung ohne Lebenslauf
+    "os-itsupport", "os support gmbh"]
 # 09.10.: einzelne BA-Anzeigen, die trotz "100 % Homeoffice" Aussendienst/Reisen/Provision verlangen und die
 # Textpruefung (BA_AUSSEN) nicht sicher erkennt - von Hand im Anzeigentext bestaetigt.
 STELLEN_BLOCK = ["10001-1003766826-s", "11858-sde-115840-sta-s", "12117-yf-51552-yf-s", "12117-yf-52141-yf-s", "12511-2026x0000051994-s", "12951-53e504f3-1fbe-4f37--s"]
@@ -465,7 +467,7 @@ SOFT404 = re.compile(
     r"job (is )?no longer|position (has been|is) (filled|closed)|"
     r"stelle (ist )?nicht mehr (verf(ü|ue)gbar|aktuell|online)|anzeige (wurde )?(entfernt|deaktiviert)|"
     r"diese stelle wurde (bereits )?(besetzt|entfernt)|stellenanzeige nicht gefunden|"
-    r"leider ist diese stelle|"
+    r"leider ist diese stelle|stelle ist (leider )?(schon |bereits )?vergeben|keine bewerbungen mehr|"
     # Paul (19.09.): "alle links muessen funktionieren". Weitere Formulierungen, die wir live gesehen haben.
     r"diese anzeige ist nicht mehr|stelle bereits vergeben|vakanz (wurde )?geschlossen|"
     r"bewerbungsfrist (ist )?abgelaufen|job (posting )?(is )?closed|applications (are )?closed|"
@@ -1602,7 +1604,7 @@ FD_JS = r'''
      langs:["de"],deonly:true,reg:{world:3,eu:2,de:1}},
    "stefanie26":{ber:{buero:3,start:2,service:1},
      plus:["buchhaltung","accounting","steuer","datev","lohn","bilanz","finanz","controlling","rechnungswesen","sachbearbeit","office","verwaltung","back office"],
-     minus:["developer","engineer","software","vertrieb","sales","closer","designer","marketing","devops"],
+     minus:["developer","engineer","software","vertrieb","sales","closer","designer","marketing","devops","dozent","lehrkraft"],
      hard:["developer","software engineer","devops"],langs:["de","en"],reg:{world:3,eu:2,de:1}},
    /* Profil A: Schwerpunkt Kundenservice und IT/Tech. Ausgeschlossen: Vertrieb, Kaltakquise,
       Produktverkauf, Buchhaltung. Teilzeit moeglich, Deutsch und Englisch.
@@ -1658,7 +1660,7 @@ FD_JS = r'''
       Ziel: aus dem EU-Ausland arbeiten -> weltweit/EU bevorzugt. */
    "christina26":{ber:{buero:3.5,service:3,gesundheit:1.5,start:1,sprache:1,vertrieb:0.5,it:0,marketing:0},
      plus:["disponent","disposition","dispatch","logistik","logistics","spedition","transport","fracht","zoll","customs","auftragsabwicklung","auftragserfassung","order","einsatzplanung","tourenplanung","schichtplanung","sachbearbeit","backoffice","assistenz","assistant","verwaltung","einkauf","bestellwesen","lieferanten","kundenservice","kundenbetreuung","kundenberat","customer service","customer support","italienisch","italian","italiano","englisch","teilzeit","part-time","part time","20 std","quereinsteig","einarbeitung"],
-     minus:["senior","head of","außendienst","aussendienst","provision","kaltakquise","französisch","french","spanisch fließend","niederländisch","polnisch"],
+     minus:["senior","head of","außendienst","aussendienst","provision","kaltakquise","französisch","french","spanisch fließend","niederländisch","polnisch","projektleiter","teamleiter","kundenberater photovoltaik","kundenberater balkonkraftwerk","kundenqualifizierung"],
      hard:["vertrieb","versicherungskaufm","vorsorge","buchhalt","buchführ","fibu","bookkeep","accounting","accountant","accounts payable","accounts receivable","payroll","lohn","gehaltsabrechnung","steuerfach","steuerberat","steuerkanzlei","steuerbüro","steuerassist","tax ","datev","bilanz","rechnungs","kreditor","debitor","finanz","finance","controll","fp&a","billing","invoice","abrechnung","mahnwesen","forderungs","inkasso","spanien","frankreich","first-line","first line","1st level it","it career","entwickler","developer","software engineer","devops","frontend","backend","fullstack","data engineer","it-support","it support","administrator","marketing","social media","seo","sea ","content creator","designer","grafik","werkstudent","working student","praktikum","reine provision","handelsvertret"],
      /* 08.10. Kundin: KEIN Rechnungswesen (Buchhaltung, Steuer, Lohn ...); Assistenz (GF/Backoffice) und Customer Support ganz oben */
      /* 09.10. Kundin: alles mit IT raus (auch technischer Support, Software, CRM/ERP, Digitalisierung); "sales" = englisches "vertrieb" */
@@ -2318,7 +2320,9 @@ def main():
                        # Aampere: "mindestens vier Tage pro Woche bei uns im Office".
                        # StudySmarter: "Modernes Buero mit Terrasse" - schon in #89 aufgefallen.
                        r"im office|ins office|unserem office|b(ü|ue)ro mit |modernes b(ü|ue)ro|"
-                       r"office oder remote|remote oder office|einarbeitung (startet|beginnt) vor ort", re.I)
+                       r"office oder remote|remote oder office|einarbeitung (startet|beginnt) vor ort|"
+                       # 10.10. (go-e): "vollstaendig remote ausueben oder von unserem Berliner Office" = freie Wahl, kein Beleg
+                       r"remote[^.]{0,60}\boder\b[^.]{0,30}\b(in|im|ins|von|aus|an|am)\s+(unser(em|en|er)?\s+|einem unserer\s+)(\w+\s+){0,2}(office|b(ü|ue)ro|standort)", re.I)
     # Alters-Filter auch fuer die manuelle Schicht (Feld "posted").
     # Paul (20.09., Kundenmeldung von Leia und Merlin): "Dort sind viele alte Stellen die abgelaufen sind."
     # Ursache: Eintraege OHNE jedes Datum wurden bisher behalten und alterten deshalb NIE raus.
