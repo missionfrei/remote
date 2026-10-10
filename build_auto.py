@@ -97,10 +97,11 @@ FIRMEN_BLOCK = ["recime", "talentspring", "vielhaber", "viral.app", "viralapp", 
 STELLEN_BLOCK = ["10001-1003766826-s", "11858-sde-115840-sta-s", "12117-yf-51552-yf-s", "12117-yf-52141-yf-s", "12511-2026x0000051994-s", "12951-53e504f3-1fbe-4f37--s"]
 # 11.10.: Hauptrecruiter + Dashboard-Chat: 141 BA-Stellen hatten nur das BA-Label "Homeoffice (bis zu 100 %)", im Anzeigentext aber
 # "Homeoffice moeglich", hybrid, anteilig oder "Standort oder Homeoffice" (NTT DATA, SoftwareOne, ifm, GISA ...). Paul: nur 100 % remote.
+# 11.10.: Lernplattform-Saetze ("dm-Lernwelt: lernst Du zeit- und ortsunabhaengig") sind kein Beleg (BA_WEICH)
 # -> BA-Stellen brauchen den woertlichen Beleg im Anzeigentext/Titel (siehe resolve_link). BA_GEPRUEFT = von Hand gepruefte Ausnahmen,
 #    deren Arbeitsort ausdruecklich das Homeoffice ist, nur ohne "100 %" (TelePower, Onepilot, Online-Nachhilfe Kolm, MEWA Telefonakquise).
 BA_BELEG = re.compile(r"[^.\n]{0,70}(100\s?%\s?(im\s|zu\s)?(remote|homeoffice|mobil)|vollst(ä|ae)ndig(es)?\s+(remote|im homeoffice|von zu hause)|komplett(es)?\s+(remote|im homeoffice|von zu hause)|ausschlie(ß|ss)lich\s+(remote|im homeoffice)|full(y)?[- ]remote|ortsunabh(ä|ae)ngig)[^.\n]{0,70}", re.I)
-BA_WEICH = re.compile(r"\bkann\b|\bk(ö|oe)nnen\b|grunds(ä|ae)tzlich|nach (\w+ )?einarbeitung|m(ö|oe)glich|optional|\boption\b|oder (im )?b(ü|ue)ro|nahezu|(ü|ue)berwiegend|teilweise|hybrid|bis zu", re.I)
+BA_WEICH = re.compile(r"lern|zugreif|probezeit|standort oder|e-learning|seminar|schulung|weiterbildung|zugriff|kurs|fast (komplett|vollst)|\bkann\b|\bk(ö|oe)nnen\b|grunds(ä|ae)tzlich|nach (\w+ )?einarbeitung|m(ö|oe)glich|optional|\boption\b|oder (im )?b(ü|ue)ro|nahezu|(ü|ue)berwiegend|teilweise|hybrid|bis zu", re.I)
 BA_GEPRUEFT = ["10000-1207738900-s", "10001-1003799550-s", "10001-1003649278-s", "10001-1003788040-s", "10001-1003774320-s", "10001-1003788063-s"]
 # 11.10.: Auch Feed-/ATS-Stellen (nicht von Hand geprueft) kamen ohne Pruefung des Anzeigentexts aufs Board: von 259 hatten 86
 # Gegenbelege im Text ("1 Homeoffice-Tag pro Woche", hybrid, on-site, "nach der Einarbeitung", "Homeoffice moeglich") und 44 nur
@@ -1378,7 +1379,8 @@ MAXAGE_DAYS = 60
 # Paul (07.10.2026): Jobplattformen jetzt max. 60 Tage (vorher 25) - "aber nur wenn die Stelle aktiv
 # und nicht abgelaufen ist". Abgelaufene fliegen weiter sofort raus: resolve_and_prune prueft bei jedem
 # Build jeden Link (404/410, Soft-404-Text, Ashby "posting":null, Greenhouse ?error=true, Zweitpruefung).
-COMPANY_ATS = re.compile(r"\.jobs\.personio\.(de|com)|job-boards(\.eu)?\.greenhouse\.io|boards\.greenhouse\.io|jobs\.(eu\.)?lever\.co|jobs\.ashbyhq\.com|\.recruitee\.com|\.teamtailor\.com|apply\.workable\.com|jobs\.smartrecruiters\.com|\.softgarden\.(io|de)|\.career\.softgarden|dvinci|rexx-systems|myworkdayjobs\.com|successfactors|join\.com/companies/|/karriere|/careers?/|/jobs/", re.I)
+# 11.10.: Personaldienstleister-/ATS-Seiten (Callcenter-Radar) = Firmenquelle, Stelle bleibt solange live (Linkpruefung)
+COMPANY_ATS = re.compile(r"\.jobs\.personio\.(de|com)|job-boards(\.eu)?\.greenhouse\.io|boards\.greenhouse\.io|jobs\.(eu\.)?lever\.co|jobs\.ashbyhq\.com|\.recruitee\.com|\.teamtailor\.com|apply\.workable\.com|jobs\.smartrecruiters\.com|\.softgarden\.(io|de)|\.career\.softgarden|dvinci|rexx-systems|myworkdayjobs\.com|successfactors|jobs\.de\.adecco\.com|jobs\.de\.dis-ag\.com|recruit\.zvoove\.cloud|coveto\.de|\.bewerbung\.jobs|talention|\.onlyfy\.jobs|factorialhr\.|\.bamboohr\.com|\.homerun\.co|join\.com/companies/|/karriere|/careers?/|/jobs/", re.I)
 JOBBOARD_HOSTS = ("arbeitsagentur.de","remotely.de","nomado24.de","arbeitnow.com","adzuna.","stepstone","indeed","jobware","xing.com","linkedin.com","machdudas","junico","freelancermap","trabajo.org","simplyhired","derjobmarkt","oberfrankenjobs","osourced.is","zuhausejobs")
 def is_company_source(j):
     u=(j.get("url") or "").lower()
@@ -1642,10 +1644,10 @@ FD_JS = r'''
    "merlin26":{ber:{buero:4,service:3,it:1.5,start:0.5,sprache:1,gesundheit:2},
      plus:["kundenservice","kundensupport","kundenbetreuung","kundendienst","kundendienst-mitarbeiter","customer support","customer service","customer care","chat support","email support","e-mail support","technischer support","technischer kundensupport","technischer kundenservice","technical support","application support","anwendersupport","anwenderbetreuung","helpdesk","help desk","it-support","it support","service desk","service desk agent","1st level","first level","second level","2nd level","support agent","support specialist","supporter","software supporter","systembetreuung","remote support","ticket","betreuung","kundenbetreuer","kundenberater","kundenberatung","inbound","erste anlaufstelle","content moderat","moderator","qualitaetspruef","qualitätsprüf","datenerfassung","data entry","dateneingabe","annotation","ai training","rater","transkription","teilzeit","quereinsteiger","backoffice","back office","sachbearbeit","auftragsabwicklung","auftragsbearbeitung","assistenz","assistant","office","büro","verwaltung","administration","datenpflege","dateneingabe","stammdaten","kaufmännisch","organisation","innendienst"],
      minus:["vertrieb","sales","telesales","closer","setter","outbound","kaltakquise","akquise","telefonverkauf","aussendienst","außendienst","provision","mediaberater","verkaeufer","verkäufer","neukunden","business development","account executive","buchhaltung","accounting","steuer","datev","bilanz","lohn","designer","grafik","marketing","seo"],
-     hard:["fachinformatiker","konstrukteur","vertrieb","sales manager","sales representative","sales development","account executive","business development","sdr","telesales","akquise","closer","appointment setter","mediaberater","verkäufer","außendienst","buchhalt","steuerber","steuerfach","bilanzbuch","lohnbuchhalt","datev","accountant","accounting","payroll","senior","architekt","outbound","headhunter","recruiter","ernährungsberat","first-line manager","teamleit","vorsorge","versicherung","mechatroniker","binance","linguist","security","frankreich","französisch","pathology","risk operations"],langs:["de","en"],reg:{world:3,eu:2,de:1},
+     hard:["energieabrechnung","schadensachbearb","edm ","edm-","energiewirtschaft","fachinformatiker","konstrukteur","vertrieb","sales manager","sales representative","sales development","account executive","business development","sdr","telesales","akquise","closer","appointment setter","mediaberater","verkäufer","außendienst","buchhalt","steuerber","steuerfach","bilanzbuch","lohnbuchhalt","datev","accountant","accounting","payroll","senior","architekt","outbound","headhunter","recruiter","ernährungsberat","first-line manager","teamleit","vorsorge","versicherung","mechatroniker","binance","linguist","security","frankreich","französisch","pathology","risk operations"],langs:["de","en"],reg:{world:3,eu:2,de:1},
      /* 10.10. Paul: "Merlin ... mehr Backoffice-Stellen" -> Buero staerkster Bereich, Backoffice-Rollen als Wunsch (+7) */
      wish:/backoffice|back office|assisten|assistant|office manag|b(ü|ue)ro|sachbearbeit|datenerfassung|datenpflege|dateneingabe|data entry|stammdaten|verwaltung|auftragsabwicklung|auftragsbearbeitung|bestellabwicklung|administrative|office administration|sachbearbeiter administration|kaufm(ä|ae)nnische|innendienst/,
-     noexp:true, onlyEntry:true /* 05.10./06.10.: keine nachweisbare Erfahrung -> NUR Einstiegsstellen */},
+     noexp:true, onlyEntry:true, entryStrict:true /* 11.10. Betreuer: Wunsch-Treffer mit Erfahrung (Neo Temp, univativ, Schadensachbearbeiter) raus */ /* 05.10./06.10.: keine nachweisbare Erfahrung -> NUR Einstiegsstellen */},
    /* Profil B (26.09. nachgescharft, Pauls Vorgabe): wieder klar auf Kreatives - Content, Video,
       Social Media, Grafik, Text. Verwaltung und Buchhaltung sind aus dem plus-Block raus und
       stehen jetzt im minus-Block, Kundenservice bleibt hart ausgeschlossen. */
@@ -1681,7 +1683,7 @@ FD_JS = r'''
    "felicia26":{ber:{buero:3.5,service:3,vertrieb:1.5,marketing:1,it:1,start:1,sprache:0.5,gesundheit:0.5},
      plus:["marktforschung","market research","research","umfrage","survey","datenanalyse","data analyst","reporting","auswertung","excel","powerpoint","projektkoordination","projektassistenz","koordination","assistenz","assistant","sachbearbeit","backoffice","verwaltung","office","kaufm","buchhaltung","finanzbuchhaltung","datev","sap","kundenservice","kundenbetreuung","kundenberat","customer success","customer support","inside sales","vertriebsinnendienst","teilzeit","part-time","part time","20 std","15 std","minijob","quereinsteig","einsteiger","junior","einarbeitung","qualitätssicherung","datenqualit","canva","geringfügig","16 std","10 std","16 stunden","20 stunden","stundenweise","flexible arbeitszeit"],
      minus:["senior","leitung","head of","teamleit","außendienst","aussendienst","5+ jahre","mehrjährige","provision"],
-     hard:["spanien","frankreich","italien ","ingenieur","engineer","studentenjob","student","werkstudent","working student","praktikum","praktikant","ausbildung zum","ausbildung zur","duales studium","reine provision","handelsvertret"],
+     hardTxt:/wilken|schleupen|\blima\b/i, /* 11.10. Betreuer: Energiewirtschafts-Software Pflicht */ hard:["softwarewartung","spanien","frankreich","italien ","ingenieur","engineer","studentenjob","student","werkstudent","working student","praktikum","praktikant","ausbildung zum","ausbildung zur","duales studium","reine provision","handelsvertret"],
      /* 09.10. Betreuer: nur ca. 16 Std./Woche -> Teilzeit/Minijob staerker */
      langs:["de","en"],reg:{world:3,eu:2,de:1}},
    /* 07.10.: Neukundin (Formular + Lebenslauf): 6 J. Disposition Spedition (UK-Italien), 2 J. Abteilungsleitung Logistik
@@ -1698,7 +1700,7 @@ FD_JS = r'''
      hardRx:/\bit\b|technisch|technical|techniker|technician|tech support|(1st|2nd|3rd|first|second|third).?level|help.?desk|service.?desk|\bsap\b|\berp\b|\bcrm\b|software|saas|system|netzwerk|network|cloud|cyber|security|informatik|programmier|python|java|\bsql\b|datenbank|database|data (analy|scien|engineer)|datenanaly|digitalisierung|devops|scrum|product owner|tester|\bqa\b|webentwick|webdesign|web develop|linux|implementation|implementier|product support|integration|migration|ingenieur|engineer|application|sales|business development|product manag|produktmanag|research associate|studentisch|\bai\b|\bki\b|oracle|\bdba\b|business analyst|financ|testmanag|fachplaner|steuer(?!ung)|verk(ä|ae)uf/,
      /* Software-Firmen, deren Support-Stellen Software-Support sind (Beschreibung zu knapp fuer ein Stichwort) */
      hardTxt:/software|saas|ubuntu|linux|cyber|pentest|open.?source|it-sicherheit|it-dienstleist|it-services|\bki-|k(ü|ue)nstliche intelligenz|impower|plancraft|simscale|heydata|wordly|canonical|openproject|nextcloud|ntt data|\bit ug\b|it-excelsus/,
-     wish:/assisten|assistant|backoffice|back office|office manag|customer support|customer service|customer success|customer care|kundenservice|kundensupport|kundenbetreu|kundenberat|kundendienst|support specialist|support agent/,
+     wish:/disponent|disposition|spedition|logistik|zoll|auftragsabwicklung|einsatzplanung|tourenplanung|assisten|assistant|backoffice|back office|office manag|customer support|customer service|customer success|customer care|kundenservice|kundensupport|kundenbetreu|kundenberat|kundendienst|support specialist|support agent/,
      extraLang:true,
      langs:["de","en"],reg:{world:3,eu:2.5,de:1}},
    /* 07.10.: Neukundin (Formular + Lebenslauf): Bachelor Mehrsprachige Kommunikation (Uebersetzen EN/FR), seit Jahren
@@ -1933,6 +1935,7 @@ FD_JS = r'''
     if(p.onlyEntry){
       var _meta=(c.querySelector('.meta')||c).textContent;
       if(/Erfahrung nötig/.test(_meta))return -999;
+      if(p.entryStrict && c.dataset.level!=='einsteiger' && !/Ohne Erfahrung/.test(_meta))return -999;
       var _simple=/kundenservice|kundendienst|kundenbetreu|kundenberat|customer (support|service|care)|support agent|chat|e-mail-support|email support|1st.?level|first.?level|helpdesk|it-support|service.?desk|datenerfassung|data entry|dateneingabe|backoffice|back office|bürotätigkeit|sachbearbeit|assistenz|assistant|content.?moderat|moderator|rater|transkription|minijob|aushilfe|telefonist|inbound|call.?(center|agent)|callcenter|terminierung|terminvereinbarung|pannenhilfe|mitarbeiter/.test(title);
       if(c.dataset.level!=='einsteiger' && !/Ohne Erfahrung/.test(_meta) && !_simple)return -999;
       if(/senior|lead|leitung|teamleit|manager|head|spezialist|specialist|expert|engineer|entwickler|developer|analyst|werkstud|university|graduate/.test(title) && !/support engineer/.test(title))return -999;
@@ -2243,8 +2246,15 @@ def main():
     manual = [m for m in manual if not any(h in m["url"].lower() for h in LOGIN_HOSTS)]  # Login-/Abo-Quellen raus (02.10.)
     # (Tote-Link-Check + Redirect-Aufloesung laufen jetzt board-weit weiter unten, ueber ALLE Stellen.)
 
-    man_urls={m["url"].rstrip("/") for m in manual}
-    auto=[a for a in auto if a["url"].rstrip("/") not in man_urls]  # manuell gewinnt
+    # 11.10.: Dubletten zwischen manueller Liste und Firmen-Boards (Personio .de/.com, ?language=de) -> erste gewinnt
+    def _ukey(u): return re.sub(r"\.jobs\.personio\.(de|com)", ".jobs.personio", re.sub(r"[?#].*$", "", u or "").rstrip("/").lower())
+    _seen=set(); _m2=[]
+    for m in manual:
+        if _ukey(m["url"]) in _seen: continue
+        _seen.add(_ukey(m["url"])); _m2.append(m)
+    manual=_m2
+    man_urls={_ukey(m["url"]) for m in manual}
+    auto=[a for a in auto if _ukey(a["url"]) not in man_urls]  # manuell gewinnt
 
     # --- Paul-Vorgabe: mindestens die Haelfte deutschsprachig (ueber das GANZE Board) ---
     # Kunden-Picks immer behalten; Englisch nur so weit, dass insgesamt Deutsch >= Englisch.
