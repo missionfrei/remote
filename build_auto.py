@@ -95,7 +95,7 @@ FIRMEN_BLOCK = ["engelvoelkers", "engel & völkers", "engel & voelkers",  # 11.1
     "os-itsupport", "os support gmbh"]
 # 09.10.: einzelne BA-Anzeigen, die trotz "100 % Homeoffice" Aussendienst/Reisen/Provision verlangen und die
 # Textpruefung (BA_AUSSEN) nicht sicher erkennt - von Hand im Anzeigentext bestaetigt.
-STELLEN_BLOCK = ["10001-1003766826-s", "11858-sde-115840-sta-s", "12117-yf-51552-yf-s", "12117-yf-52141-yf-s", "12511-2026x0000051994-s", "12951-53e504f3-1fbe-4f37--s"]
+STELLEN_BLOCK = ["uai-solutions/kundendienstmitarbeiter", "10001-1003766826-s", "11858-sde-115840-sta-s", "12117-yf-51552-yf-s", "12117-yf-52141-yf-s", "12511-2026x0000051994-s", "12951-53e504f3-1fbe-4f37--s"]
 # 11.10.: Hauptrecruiter + Dashboard-Chat: 141 BA-Stellen hatten nur das BA-Label "Homeoffice (bis zu 100 %)", im Anzeigentext aber
 # "Homeoffice moeglich", hybrid, anteilig oder "Standort oder Homeoffice" (NTT DATA, SoftwareOne, ifm, GISA ...). Paul: nur 100 % remote.
 # 11.10.: Lernplattform-Saetze ("dm-Lernwelt: lernst Du zeit- und ortsunabhaengig") sind kein Beleg (BA_WEICH)
@@ -127,7 +127,8 @@ def ba_beleg_ok(text, titel, url=""):
 # ("Upgrade to Premium"), freelancermap (Projektzugang nur mit Premium), jobleads und xing
 # (Login vor dem Anzeigentext), adzuna /land/ (Zwischenseite statt Stelle), himalayas
 # (blockiert, dort stand zudem eine Flirt-Line-Anzeige). Diese Quellen kommen nicht mehr aufs Board.
-LOGIN_HOSTS = ["jobicy.com","remotive.com","jobgether.com","remoteok.com","freelancermap.de",
+LOGIN_HOSTS = ["learn4good.com","trabajo.org","bebee.com","jooble.org","indeed.com",  # 13.10. Kunden-Betreuer: Aggregator-Karten ohne Beleg
+    "jobicy.com","remotive.com","jobgether.com","remoteok.com","freelancermap.de",
     "jobleads.com","xing.com","adzuna.de/land/","himalayas.app",
     # 03.10. Board-Vollcheck (Paul: "filter besser und check jede"):
     # weworkremotely: 119 englische Stellen, viele an US-Staedte oder Japan gebunden ("Account Executive
@@ -1605,7 +1606,7 @@ FD_JS = r'''
    "lisamaria26":{ber:{buero:3.5,start:1,sprache:0.5,service:0},
      plus:["office","back office","backoffice","verwaltung","administration","sachbearbeit","assistenz","teamassistenz","projektassistenz","virtuelle assistenz","virtual assistant","executive assistant","personal assistant","administrative","koordination","coordinator","disposition","auftragsabwicklung","auftragsbearbeitung","datenerfassung","data entry","dateneingabe","datenpflege","stammdaten","belegerfassung","dokumenten","dokumentenmanagement","archivierung","digitalisierung","e-mail-bearbeitung","e-mail bearbeitung","postbearbeitung","schriftlich","terminplanung","kalender","organisation","office manager","office administration","office assistant","operations","scheduling","order management","rechnungspruefung","rechnungspruefung","abrechnung","reservierung","reservations","reservation agent","booking","buchung","reisebuero","reisebüro","reiseverkehrskauffrau","touristik","travel consultant","business travel","reiseberat","hotel reservation","revenue","groups & events"],
      minus:["kundenservice","kundensupport","kundenkontakt","kundenbetreuung","kundendienst","customer service","customer support","customer care","customer success","concierge","call center","callcenter","telefonie","telefonisch","telefonist","hotline","anrufe","inbound","outbound","chat support","live chat","help desk","helpdesk","support agent","beschwerde","developer","engineer","software","vertrieb","sales","closer","setter","designer","marketing","crypto","blockchain","devops","rater","annotation","ai training","schadensachbearbeit","marketplace","energiesektor"],
-     hard:["developer","software engineer","devops","data engineer","qa engineer","call center","callcenter","call agent","telefonist","telefonakquise","outbound","cold call","telefonischer sachbearbeiter","telefonische sachbearbeitung"],
+     hard:["telefon-sachbearbeit","kundenqualifizierung","developer","software engineer","devops","data engineer","qa engineer","call center","callcenter","call agent","telefonist","telefonakquise","outbound","cold call","telefonischer sachbearbeiter","telefonische sachbearbeitung"],
      /* 09.10. Paul: "Lisa steuern und Recht / Anwaltsachen raus" (Titel; Beschreibung/Firma nur bei Kanzlei/Steuerbuero) */
      hardRx:/steuer(fach|berat|kanzlei|b(ü|ue)ro|assist|recht|erkl|sachbearb|gehilf|kraft|deklar|referent|spezialist)|\btax\b|recht|jurist|anwalt|kanzlei|notar|justiz|legal|paralegal|lawyer|attorney|compliance/,
      hardTxt:/steuerberat|steuerkanzlei|steuerb(ü|ue)ro|rechtsanwalt|anwaltskanzlei|kanzlei|notariat|law firm/,exempt:/travel|reise|touristik|tourism|reservat|reservier|booking|buchung|hotel|flug|kreuzfahrt|assistenz|assistant|back\s?office|backoffice|sachbearbeit|datenpflege|datenerfassung/i,langs:["de","en"],reg:{world:3,eu:2,de:1}},
@@ -1656,10 +1657,10 @@ FD_JS = r'''
    "leia26":{ber:{buero:4,marketing:3,start:1,sprache:0.5,service:0,gesundheit:1},
      plus:["marketing","online marketing","social media","social content","content","content creation","content creator","creator","ugc","contentproduktion","redaktion","texter","copywriter","copywriting","autor","schreiben","storytelling","blog","newsletter","grafik","grafikdesign","design","designer","gestalter","mediengestalter","art direction","illustration","visuelles marketing","visual","kreativ","creative","canva","figma","photoshop","adobe","capcut","video","videobearbeitung","videoschnitt","cutter","schnitt","editor","motion","reels","tiktok","instagram","youtube","shortform","bildbearbeitung","podcast","community management","community manager","influencer","kooperation","paid social","performance marketing","kampagne","brand","marke","e-commerce","shop","produktdaten","seo","backoffice","back office","assistenz","assistant","office","büro","verwaltung","administration","administrativ","sachbearbeit","datenerfassung","datenpflege","dateneingabe","data entry","stammdaten","auftragsabwicklung","auftragsbearbeitung","bestellabwicklung","organisation","koordination","kaufmännisch","dokumentation","teilzeit","quereinsteiger"],
      minus:["kundenservice","kundensupport","kundenbetreuung","kundendienst","customer service","customer support","customer care","customer success","call center","callcenter","telefonie","telefonist","inbound","outbound","helpdesk","help desk","it-support","it support","service desk","technischer support","support agent","beschwerde","buchhaltung","rechnungswesen","developer","engineer","software","devops","systemadmin","netzwerk","handwerk","montage","lager","vertrieb","telesales","closer","setter","akquise","aussendienst","außendienst"],
-     hard:["menswear","fashion designer","modedesign","kundenservice","kundensupport","kundenbetreuung","customer service","customer support","customer care","customer success","callcenter","call center","call-center","helpdesk","help desk","it-support","it support","service desk","technischer support","support agent","support specialist","telefonist","developer","software engineer","devops","systemadmin","telesales","appointment setter","kaltakquise","außendienst","senior","architekt","opener","dozent","cyber security"],langs:["de","en"],reg:{world:3,eu:2,de:1},
+     hard:["telefon-sachbearbeit","energiewirtschaft","energieabrechnung","schadensachbearb","menswear","fashion designer","modedesign","kundenservice","kundensupport","kundenbetreuung","customer service","customer support","customer care","customer success","callcenter","call center","call-center","helpdesk","help desk","it-support","it support","service desk","technischer support","support agent","support specialist","telefonist","developer","software engineer","devops","systemadmin","telesales","appointment setter","kaltakquise","außendienst","senior","architekt","opener","dozent","cyber security"],langs:["de","en"],reg:{world:3,eu:2,de:1},
      /* 10.10. Paul: "Leia ... mehr Backoffice-Stellen" -> Buero staerkster Bereich, Backoffice-Rollen als Wunsch (+7) */
      wish:/backoffice|back office|assisten|assistant|office manag|b(ü|ue)ro|sachbearbeit|datenerfassung|datenpflege|dateneingabe|data entry|stammdaten|verwaltung|auftragsabwicklung|auftragsbearbeitung|bestellabwicklung|administrative|office administration|sachbearbeiter administration|kaufm(ä|ae)nnische|innendienst/,
-     noexp:true /* 06.10.: Leia unzufrieden -> Einstieg zuerst */},
+     noexp:true, entryStrict:true /* 13.10. Betreuer: Wunsch-Treffer mit Erfahrungspflicht raus */ /* 06.10.: Leia unzufrieden -> Einstieg zuerst */},
    /* 05.10., Kundenmeldung Markus: weniger Entwicklerstellen (die sind fast alle an Deutschland vor Ort
       gebunden), mehr Sales. Schwerpunkt jetzt Vertrieb (Inside Sales, Account Management, Business
       Development, SaaS-/Tech-Sales, Customer Success). Technik-Wissen nur noch als Bruecke (Sales/Solution
@@ -1934,6 +1935,7 @@ FD_JS = r'''
        die als Einstieg markiert sind (Level einsteiger oder Hinweis "Ohne Erfahrung möglich"). */
     /* Paul 06.10.: ALLE wirklich passenden einfachen Rollen rein (Kundenservice, Support, Backoffice, Datenerfassung,
        Moderation, Assistenz ...), auch ohne das Wort "Quereinsteiger" - aber nie mit Hinweis "Erfahrung nötig". */
+    if(p.entryStrict && !p.onlyEntry){var _m2=(c.querySelector('.meta')||c).textContent;if(c.dataset.level!=='einsteiger' && !/Ohne Erfahrung/.test(_m2))return -999;}  /* 13.10.: entryStrict auch ohne onlyEntry (leia26) */
     if(p.onlyEntry){
       var _meta=(c.querySelector('.meta')||c).textContent;
       if(/Erfahrung nötig/.test(_meta))return -999;
