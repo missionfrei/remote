@@ -1649,8 +1649,10 @@ FD_JS = r'''
      minus:["vertrieb","sales","telesales","closer","setter","outbound","kaltakquise","akquise","telefonverkauf","aussendienst","außendienst","provision","mediaberater","verkaeufer","verkäufer","neukunden","business development","account executive","buchhaltung","accounting","steuer","datev","bilanz","lohn","designer","grafik","marketing","seo"],
      hard:["energieabrechnung","schadensachbearb","edm ","edm-","energiewirtschaft","fachinformatiker","konstrukteur","vertrieb","sales manager","sales representative","sales development","account executive","business development","sdr","telesales","akquise","closer","appointment setter","mediaberater","verkäufer","außendienst","buchhalt","steuerber","steuerfach","bilanzbuch","lohnbuchhalt","datev","accountant","accounting","payroll","senior","architekt","outbound","headhunter","recruiter","ernährungsberat","first-line manager","teamleit","vorsorge","versicherung","mechatroniker","binance","linguist","security","frankreich","französisch","pathology","risk operations"],langs:["de","en"],reg:{world:3,eu:2,de:1},
      /* 10.10. Paul: "Merlin ... mehr Backoffice-Stellen" -> Buero staerkster Bereich, Backoffice-Rollen als Wunsch (+7) */
-     wish:/backoffice|back office|assisten|assistant|office manag|b(ü|ue)ro|sachbearbeit|datenerfassung|datenpflege|dateneingabe|data entry|stammdaten|verwaltung|auftragsabwicklung|auftragsbearbeitung|bestellabwicklung|administrative|office administration|sachbearbeiter administration|kaufm(ä|ae)nnische|innendienst/,
-     noexp:true, onlyEntry:true, entryStrict:true /* 11.10. Betreuer: Wunsch-Treffer mit Erfahrung (Neo Temp, univativ, Schadensachbearbeiter) raus */ /* 05.10./06.10.: keine nachweisbare Erfahrung -> NUR Einstiegsstellen */},
+     wish:/(ai|ki)[- ]?(product[- ]?)?builder|product[- ]?builder|vibe[- ]?cod|ai[- ]?coding|(ai|ki)[- ]?(automation|automatisierung)|no[- ]?code|low[- ]?code|prompt|n8n|(ai|ki)[- ]?(generalist|operator|enablement|champion)|(hubspot|crm|workflow|prozess)[- ]?automati|backoffice|back office|assisten|assistant|office manag|b(ü|ue)ro|sachbearbeit|datenerfassung|datenpflege|dateneingabe|data entry|stammdaten|verwaltung|auftragsabwicklung|auftragsbearbeitung|bestellabwicklung|administrative|office administration|sachbearbeiter administration|kaufm(ä|ae)nnische|innendienst/,
+     noexp:true, onlyEntry:true, entryStrict:true,
+     /* 13.10. Paul: AI-Product-Builder-Stellen (ProviPanda) - KI/No-Code/Automation-Rollen auch mit Erfahrung, minus-Block greift dort nicht */
+     entryOk:/(ai|ki)[- ]?(product[- ]?)?builder|product[- ]?builder|vibe[- ]?cod|ai[- ]?coding|(ai|ki)[- ]?(automation|automatisierung)|no[- ]?code|low[- ]?code|prompt|n8n|(ai|ki)[- ]?(generalist|operator|enablement|champion)|(hubspot|crm|workflow|prozess)[- ]?automati|automation[- ]?(specialist|spezialist|builder|consultant|expert)|automatisierungsexpert/, exempt:/(ai|ki)[- ]?(product[- ]?)?builder|product[- ]?builder|vibe[- ]?cod|ai[- ]?coding|(ai|ki)[- ]?(automation|automatisierung)|no[- ]?code|low[- ]?code|prompt|n8n|(ai|ki)[- ]?(generalist|operator|enablement|champion)|(hubspot|crm|workflow|prozess)[- ]?automati|automation[- ]?(specialist|spezialist|builder|consultant|expert)|automatisierungsexpert/ /* 11.10. Betreuer: Wunsch-Treffer mit Erfahrung (Neo Temp, univativ, Schadensachbearbeiter) raus */ /* 05.10./06.10.: keine nachweisbare Erfahrung -> NUR Einstiegsstellen */},
    /* Profil B (26.09. nachgescharft, Pauls Vorgabe): wieder klar auf Kreatives - Content, Video,
       Social Media, Grafik, Text. Verwaltung und Buchhaltung sind aus dem plus-Block raus und
       stehen jetzt im minus-Block, Kundenservice bleibt hart ausgeschlossen. */
@@ -1938,8 +1940,11 @@ FD_JS = r'''
        die als Einstieg markiert sind (Level einsteiger oder Hinweis "Ohne Erfahrung möglich"). */
     /* Paul 06.10.: ALLE wirklich passenden einfachen Rollen rein (Kundenservice, Support, Backoffice, Datenerfassung,
        Moderation, Assistenz ...), auch ohne das Wort "Quereinsteiger" - aber nie mit Hinweis "Erfahrung nötig". */
-    if(p.entryStrict && !p.onlyEntry){var _m2=(c.querySelector('.meta')||c).textContent;if(c.dataset.level!=='einsteiger' && !/Ohne Erfahrung/.test(_m2))return -999;}  /* 13.10.: entryStrict auch ohne onlyEntry (leia26) */
-    if(p.onlyEntry){
+    /* 13.10. Paul (merlin26, AI Product Builder): "nach mehr genau solcher Stellen filtern" -> entryOk = Titel, fuer die
+       onlyEntry/entryStrict nicht gelten (auch mit Erfahrung), ausser Senior/Lead/Leitung/Engineer/Test. */
+    var _eo=!!(p.entryOk && p.entryOk.test(title) && !/senior|\blead\b|head of|leitung|architekt|test|\bqa\b|ingenieur/.test(title) && !(/engineer/.test(title) && !/prompt/.test(title)));
+    if(p.entryStrict && !p.onlyEntry && !_eo){var _m2=(c.querySelector('.meta')||c).textContent;if(c.dataset.level!=='einsteiger' && !/Ohne Erfahrung/.test(_m2))return -999;}  /* 13.10.: entryStrict auch ohne onlyEntry (leia26) */
+    if(p.onlyEntry && !_eo){
       var _meta=(c.querySelector('.meta')||c).textContent;
       if(/Erfahrung nötig/.test(_meta))return -999;
       if(p.entryStrict && c.dataset.level!=='einsteiger' && !/Ohne Erfahrung/.test(_meta))return -999;
@@ -1958,6 +1963,7 @@ FD_JS = r'''
       if(/mindestens (f(ü|ue)nf|sechs|sieben|acht|zehn) jahre/.test(t))_yrs=Math.max(_yrs,5);
       if(_yrs>=5)return -999;
       s+=7;
+      if(_eo)s+=5;   /* 13.10. Paul: AI-Builder-Stellen bei merlin26 ganz nach oben */
       if(_yrs>=2)s-=1;
       if(/\bbsc\b|b\.sc|bachelor|studium|hochschulabschluss|degree/.test(t) && !/oder vergleichbar|or equivalent|or similar|oder gleichwertig/.test(t))s-=1;
     }
