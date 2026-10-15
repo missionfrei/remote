@@ -1463,12 +1463,14 @@ def load_manual():
             level=j.get("level","einsteiger"), bereich=j.get("bereich","service"),
             date=j.get("date",TODAY), posted=(j.get("posted") or _manual_fallback_posted(j)), fd=fd,
             src=j.get("src") or ("customer" if fd else "import"),
-            direkt=(j.get("direkt") is True)))
+            direkt=(j.get("direkt") is True),
+            wahl=(j.get("wahl") is True)))   # 15.10. Paul: „Remote wählbar“ (Büro freiwillig)
     return out
 
 # ---------- Render ----------
 def region_tag(r): return {"world":'<span class="tag world">🌍 Weltweit</span>',
     "eu":'<span class="tag eu">🇪🇺 EU</span>',"de":'<span class="tag de" title="Stelle verlangt Wohnsitz in Deutschland. Arbeiten aus dem Ausland im Bewerbungsgespräch verhandeln.">🇩🇪 Wohnsitz DE · Ausland verhandeln</span>'}.get(r,'')
+def wahl_tag(w): return '<span class="tag" title="Laut Anzeige ist das Büro freiwillig – du kannst komplett remote arbeiten">🏠 Remote wählbar</span>' if w else ''   # 15.10.
 def level_tag(l): return '<span class="tag lvl">🌱 Einsteiger</span>' if l=="einsteiger" else '<span class="tag">📈 Mit Erfahrung</span>'
 def lang_tag(l):  return '<span class="tag delang">Deutsch</span>' if l=="de" else '<span class="tag">Englisch</span>'
 def fd_tag(fd):   return '<span class="tag" style="background:#f3ead4;color:#a8842e;font-weight:650">⭐ Für dich</span>' if fd else ''
@@ -1533,7 +1535,7 @@ def card(j):
             f' data-posted="{_iso}"{_agea}>\n'
             f'  <h3>{esc(j["title"])}</h3>\n  <div class="company">{esc(j["company"])}</div>\n'
             f'  <p class="info">{esc(j["info"])}</p>\n'
-            f'  <div class="meta">{region_tag(j["region"])}{level_tag(j["level"])}{lang_tag(j["lang"])}{fd_tag(j["fd"])}'
+            f'  <div class="meta">{region_tag(j["region"])}{wahl_tag(j.get("wahl"))}{level_tag(j["level"])}{lang_tag(j["lang"])}{fd_tag(j["fd"])}'
             f'{badge}{_neu}{_exp}<span class="tag date">📅 {j["date"]}</span></div>\n'
             f'  <div class="go"><a href="{j["url"]}" target="_blank" rel="noopener">{golabel}</a></div>\n</div>')
 
@@ -2396,7 +2398,7 @@ def main():
     # 07.10.: Firmen-Sperre auch fuer manuelle Eintraege (vorher nur fuer Feeds in process()).
     alljobs=[j for j in alljobs if not any(f in ((j.get("company","") or "")+" "+(j.get("url","") or "")).lower() for f in FIRMEN_BLOCK+STELLEN_BLOCK)]
     _bh=len(alljobs)
-    alljobs=[j for j in alljobs if not _HYBRID.search(j.get("title","")+" "+j.get("info",""))]
+    alljobs=[j for j in alljobs if j.get("wahl") or not _HYBRID.search(j.get("title","")+" "+j.get("info",""))]   # 15.10.: Remote wählbar bleibt
     _baz("100remote", alljobs)
     print(f"[100remote] Hybrid-/Teil-Homeoffice entfernt: {_bh-len(alljobs)} -> {len(alljobs)} bleiben")
 
