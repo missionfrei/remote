@@ -102,7 +102,7 @@ STELLEN_BLOCK = ["uai-solutions/kundendienstmitarbeiter", "10001-1003766826-s", 
 # -> BA-Stellen brauchen den woertlichen Beleg im Anzeigentext/Titel (siehe resolve_link). BA_GEPRUEFT = von Hand gepruefte Ausnahmen,
 #    deren Arbeitsort ausdruecklich das Homeoffice ist, nur ohne "100 %" (TelePower, Onepilot, Online-Nachhilfe Kolm, MEWA Telefonakquise).
 BA_BELEG = re.compile(r"[^.\n]{0,70}(100\s?%\s?(im\s|zu\s)?(remote|homeoffice|mobil(?!it))|vollst(ä|ae)ndig(es)?\s+(remote|im homeoffice|von zu hause)|komplett(es)?\s+(remote|im homeoffice|von zu hause)|ausschlie(ß|ss)lich\s+(remote|im homeoffice)|full(y)?[- ]remote|ortsunabh(ä|ae)ngig)[^.\n]{0,70}", re.I)
-BA_WEICH = re.compile(r"lern|zugreif|probezeit|standort oder|e-learning|seminar|schulung|weiterbildung|zugriff|kurs|fast (komplett|vollst)|\bkann\b|\bk(ö|oe)nnen\b|grunds(ä|ae)tzlich|nach (\w+ )?einarbeitung|m(ö|oe)glich|optional|\boption\b|oder (im )?b(ü|ue)ro|nahezu|(ü|ue)berwiegend|teilweise|hybrid|bis zu", re.I)
+BA_WEICH = re.compile(r"lern|zugreif|probezeit|e-learning|seminar|schulung|weiterbildung|zugriff|kurs|fast (komplett|vollst)|nach (\w+ )?einarbeitung|nahezu|(ü|ue)berwiegend|teilweise|hybrid|bis zu", re.I)   # 15.10. Paul: Remote wählbar zählt -> möglich/kann/oder Büro/Standort oder kein Ausschluss mehr
 BA_GEPRUEFT = ["10000-1207738900-s", "10001-1003799550-s", "10001-1003649278-s", "10001-1003788040-s", "10001-1003774320-s", "10001-1003788063-s"]
 # 11.10.: Auch Feed-/ATS-Stellen (nicht von Hand geprueft) kamen ohne Pruefung des Anzeigentexts aufs Board: von 259 hatten 86
 # Gegenbelege im Text ("1 Homeoffice-Tag pro Woche", hybrid, on-site, "nach der Einarbeitung", "Homeoffice moeglich") und 44 nur
