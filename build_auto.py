@@ -2367,7 +2367,7 @@ def main():
     # Paul: "1-3 Tage Homeoffice bringt nichts, muss schon 100% immer remote sein."
     # 07.10.: "80-100 %" / "60 bis 100 %" ist kein 100-%-Beleg (OnlineDoctor stand so auf dem Board).
     # 07.10.: "remote/Homeoffice moeglich" ist kein 100-%-Beleg (Paul-Regel) - auch nicht "100 % remote moeglich".
-    _HYBRID=re.compile(r"hybrid|(remote|home ?office|mobil(es)? arbeiten)\s*(ist\s*)?m(ö|oe)glich|m(ö|oe)glichkeit,? (zu )?100|(?<!\d)\d{1,2}\s*%?\s*(?:-|–|bis)\s*100\s*%|teilweise (home|remote)|(home ?office|remote)[^.]{0,20}teilweise|teilweise m(ö|oe)glich|anteilig home|\d\s*[-–bis]{1,3}\s*\d?\s*tage?\s*(pro\s*woche\s*)?(home|remote|b(ü|ue)ro)|"
+    _HYBRID=re.compile(r"hybrid|(remote|home ?office|mobil(es)? arbeiten)\s*(ist\s*)?m(ö|oe)glich|m(ö|oe)glichkeit,? (zu )?100|(?<![\w])\d{1,2}\s*%?\s*(?:-|–|bis)\s*100\s*%|teilweise (home|remote)|(home ?office|remote)[^.]{0,20}teilweise|teilweise m(ö|oe)glich|anteilig home|\d\s*[-–bis]{1,3}\s*\d?\s*tage?\s*(pro\s*woche\s*)?(home|remote|b(ü|ue)ro)|"
                        r"\d\s*(tage?|days?)\s*(pro\s*woche|per\s*week|/\s*week)\s*(im\s*)?(home|remote|office)|"
                        r"\b(2|3|4)\s*days?\s*(in\s*)?(the\s*)?office|office[- ]first|"
                        # Lauf #104: drei Anzeigen sind nur deshalb durchgerutscht, weil "Office"
@@ -2403,7 +2403,7 @@ def main():
     print(f"[100remote] Hybrid-/Teil-Homeoffice entfernt: {_bh-len(alljobs)} -> {len(alljobs)} bleiben")
 
     _bn=len(alljobs)
-    alljobs=[j for j in alljobs if not _NOFIT.search(j.get("title",""))]
+    alljobs=[j for j in alljobs if j.get("src") in ("import","customer") or not _NOFIT.search(j.get("title",""))]   # 15.10. Paul: echte 100-%-Stellen auch ohne Kunden -> Zielgruppen-Filter nur noch fuer Feeds
     _baz("passung", alljobs)
     print(f"[passung] Beratungs-/Spezialistenrollen entfernt: {_bn-len(alljobs)} -> {len(alljobs)} bleiben")
 
