@@ -1464,7 +1464,7 @@ def load_manual():
             date=j.get("date",TODAY), posted=(j.get("posted") or _manual_fallback_posted(j)), fd=fd,
             src=j.get("src") or ("customer" if fd else "import"),
             direkt=(j.get("direkt") is True),
-            wahl=(j.get("wahl") is True)))   # 15.10. Paul: „Remote wählbar“ (Büro freiwillig)
+            wahl=(True if j.get("wahl") is True else ("ok" if j.get("wahl")=="ok" else False))))   # "ok" = 100 % remote „möglich/kannst“, kein Etikett   # 15.10. Paul: „Remote wählbar“ (Büro freiwillig)
     return out
 
 # ---------- Render ----------
@@ -1535,7 +1535,7 @@ def card(j):
             f' data-posted="{_iso}"{_agea}>\n'
             f'  <h3>{esc(j["title"])}</h3>\n  <div class="company">{esc(j["company"])}</div>\n'
             f'  <p class="info">{esc(j["info"])}</p>\n'
-            f'  <div class="meta">{region_tag(j["region"])}{wahl_tag(j.get("wahl"))}{level_tag(j["level"])}{lang_tag(j["lang"])}{fd_tag(j["fd"])}'
+            f'  <div class="meta">{region_tag(j["region"])}{wahl_tag(j.get("wahl") is True)}{level_tag(j["level"])}{lang_tag(j["lang"])}{fd_tag(j["fd"])}'
             f'{badge}{_neu}{_exp}<span class="tag date">📅 {j["date"]}</span></div>\n'
             f'  <div class="go"><a href="{j["url"]}" target="_blank" rel="noopener">{golabel}</a></div>\n</div>')
 
