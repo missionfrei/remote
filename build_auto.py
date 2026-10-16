@@ -79,7 +79,7 @@ BLOCK = ["werkstud","working student",   # Paul: keine Werkstudenten
 # recime: Verguetung ist reine Provision auf das Werbebudget, kein Fixum.
 # talentspring: Bildungstraeger, verkauft Weiterbildungen als Stellenanzeigen.
 # hochberg performance: gefoerdertes Trainingsprogramm als Pflegejob getarnt (September).
-FIRMEN_BLOCK = ["coinbase", "engelvoelkers", "engel & völkers", "engel & voelkers",  # 11.10.: freie Immobilienmakler auf Provision mit Standort
+FIRMEN_BLOCK = ["coinbase", "tecfox", "engelvoelkers", "engel & völkers", "engel & voelkers",  # 11.10.: freie Immobilienmakler auf Provision mit Standort
     "recime", "talentspring", "vielhaber", "viral.app", "viralapp", "blessura", "hochberg", "welo global", "welocalize",  # 07.10.: Finanzvertrieb / Bezahlung pro Video (Kunden-Betreuer)
 
     # 03.10.: Mentify Learn schreibt eine Weiterbildung als "Quereinstieg"-Stelle aus.
@@ -999,8 +999,8 @@ SOURCES = [
     ("arbeitnow-3",   "https://www.arbeitnow.com/api/job-board-api?page=3",  from_arbeitnow, "json"),
     ("arbeitnow-4",   "https://www.arbeitnow.com/api/job-board-api?page=4",  from_arbeitnow, "json"),
     ("arbeitnow-5",   "https://www.arbeitnow.com/api/job-board-api?page=5",  from_arbeitnow, "json"),
-    ("remotive-de",   "https://remotive.com/api/remote-jobs?search=german",  from_remotive, "json"),
-    ("remotive-de2",  "https://remotive.com/api/remote-jobs?search=deutsch", from_remotive, "json"),
+    # 16.10. robots.txt sperrt /api/* -> aus: ("remotive-de",   "https://remotive.com/api/remote-jobs?search=german",  from_remotive, "json"),
+    # 16.10. robots.txt sperrt /api/* -> aus: ("remotive-de2",  "https://remotive.com/api/remote-jobs?search=deutsch", from_remotive, "json"),
     ("jobicy-de",     "https://jobicy.com/api/v2/remote-jobs?count=100&tag=german", from_jobicy, "json"),
     # 05.10.: Workable-Jobboerse (Recherche-Agent): deutschsprachige Remote-Support-Stellen weltweit
     ("workable-0", "https://jobs.workable.com/api/v1/jobs?query=german%20remote", from_workable_global, "json"),
@@ -1029,17 +1029,17 @@ SOURCES = [
     ("workable-23", "https://jobs.workable.com/api/v1/jobs?query=german%20moderator", from_workable_global, "json"),
     ("remoteok-de",   "https://remoteok.com/api?tags=german",         from_remoteok, "json"),
     # --- Weltweit (Volumen fuer die andere Haelfte) ---
-    ("remotive",      "https://remotive.com/api/remote-jobs",         from_remotive, "json"),
-    ("remotive-cs",   "https://remotive.com/api/remote-jobs?category=customer-support",   from_remotive, "json"),
-    ("remotive-sales","https://remotive.com/api/remote-jobs?category=sales",              from_remotive, "json"),
-    ("remotive-mkt",  "https://remotive.com/api/remote-jobs?category=marketing",          from_remotive, "json"),
-    ("remotive-biz",  "https://remotive.com/api/remote-jobs?category=business",           from_remotive, "json"),
-    ("remotive-data", "https://remotive.com/api/remote-jobs?category=data",               from_remotive, "json"),
-    ("remotive-write","https://remotive.com/api/remote-jobs?category=writing",            from_remotive, "json"),
-    ("remotive-fin",  "https://remotive.com/api/remote-jobs?category=finance-legal",      from_remotive, "json"),
-    ("remotive-hr",   "https://remotive.com/api/remote-jobs?category=hr",                 from_remotive, "json"),
-    ("remotive-pm",   "https://remotive.com/api/remote-jobs?category=project-management", from_remotive, "json"),
-    ("remotive-all",  "https://remotive.com/api/remote-jobs?category=all-others",         from_remotive, "json"),
+    # 16.10. robots.txt sperrt /api/* -> aus: ("remotive",      "https://remotive.com/api/remote-jobs",         from_remotive, "json"),
+    # 16.10. robots.txt sperrt /api/* -> aus: ("remotive-cs",   "https://remotive.com/api/remote-jobs?category=customer-support",   from_remotive, "json"),
+    # 16.10. robots.txt sperrt /api/* -> aus: ("remotive-sales","https://remotive.com/api/remote-jobs?category=sales",              from_remotive, "json"),
+    # 16.10. robots.txt sperrt /api/* -> aus: ("remotive-mkt",  "https://remotive.com/api/remote-jobs?category=marketing",          from_remotive, "json"),
+    # 16.10. robots.txt sperrt /api/* -> aus: ("remotive-biz",  "https://remotive.com/api/remote-jobs?category=business",           from_remotive, "json"),
+    # 16.10. robots.txt sperrt /api/* -> aus: ("remotive-data", "https://remotive.com/api/remote-jobs?category=data",               from_remotive, "json"),
+    # 16.10. robots.txt sperrt /api/* -> aus: ("remotive-write","https://remotive.com/api/remote-jobs?category=writing",            from_remotive, "json"),
+    # 16.10. robots.txt sperrt /api/* -> aus: ("remotive-fin",  "https://remotive.com/api/remote-jobs?category=finance-legal",      from_remotive, "json"),
+    # 16.10. robots.txt sperrt /api/* -> aus: ("remotive-hr",   "https://remotive.com/api/remote-jobs?category=hr",                 from_remotive, "json"),
+    # 16.10. robots.txt sperrt /api/* -> aus: ("remotive-pm",   "https://remotive.com/api/remote-jobs?category=project-management", from_remotive, "json"),
+    # 16.10. robots.txt sperrt /api/* -> aus: ("remotive-all",  "https://remotive.com/api/remote-jobs?category=all-others",         from_remotive, "json"),
     ("jobicy",        "https://jobicy.com/api/v2/remote-jobs?count=100",             from_jobicy, "json"),
     ("jobicy-any",    "https://jobicy.com/api/v2/remote-jobs?count=100&geo=anywhere", from_jobicy, "json"),
     ("remoteok",      "https://remoteok.com/api",                     from_remoteok, "json"),
@@ -1055,11 +1055,11 @@ SOURCES = [
     # --- Weitere freie RSS-Boards ---
     # 09.10.: euremotejobs-Feed enthaelt nur Blogartikel ("How to hire ...") statt Stellen -> raus.
     # --- Runde: mehr Boersen + gezielte deutschsprachige/kundennahe Suchen ---
-    ("remotive-kundenservice","https://remotive.com/api/remote-jobs?search=kundenservice",   from_remotive, "json"),
-    ("remotive-support-de",   "https://remotive.com/api/remote-jobs?search=german%20support", from_remotive, "json"),
-    ("remotive-reservation",  "https://remotive.com/api/remote-jobs?search=reservation",       from_remotive, "json"),
-    ("remotive-travel",       "https://remotive.com/api/remote-jobs?search=travel",            from_remotive, "json"),
-    ("remotive-assistant",    "https://remotive.com/api/remote-jobs?search=assistant%20german", from_remotive, "json"),
+    # 16.10. robots.txt sperrt /api/* -> aus: ("remotive-kundenservice","https://remotive.com/api/remote-jobs?search=kundenservice",   from_remotive, "json"),
+    # 16.10. robots.txt sperrt /api/* -> aus: ("remotive-support-de",   "https://remotive.com/api/remote-jobs?search=german%20support", from_remotive, "json"),
+    # 16.10. robots.txt sperrt /api/* -> aus: ("remotive-reservation",  "https://remotive.com/api/remote-jobs?search=reservation",       from_remotive, "json"),
+    # 16.10. robots.txt sperrt /api/* -> aus: ("remotive-travel",       "https://remotive.com/api/remote-jobs?search=travel",            from_remotive, "json"),
+    # 16.10. robots.txt sperrt /api/* -> aus: ("remotive-assistant",    "https://remotive.com/api/remote-jobs?search=assistant%20german", from_remotive, "json"),
     ("jobicy-support",        "https://jobicy.com/api/v2/remote-jobs?count=100&industry=supporting", from_jobicy, "json"),
     ("jobicy-admin",          "https://jobicy.com/api/v2/remote-jobs?count=100&industry=admin",      from_jobicy, "json"),
     ("arbeitnow-6",           "https://www.arbeitnow.com/api/job-board-api?page=6", from_arbeitnow, "json"),
@@ -1068,30 +1068,30 @@ SOURCES = [
     ("remotewoman",           "https://remotewoman.com/feed/",                         from_rss_generic, "text"),
     ("jobicy-rss",            "https://jobicy.com/?feed=job_feed",                     from_rss_generic, "text"),
     # --- Lauf #19: neue Boards + gezielt Reise/Hospitality (Paul-Wunsch) ---
-    ("remotive-hospitality",  "https://remotive.com/api/remote-jobs?search=hospitality", from_remotive, "json"),
-    ("remotive-guest",        "https://remotive.com/api/remote-jobs?search=guest%20experience", from_remotive, "json"),
-    ("remotive-booking",      "https://remotive.com/api/remote-jobs?search=booking",     from_remotive, "json"),
-    ("remotive-concierge",    "https://remotive.com/api/remote-jobs?search=concierge",   from_remotive, "json"),
+    # 16.10. robots.txt sperrt /api/* -> aus: ("remotive-hospitality",  "https://remotive.com/api/remote-jobs?search=hospitality", from_remotive, "json"),
+    # 16.10. robots.txt sperrt /api/* -> aus: ("remotive-guest",        "https://remotive.com/api/remote-jobs?search=guest%20experience", from_remotive, "json"),
+    # 16.10. robots.txt sperrt /api/* -> aus: ("remotive-booking",      "https://remotive.com/api/remote-jobs?search=booking",     from_remotive, "json"),
+    # 16.10. robots.txt sperrt /api/* -> aus: ("remotive-concierge",    "https://remotive.com/api/remote-jobs?search=concierge",   from_remotive, "json"),
     ("jobicy-anywhere2",      "https://jobicy.com/api/v2/remote-jobs?count=100&geo=anywhere&industry=supporting", from_jobicy, "json"),
     ("cryptojobslist",        "https://cryptojobslist.com/feed",                        from_rss_generic, "text"),
     ("pangian",               "https://pangian.com/job-board/feed/",                     from_rss_generic, "text"),
     # --- Lauf #21: mehr kundennahe/deutsche Suchen (mehr Direkt-Einzelstellen) ---
-    ("remotive-success",      "https://remotive.com/api/remote-jobs?search=customer%20success", from_remotive, "json"),
-    ("remotive-va",           "https://remotive.com/api/remote-jobs?search=virtual%20assistant", from_remotive, "json"),
-    ("remotive-moderator",    "https://remotive.com/api/remote-jobs?search=moderator",   from_remotive, "json"),
-    ("remotive-onboarding",   "https://remotive.com/api/remote-jobs?search=onboarding",  from_remotive, "json"),
-    ("remotive-german3",      "https://remotive.com/api/remote-jobs?search=deutschsprachig", from_remotive, "json"),
+    # 16.10. robots.txt sperrt /api/* -> aus: ("remotive-success",      "https://remotive.com/api/remote-jobs?search=customer%20success", from_remotive, "json"),
+    # 16.10. robots.txt sperrt /api/* -> aus: ("remotive-va",           "https://remotive.com/api/remote-jobs?search=virtual%20assistant", from_remotive, "json"),
+    # 16.10. robots.txt sperrt /api/* -> aus: ("remotive-moderator",    "https://remotive.com/api/remote-jobs?search=moderator",   from_remotive, "json"),
+    # 16.10. robots.txt sperrt /api/* -> aus: ("remotive-onboarding",   "https://remotive.com/api/remote-jobs?search=onboarding",  from_remotive, "json"),
+    # 16.10. robots.txt sperrt /api/* -> aus: ("remotive-german3",      "https://remotive.com/api/remote-jobs?search=deutschsprachig", from_remotive, "json"),
     ("jobicy-de2",            "https://jobicy.com/api/v2/remote-jobs?count=100&tag=deutsch", from_jobicy, "json"),
 ]
 
 # --- Lauf #26: mehr freie Suchen (sofort, ohne Key) - profilnah (CS/Reise/Admin/deutsch) ---
 SOURCES += [
-    ("remotive-german-cust",  "https://remotive.com/api/remote-jobs?search=german%20customer", from_remotive, "json"),
-    ("remotive-reise2",       "https://remotive.com/api/remote-jobs?search=reise",             from_remotive, "json"),
-    ("remotive-hotel",        "https://remotive.com/api/remote-jobs?search=hotel",             from_remotive, "json"),
-    ("remotive-billing",      "https://remotive.com/api/remote-jobs?search=billing",           from_remotive, "json"),
-    ("remotive-community",    "https://remotive.com/api/remote-jobs?search=community",          from_remotive, "json"),
-    ("remotive-account-mgr",  "https://remotive.com/api/remote-jobs?search=account%20manager",  from_remotive, "json"),
+    # 16.10. robots.txt sperrt /api/* -> aus: ("remotive-german-cust",  "https://remotive.com/api/remote-jobs?search=german%20customer", from_remotive, "json"),
+    # 16.10. robots.txt sperrt /api/* -> aus: ("remotive-reise2",       "https://remotive.com/api/remote-jobs?search=reise",             from_remotive, "json"),
+    # 16.10. robots.txt sperrt /api/* -> aus: ("remotive-hotel",        "https://remotive.com/api/remote-jobs?search=hotel",             from_remotive, "json"),
+    # 16.10. robots.txt sperrt /api/* -> aus: ("remotive-billing",      "https://remotive.com/api/remote-jobs?search=billing",           from_remotive, "json"),
+    # 16.10. robots.txt sperrt /api/* -> aus: ("remotive-community",    "https://remotive.com/api/remote-jobs?search=community",          from_remotive, "json"),
+    # 16.10. robots.txt sperrt /api/* -> aus: ("remotive-account-mgr",  "https://remotive.com/api/remote-jobs?search=account%20manager",  from_remotive, "json"),
     ("jobicy-cust",           "https://jobicy.com/api/v2/remote-jobs?count=100&tag=customer-support", from_jobicy, "json"),
     ("jobicy-anywhere-admin", "https://jobicy.com/api/v2/remote-jobs?count=100&geo=anywhere&industry=admin", from_jobicy, "json"),
     ("remoteok-german",       "https://remoteok.com/api?tags=german",                          from_remoteok, "json"),
