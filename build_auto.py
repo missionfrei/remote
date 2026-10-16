@@ -79,7 +79,8 @@ BLOCK = ["werkstud","working student",   # Paul: keine Werkstudenten
 # recime: Verguetung ist reine Provision auf das Werbebudget, kein Fixum.
 # talentspring: Bildungstraeger, verkauft Weiterbildungen als Stellenanzeigen.
 # hochberg performance: gefoerdertes Trainingsprogramm als Pflegejob getarnt (September).
-FIRMEN_BLOCK = ["coinbase", "tecfox", "engelvoelkers", "engel & völkers", "engel & voelkers",  # 11.10.: freie Immobilienmakler auf Provision mit Standort
+FIRMEN_BLOCK = ["claudia buhl", "claurioncom", "barz-buerodienst", "barz bürodienst", "langella-office", "eilers & partner", "poppe & partner", "landmann recruiting", "villa bürodienst", "optioffice",  # 16.10.: verdeckter Finanzvertrieb als "Virtuelle Assistenz"
+    "coinbase", "tecfox", "engelvoelkers", "engel & völkers", "engel & voelkers",  # 11.10.: freie Immobilienmakler auf Provision mit Standort
     "recime", "talentspring", "vielhaber", "viral.app", "viralapp", "blessura", "hochberg", "welo global", "welocalize",  # 07.10.: Finanzvertrieb / Bezahlung pro Video (Kunden-Betreuer)
 
     # 03.10.: Mentify Learn schreibt eine Weiterbildung als "Quereinstieg"-Stelle aus.
