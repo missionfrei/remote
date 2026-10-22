@@ -20,6 +20,7 @@ TEMPLATE = os.path.join(HERE, "template.html")
 MANUAL   = os.path.join(HERE, "manual-jobs.json")
 OUT      = os.path.join(HERE, "index.html")
 MOCK     = "--mock" in sys.argv
+KI_KNOPF = False  # 22.10.: "Mit KI bewerben" (dein-remotejob.de) erst einschalten, wenn die Kunden ihre Tool-Zugänge haben
 TODAY    = datetime.date.today().strftime("%d.%m.%Y")
 
 # ---------- 7 Bereiche: Reihenfolge, Farbe, Label ----------
@@ -1533,13 +1534,16 @@ def card(j):
     elif re.search(r"mehrj(ä|ae)hrige|mindestens \d|\d\+? jahre|years of (relevant )?experience|einschl(ä|ae)gige|abgeschlossene ausbildung als|senior|erfahrene", _ti):
         _exp='<span class="tag pflicht">⚠️ Erfahrung nötig</span>'
     else: _exp=""
+    # 22.10.: KI-Bewerbungstool (dein-remotejob.de) – nur bei Direktlinks; bleibt zweiter Link in .go (Importer/Checks lesen den ersten)
+    _ki = (f' <a class="ki" href="https://dein-remotejob.de/mit-ki?url={urllib.parse.quote(j["url"], safe="")}" target="_blank" rel="noopener"'
+           f' style="margin-left:14px;display:inline-block">🤖 Mit KI bewerben</a>') if (d and KI_KNOPF) else ""
     return (f'<div class="card" data-bereich="{j["bereich"]}" data-level="{j["level"]}" data-lang="{j["lang"]}" data-direct="{1 if d else 0}"'
             f' data-posted="{_iso}"{_agea}>\n'
             f'  <h3>{esc(j["title"])}</h3>\n  <div class="company">{esc(j["company"])}</div>\n'
             f'  <p class="info">{esc(j["info"])}</p>\n'
             f'  <div class="meta">{region_tag(j["region"])}{wahl_tag(j.get("wahl") is True)}{level_tag(j["level"])}{lang_tag(j["lang"])}{fd_tag(j["fd"])}'
             f'{badge}{_neu}{_exp}<span class="tag date">📅 {j["date"]}</span></div>\n'
-            f'  <div class="go"><a href="{j["url"]}" target="_blank" rel="noopener">{golabel}</a></div>\n</div>')
+            f'  <div class="go"><a href="{j["url"]}" target="_blank" rel="noopener">{golabel}</a>{_ki}</div>\n</div>')
 
 # Deckel pro Bereich - kippt den Mix Richtung Service/Buero statt IT-Flut.
 # Lauf #20 (Paul: mehr Volumen) deutlich angehoben.
@@ -1618,9 +1622,9 @@ FD_JS = r'''
       Vertriebstitel stehen jetzt im hard-Block, Vertriebswoerter im minus-Block. */
    "annette26":{ber:{service:3.5,gesundheit:2,buero:1.5,start:0.5},
      plus:["customer","support","kundenservice","kundensupport","kundenbetreuung","kundenbetreuer","kundenberater","kundenberatung","kundendienst","kundendialog","servicecenter","serviceberater","betreuung","service","technischer support","technischer kundenservice","customer care","inbound","erste anlaufstelle","anfragen","auftragsannahme","reklamation","ticket","chat support","email support","e-mail support","1st level","first level","assistant","assistenz","office","back office","administration","verwaltung","sachbearbeit","empfang"],
-     minus:["vertrieb","sales","telesales","verkauf","telefonverkauf","akquise","kaltakquise","outbound","provision","neukunden","business development","account executive","mediaberater","closer","setter","direct sales","aussendienst","außendienst","developer","engineer","software","buchhaltung","accounting","steuer","datev","designer","devops","controlling","lohn","bilanz","wirtschaftsprüf","up-selling","upselling","cross-selling","neuverträge","vertragsabschl","standortnähe","standort nähe","& umgebung","und umgebung","seller central","englisch c1","english (c1","fluent in german and english","fließend englisch","verhandlungssicheres englisch","german-speaking","german speaking"],
+     minus:["vertrieb","sales","telesales","verkauf","telefonverkauf","akquise","kaltakquise","outbound","provision","neukunden","business development","account executive","mediaberater","closer","setter","direct sales","aussendienst","außendienst","developer","engineer","buchhaltung","accounting","steuer","datev","designer","devops","controlling","lohn","bilanz","wirtschaftsprüf","up-selling","upselling","cross-selling","neuverträge","vertragsabschl","standortnähe","standort nähe","& umgebung","und umgebung","seller central","englisch c1","english (c1","fluent in german and english","fließend englisch","verhandlungssicheres englisch","german-speaking","german speaking"],
      hard:["developer","software engineer","devops","buchhalt","steuerber","steuerfach","bilanzbuch","lohnbuchhalt","datev","accountant","accounting","bookkeep","vertrieb","sales manager","sales representative","sales development","account executive","business development","sdr","telesales","akquise","closer","appointment setter","setter","mediaberater","verkäufer","außendienst","cold call","vorsorge","financial","versicherung","facility","front desk","empfang","it-service-desk","service desk","recruiter","headhunter","werkstudent","operations manager","success manager","fachinformatiker","it-support","dispatcher","projektleit","teamleit","working student","recruitment","kundenqualifizierung","pension","investment","kredit","fachwirt","translator","übersetz","dolmetsch"],langs:"[\"de\"]",reg:{world:3,eu:2,de:1},
-     noexp:true /* 06.10.: Annette unzufrieden -> Einstieg zuerst */, hardRx:/\bsales\b|\bleiter|\bleitung\b|head of|\blead\b|supervisor|energiewirtschaft|energiesektor|energieabrechnung|strom-?\s?gas|netznutzung|\bedm\b/i, hardTxt:/neo temp|kfs personal|optiper|\bunique$/i},
+     noexp:true /* 06.10.: Annette unzufrieden -> Einstieg zuerst */, hardRx:/\bsales\b|\bleiter|\bleitung\b|head of|\blead\b|supervisor|energie|strom|netznutzung|\bedm\b|zählerwesen|zaehlerwesen|marktkommunikation|lieferantenwechsel|solar|photovoltaik|wärmepumpe|waermepumpe|\bshk\b|anlagenmechaniker/i, hardTxt:/neo temp|kfs personal|optiper|\bunique$|\byer\b|zeitwert|energieprojekt|stromprojekt/i, wish:/support|kundenservice|kundensupport|kundenbetreu|anwender|onboarding|b(ü|ue)rokraft|b(ü|ue)roassist|kaufm|verwaltung|backoffice|back office|sachbearbeit|praxis|rezeption|empfang|terminvergabe|terminkoord|patientenservice/i /* 22.10. Paul: Energieprojekte passen nicht, mehr wie Craftevo-Support und kaufm. Buerokraft */},
    "francesco26":{ber:{service:3,buero:2,start:0.5},
      plus:["kundenservice","kundensupport","kundenbetreuung","kundendienst","kundenberater","customer support","customer service","chat support","email support","technischer support","technischer kundenservice","helpdesk","it-support","1st level","first level","content moderat","moderator","support agent","betreuung","backoffice","back office","sachbearbeit","datenerfassung","data entry","auftragsabwicklung","versand","verwaltung","assistenz","office"],
      minus:["zeitarbeit","personaldienstleist","arbeitnehmerüberlassung","personalvermittlung","sales","closer","setter","outbound","kaltakquise","telefonverkauf","designer","marketing","seo","provision","buchhaltung","accounting","steuer","datev","controlling","lohn","bilanz","debitoren","kreditoren","rechnungswesen","finanzbuch","telefonisch","am telefon","personal service","randstad","seller central","gutes englisch","fließend englisch","englisch fließend","verhandlungssicher"],
