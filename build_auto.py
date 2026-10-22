@@ -13,7 +13,7 @@ Design: uebernimmt template.html (das aktuelle Board) unveraendert und
 ersetzt nur die 7 Bereichs-Sektionen. Login-Gate, Chips, Favoriten-Sterne,
 Freelance, Toolbox, Footer bleiben wie sie sind.
 """
-import json, re, sys, os, datetime, datetime as dt, urllib.request, urllib.error, urllib.parse, html as _html
+import json, re, sys, os, datetime, datetime as dt, urllib.request, urllib.error, urllib.parse, html as _html, hashlib
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE = os.path.join(HERE, "template.html")
@@ -2170,7 +2170,7 @@ def _inject_fd(head, tail):
     if idx >= 0: tail = tail[:idx] + FD_SECTION + tail[idx:]
     else: print("[fd] WARN Anker fehlt (freelance) - Sektion nicht injiziert")
     # JS-Definitionen nach 'var CUR'
-    tail = rep(tail, "var CUR='';", "var CUR='';" + FD_JS, "cur")
+    tail = rep(tail, "var CUR='';", "var CUR='';" + _ohne_kommentare(FD_JS), "cur")   # 23.10.: Kommentare (Kundennamen) nicht ausliefern
     # unlock() ruft activateFDForUser()
     tail = rep(tail,
         "function unlock(){\n    document.getElementById('gate').style.display='none';\n    document.getElementById('app').style.display='block';\n    paintStars();\n  }",
@@ -2241,6 +2241,36 @@ def build_sections(jobs):
                     + "\n".join(card(c) for c in cards) + "\n</div>\n</div></section>")
     return "\n\n".join(html), by
 
+# 23.10. Datenschutz (Paul: "schliess es"): Die oeffentliche Seite enthielt alle Kunden-Passwoerter
+# (PWS, PROFILES-Schluessel) im Klartext und JS-Kommentare mit Vornamen und Kundenaussagen.
+# Jetzt: Kommentare raus, Passwoerter nur als SHA-256 ("mf1|"+Passwort). Der Browser rechnet beim Login
+# mit mfH() dieselbe Pruefsumme - fuer Kunden aendert sich nichts (gleiches Passwort, gleiche Favoriten).
+MFH_JS = "function mfH(s){if(mfH.c&&mfH.c[s])return mfH.c[s];mfH.c=mfH.c||{};var K=[1116352408,1899447441,-1245643825,-373957723,961987163,1508970993,-1841331548,-1424204075,-670586216,310598401,607225278,1426881987,1925078388,-2132889090,-1680079193,-1046744716,-459576895,-272742522,264347078,604807628,770255983,1249150122,1555081692,1996064986,-1740746414,-1473132947,-1341970488,-1084653625,-958395405,-710438585,113926993,338241895,666307205,773529912,1294757372,1396182291,1695183700,1986661051,-2117940946,-1838011259,-1564481375,-1474664885,-1035236496,-949202525,-778901479,-694614492,-200395387,275423344,430227734,506948616,659060556,883997877,958139571,1322822218,1537002063,1747873779,1955562222,2024104815,-2067236844,-1933114872,-1866530822,-1538233109,-1090935817,-965641998],H=[1779033703,-1150833019,1013904242,-1521486534,1359893119,-1694144372,528734635,1541459225];var b=unescape(encodeURIComponent('mf1|'+s)),l=b.length,w=[],i,j;for(i=0;i<l;i++)w[i>>2]|=(b.charCodeAt(i)&255)<<(24-(i%4)*8);w[l>>2]|=0x80<<(24-(l%4)*8);w[((l+8)>>6<<4)+15]=l*8;for(j=0;j<w.length;j+=16){var a=H.slice(0),W=[];for(i=0;i<64;i++){if(i<16)W[i]=w[j+i]|0;else{var x=W[i-15],y=W[i-2];W[i]=((((x>>>7)|(x<<25))^((x>>>18)|(x<<14))^(x>>>3))+W[i-16]+(((y>>>17)|(y<<15))^((y>>>19)|(y<<13))^(y>>>10))+W[i-7])|0;}var e=a[4],t1=(a[7]+(((e>>>6)|(e<<26))^((e>>>11)|(e<<21))^((e>>>25)|(e<<7)))+((e&a[5])^(~e&a[6]))+K[i]+W[i])|0;var c=a[0],t2=((((c>>>2)|(c<<30))^((c>>>13)|(c<<19))^((c>>>22)|(c<<10)))+((c&a[1])^(c&a[2])^(a[1]&a[2])))|0;a=[(t1+t2)|0].concat(a);a[4]=(a[4]+t1)|0;a.pop();}for(i=0;i<8;i++)H[i]=(H[i]+a[i])|0;}var o='';for(i=0;i<8;i++)o+=('00000000'+(H[i]>>>0).toString(16)).slice(-8);return mfH.c[s]=o;}"
+
+def _ohne_kommentare(js):
+    return re.sub(r"[ \t]*/\*[\s\S]*?\*/[ \t]*\n?", "", js)
+
+def _pw_hash(pw):
+    return hashlib.sha256(("mf1|" + pw).encode("utf-8")).hexdigest()
+
+def _schuetze_zugaenge(tail):
+    m = re.search(r"var PWS=(\[[^\]]*\]);", tail)
+    if not m:
+        print("[schutz] WARN PWS fehlt - Zugaenge NICHT geschuetzt"); return tail
+    pws = json.loads(m.group(1))
+    tail = tail.replace(m.group(0), "var PWS=" + json.dumps([_pw_hash(p) for p in pws]) + ";", 1)
+    keys = set(pws) | set(re.findall(r'PROFILES\["([^"]+)"\]', tail))
+    for k in keys:
+        h = _pw_hash(k)
+        tail = tail.replace('"%s":{' % k, '"%s":{' % h).replace('PROFILES["%s"]' % k, 'PROFILES["%s"]' % h)
+    n = tail.count("PWS.indexOf(v)") + tail.count("PWS.indexOf(saved)")
+    tail = tail.replace("PWS.indexOf(v)", "PWS.indexOf(mfH(v))").replace("PWS.indexOf(saved)", "PWS.indexOf(mfH(saved))")
+    tail = tail.replace("PROFILES[CUR]", "PROFILES[mfH(CUR)]")
+    tail = tail.replace("var CUR='';", "var CUR='';" + MFH_JS, 1)
+    rest = [k for k in keys if re.search(r'["\']' + re.escape(k) + r'["\']', tail)]
+    print(f"[schutz] {len(pws)} Zugaenge als Pruefsumme, {n} Login-Pruefungen umgestellt" + (f", WARN noch im Klartext: {rest}" if rest else ""))
+    return tail
+
 def main():
     tpl=open(TEMPLATE,encoding="utf-8").read()
     i0=tpl.find('<section data-ber="service"')
@@ -2248,6 +2278,7 @@ def main():
     assert i0>0 and i1>0, "Template-Grenzen nicht gefunden"
     head, tail = tpl[:i0], tpl[i1:]
     head, tail = _inject_fd(head, tail)   # personalisierte "Fuer dich"-Ansicht einbauen
+    tail = _schuetze_zugaenge(tail)        # 23.10.: keine Klartext-Passwoerter/Kundennamen mehr in der Seite
 
     # Fusszeilen-Datum automatisch mitziehen - stand vorher fest auf einem alten Tag
     # und liess das Board fuer Kunden veraltet aussehen (gefunden Lauf #119).
